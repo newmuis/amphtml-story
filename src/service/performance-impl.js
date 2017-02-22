@@ -19,6 +19,7 @@ import {whenDocumentReady, whenDocumentComplete} from '../document-ready';
 import {fromClass} from '../service';
 import {resourcesForDoc} from '../resources';
 import {viewerForDoc} from '../viewer';
+import {urls} from '../config';
 
 
 /**
@@ -87,6 +88,9 @@ export class Performance {
 
     /** @private {boolean} */
     this.isPerformanceTrackingOn_ = false;
+
+    /** @private {?string} */
+    this.enabledExperiments_ = null;
 
     /** @private @const {!Promise} */
     this.whenReadyToRetrieveResourcesPromise_ =
@@ -287,11 +291,33 @@ export class Performance {
    */
   flush() {
     if (this.isMessagingReady_ && this.isPerformanceTrackingOn_) {
-      this.viewer_.sendMessage('sendCsi', undefined,
-          /* cancelUnsent */true);
+      const experiments = this.getEnabledExperiments_();
+      const payload = experiments === '' ? undefined : {
+        ampexp: experiments,
+      };
+      this.viewer_.sendMessage('sendCsi', payload, /* cancelUnsent */true);
     }
   }
 
+  /**
+   * @returns {string} comma-separated list of experiment IDs
+   * @private
+   */
+  getEnabledExperiments_() {
+    if (this.enabledExperiments_ !== null) {
+      return this.enabledExperiments_;
+    }
+    const experiments = [];
+    // Check if it's the legacy CDN domain.
+    if (this.getHostname_() == urls.cdn.split('://')[1]) {
+      experiments.push('legacy-cdn-domain');
+    }
+    return this.enabledExperiments_ = experiments.join(',');
+  }
+
+  getHostname_() {
+    return this.win.location.hostname;
+  }
 
   /**
    * Queues the events to be flushed when tick function is set.
