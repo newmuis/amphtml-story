@@ -19,6 +19,7 @@
  *
  * Example:
  * <code>
+<<<<<<< HEAD
  * <amp-story related-articles="related.json">
  *   [...]
  * </amp-story>
@@ -586,6 +587,28 @@ export class AmpStory extends AMP.BaseElement {
    */
   getPageIndex(page) {
     return Array.prototype.indexOf.call(this.getPages(), page);
+=======
+ * <amp-story
+ *   layout="fill"
+ *   logo="my-logo.png">
+ * </amp-story>
+ * </code>
+ */
+
+import {CSS} from '../../../build/amp-story-0.1.css';
+import {Layout} from '../../../src/layout';
+
+export class AmpStory extends AMP.BaseElement {
+
+  /** @param {!AmpElement} element */
+  constructor(element) {
+    super(element);
+  }
+
+  /** @override */
+  isLayoutSupported(layout) {
+    return layout == Layout.FILL;
+>>>>>>> 95dcfda4... Add a base amp-story extension.
   }
 }
 
