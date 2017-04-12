@@ -37,6 +37,11 @@ export class AmpStory extends AMP.BaseElement {
   }
 
   /** @override */
+  buildCallback() {
+    this.element.textContent = 'story goes here';
+  }
+
+  /** @override */
   isLayoutSupported(layout) {
     return layout == Layout.FILL;
   }
