@@ -35,22 +35,20 @@ import {CSS} from '../../../build/amp-story-0.1.css';
 import {Layout} from '../../../src/layout';
 import {extensionsFor} from '../../../src/services';
 
-const AMP_CAROUSEL_TAG = 'amp-carousel';
-
 export class AmpStory extends AMP.BaseElement {
   /** @param {!AmpElement} element */
   constructor(element) {
     super(element);
 
     /** @private {!Element} */
-    this.carousel_ = this.win.document.createElement(AMP_CAROUSEL_TAG);
+    this.carousel_ = this.win.document.createElement('amp-carousel');
     this.carousel_.setAttribute('type', 'slides');
     this.carousel_.setAttribute('layout', 'fill');
   }
 
   /** @override */
   buildCallback() {
-    extensionsFor(this.win).loadExtension(AMP_CAROUSEL_TAG);
+    extensionsFor(this.win).loadExtension('amp-carousel');
     this.getRealChildren().forEach((child) => {
       this.carousel_.appendChild(child);
     });
