@@ -14,32 +14,23 @@
  * limitations under the License.
  */
 
-amp-story {
-  height: 100% !important;
-  width: 100% !important;
+/**
+ * @fileoverview Embeds a story
+ *
+ * Example:
+ * <code>
+ * <amp-story-foreground-layer>
+ * </amp-story-foreground-layer>
+ * </code>
+ */
+
+import {Layout} from '../../../src/layout';
+
+export class AmpStoryForegroundLayer extends AMP.BaseElement {
+  /** @override */
+  isLayoutSupported(layout) {
+    return layout == Layout.FILL;
+  }
 }
 
-body > amp-story {
-  height: 100vh !important;
-}
-
-amp-story > amp-carousel .amp-carousel-button {
-  display: none;
-}
-
-amp-story-background-layer {
-  z-index: 1 !important;
-}
-
-amp-story-background-layer > amp-img img,
-amp-story-background-layer > amp-video video {
-  object-fit: cover !important;
-}
-
-amp-story-foreground-layer {
-  z-index: 2 !important;
-}
-
-amp-story strong {
-  display: block;
-}
+AMP.registerElement('amp-story-foreground-layer', AmpStoryForegroundLayer);
