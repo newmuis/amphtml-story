@@ -14,32 +14,18 @@
  * limitations under the License.
  */
 
-amp-story {
-  height: 100% !important;
-  width: 100% !important;
-}
+/**
+ * @fileoverview Embeds a story
+ *
+ * Example:
+ * <code>
+ * <amp-story-page layout="fill">
+ * </amp-story>
+ * </code>
+ */
 
-body > amp-story {
-  height: 100vh !important;
-}
+import {AmpStoryPage} from './amp-story-page';
 
-amp-story > amp-carousel .amp-carousel-button {
-  display: none;
-}
+export class AmpStoryCover extends AmpStoryPage {}
 
-amp-story-background-layer {
-  z-index: 1 !important;
-}
-
-amp-story-background-layer > amp-img img,
-amp-story-background-layer > amp-video video {
-  object-fit: cover !important;
-}
-
-amp-story-foreground-layer {
-  z-index: 2 !important;
-}
-
-amp-story strong {
-  display: block;
-}
+AMP.registerElement('amp-story-cover', AmpStoryCover);
