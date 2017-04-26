@@ -19,25 +19,18 @@
  *
  * Example:
  * <code>
- * <amp-story-bookend
- *   endpoint="related-articles.json"
- *   layout="fill">
- * </amp-story>
+ * <amp-story-layer>
+ * </amp-story-layer>
  * </code>
  */
 
 import {Layout} from '../../../src/layout';
 
-export class AmpStoryBookend extends AMP.BaseElement {
-  /** @override */
-  buildCallback() {
-    this.element.textContent = 'bookend goes here';
-  }
-
+export class AmpStoryLayer extends AMP.BaseElement {
   /** @override */
   isLayoutSupported(layout) {
     return layout == Layout.FILL;
   }
 }
 
-AMP.registerElement('amp-story-bookend', AmpStoryBookend);
+AMP.registerElement('amp-story-layer', AmpStoryLayer);
