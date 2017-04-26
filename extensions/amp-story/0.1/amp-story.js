@@ -25,11 +25,7 @@
  * </amp-story>
  * </code>
  */
-
-import {AmpStoryBackgroundLayer} from './amp-story-background-layer';
-import {AmpStoryBookend} from './amp-story-bookend';
-import {AmpStoryCover} from './amp-story-cover';
-import {AmpStoryForegroundLayer} from './amp-story-foreground-layer';
+import {AmpStoryLayer} from './amp-story-layer';
 import {AmpStoryPage} from './amp-story-page';
 import {CSS} from '../../../build/amp-story-0.1.css';
 import {Layout} from '../../../src/layout';
@@ -44,6 +40,10 @@ export class AmpStory extends AMP.BaseElement {
     this.carousel_ = this.win.document.createElement('amp-carousel');
     this.carousel_.setAttribute('type', 'slides');
     this.carousel_.setAttribute('layout', 'fill');
+
+    /** @private {!Element} */
+    this.bookend_ = this.win.document.createElement('section');
+    this.bookend_.textContent = 'bookend goes here';
   }
 
   /** @override */
@@ -52,6 +52,7 @@ export class AmpStory extends AMP.BaseElement {
     this.getRealChildren().forEach((child) => {
       this.carousel_.appendChild(child);
     });
+    this.carousel_.appendChild(this.bookend_);
     this.element.appendChild(this.carousel_);
   }
 
