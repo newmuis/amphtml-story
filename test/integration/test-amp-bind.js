@@ -20,11 +20,8 @@ import {Services} from '../../src/services';
 import {createFixtureIframe} from '../../testing/iframe';
 import * as sinon from 'sinon';
 
-describe.configure().ifNewChrome().run('amp-bind', function() {
-  // Give more than default 2000ms timeout for local testing.
-  const TIMEOUT = Math.max(window.ampTestRuntimeConfig.mochaTimeout, 4000);
-  this.timeout(TIMEOUT);
-
+// TODO(choumx): Unskip once #9571 is fixed.
+describe.skip('amp-bind', function() {
   let fixture;
   let sandbox;
   let numSetStates;
