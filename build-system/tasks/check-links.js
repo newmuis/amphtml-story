@@ -90,7 +90,9 @@ function checkLinks() {
         util.log(
             util.colors.red('ERROR'),
             'Possible dead link(s) found in',
-            util.colors.magenta(markdownFiles[index]));
+            util.colors.magenta(markdownFiles[index]),
+            '(please update, or whitelist in',
+            'build-system/tasks/check-links.js).');
       } else {
         util.log(
             util.colors.green('SUCCESS'),
@@ -101,35 +103,15 @@ function checkLinks() {
     if (deadLinksFound) {
         util.log(
             util.colors.red('ERROR'),
-            'Please update dead link(s) in',
-            util.colors.magenta(filesWithDeadLinks.join(',')),
-            'or whitelist them in build-system/tasks/check-links.js');
-        util.log(
-            util.colors.yellow('NOTE'),
-            'If the link(s) above are illustrative and aren\'t meant to work,',
-            'surrounding them with backticks or <code></code> will exempt them',
-            'from the link checker.');
-        process.exit(1);
+            'Possible dead link(s) found.',
+            'Please update, or whitelist in build-system/tasks/check-links.js.',
+            util.colors.magenta(filesWithDeadLinks.join(',')));
+            process.exit(1);
     } else {
         util.log(
             util.colors.green('SUCCESS'),
             'All links in all markdown files in this PR are alive.');
     }
-  });
-}
-
-/**
- * Determines if a link points to a file added, copied, or renamed in the PR.
- *
- * @param {string} link Link being tested.
- * @return {boolean} True if the link points to a file introduced by the PR.
- */
-function isLinkToFileIntroducedByPR(link) {
-  var filesAdded =
-      getStdout(`git diff --name-only --diff-filter=ARC master...HEAD`)
-      .trim().split('\n');
-  return filesAdded.some(function(file) {
-    return (file.length > 0 && link.includes(path.parse(file).base));
   });
 }
 
@@ -142,20 +124,15 @@ function isLinkToFileIntroducedByPR(link) {
 function filterWhitelistedLinks(markdown) {
   var filteredMarkdown = markdown;
 
-  // localhost links optionally preceded by ( or [ (not served on Travis)
-  filteredMarkdown =
-      filteredMarkdown.replace(/(\(|\[)?http:\/\/localhost:8000/g, '');
+  // localhost links (not served on Travis)
+  filteredMarkdown = filteredMarkdown.replace(/http:\/\/localhost:8000/g, '');
 
   // Links in script tags (illustrative, and not always valid)
   filteredMarkdown = filteredMarkdown.replace(/src="http.*?"/g, '');
 
-  // Links inside a <code> block (illustrative, and not always valid)
-  filteredMarkdown = filteredMarkdown.replace(/<code>(.*?)<\/code>/g, '');
-
-  // After all whitelisting is done, clean up any remaining empty blocks bounded
-  // by backticks. Otherwise, `` will be treated as the start of a code block
-  // and confuse the link extractor.
-  filteredMarkdown = filteredMarkdown.replace(/\ \`\`\ /g, '');
+  // Direct links to the https://cdn.ampproject.org domain (not a valid page)
+  filteredMarkdown =
+      filteredMarkdown.replace(/https:\/\/cdn.ampproject.org(?!\/)/g, '');
 
   return filteredMarkdown;
 }
