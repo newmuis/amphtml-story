@@ -229,7 +229,8 @@ describes.realWin('InstrumentationService', {amp: 1}, env => {
           analyticsElement, 'visible', config, handler);
     });
 
-    it('should add "visible" trigger for hidden', () => {
+    it('should add "visible-v3" trigger for hidden', () => {
+      toggleExperiment(win, 'visibility-v3', true);
       group = service.createAnalyticsGroup(analyticsElement);
       const config = {on: 'hidden'};
       const getTrackerSpy = sandbox.spy(root, 'getTracker');

@@ -443,10 +443,13 @@ export class AnalyticsGroup {
    * @param {function(!AnalyticsEvent)} handler
    */
   addTrigger(config, handler) {
-    const eventType = dev().assertString(config['on']);
-    const trackerKey = startsWith(eventType, 'video-') ? 'video' : eventType;
-
-    let trackerProfile = EVENT_TRACKERS[trackerKey];
+    let eventType = dev().assertString(config['on']);
+    // TODO(dvoytenko, #8121): Cleanup visibility-v3 experiment.
+    if ((eventType == 'visible' || eventType == 'hidden')
+        && this.visibilityV3_) {
+      eventType += '-v3';
+    }
+    let trackerProfile = EVENT_TRACKERS[eventType];
     if (!trackerProfile && !isEnumValue(AnalyticsEventType, eventType)) {
       trackerProfile = EVENT_TRACKERS['custom'];
     }
