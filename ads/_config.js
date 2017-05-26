@@ -107,8 +107,6 @@ export const adConfig = {
     renderStartImplemented: true,
   },
 
-  adocean: {},
-
   adreactor: {},
 
   adsense: {
