@@ -233,8 +233,7 @@ export class AccessServerJwtAdapter {
     if (this.key_) {
       return Promise.resolve(this.key_);
     }
-    return this.xhr_.fetchText(dev().assertString(this.keyUrl_))
-        .then(res => res.text());
+    return this.xhr_.fetchText(this.keyUrl_).then(res => res.text());
   }
 
   /**

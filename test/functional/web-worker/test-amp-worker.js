@@ -50,7 +50,7 @@ describe('invokeWebWorker', () => {
 
     // Stub xhr.fetchText() to return a resolved promise.
     installXhrService(fakeWin);
-    sandbox.stub(Services.xhrFor(fakeWin), 'fetchText', () => Promise.resolve({
+    sandbox.stub(xhrFor(fakeWin), 'fetchText', () => Promise.resolve({
       text() {
         return Promise.resolve();
       },
