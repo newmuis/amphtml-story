@@ -15,6 +15,8 @@
  */
 'use strict';
 
+'use strict';
+
 /**
  * @fileoverview Creates an http server to handle static
  * files and list directories for use with the gulp live server
@@ -71,7 +73,7 @@ app.get([
 app.use('/pwa', (req, res) => {
   let file;
   let contentType;
-  if (!req.url || req.path == '/') {
+  if (!req.url || req.url == '/') {
     // pwa.html
     contentType = 'text/html';
     file = '/examples/pwa/pwa.html';
@@ -218,40 +220,6 @@ app.use('/form/search-json/get', (req, res) => {
   res.json({
     term: req.query.term,
     results: [{title: 'Result 1'}, {title: 'Result 2'}, {title: 'Result 3'}],
-  });
-});
-
-const autosuggestLanguages = ['ActionScript', 'AppleScript', 'Asp', 'BASIC',
-  'C', 'C++', 'Clojure', 'COBOL', 'ColdFusion', 'Erlang', 'Fortran', 'Go',
-  'Groovy', 'Haskell', 'Java', 'JavaScript', 'Lisp', 'Perl', 'PHP', 'Python',
-  'Ruby', 'Scala', 'Scheme'];
-
-app.use('/form/autosuggest/query', (req, res) => {
-  assertCors(req, res, ['GET']);
-  const MAX_RESULTS = 4;
-  const query = req.query.q;
-  if (!query) {
-    res.json({items: [{
-      results: autosuggestLanguages.slice(0, MAX_RESULTS),
-    }]});
-  } else {
-    const lowerCaseQuery = query.toLowerCase();
-    const filtered = autosuggestLanguages.filter(
-        l => l.toLowerCase().includes(lowerCaseQuery));
-    res.json({items: [{
-      results: filtered.slice(0, MAX_RESULTS)},
-    ]});
-  }
-});
-
-app.use('/form/autosuggest/search', (req, res) => {
-  assertCors(req, res, ['POST']);
-  const form = new formidable.IncomingForm();
-  form.parse(req, function(err, fields) {
-    res.json({
-      query: fields.query,
-      results: [{title: 'Result 1'}, {title: 'Result 2'}, {title: 'Result 3'}],
-    });
   });
 });
 
@@ -503,7 +471,7 @@ function getLiveBlogItemWithBindAttributes() {
       <div id="live-blog-item-${now}" data-sort-time="${now}">
         <div class="article-body">
           ${body}
-          <p> As you can see, bacon is far superior to
+          <p> As you can see, bacon is far superior to 
           <b><span [text]='favoriteFood'>everything!</span></b>!</p>
         </div>
       </div>
@@ -576,7 +544,7 @@ app.get('/iframe/*', (req, res) => {
   res.send(`<!doctype html>
           <html style="width:100%; height:100%;">
             <body style="width:98%; height:98%;">
-              <iframe src="${req.url.substr(7)}"
+              <iframe src="${req.url.substr(7)}" 
                   style="width:100%; height:100%;">
               </iframe>
             </body>
@@ -751,7 +719,7 @@ function elementExtractor(tagName, type) {
       'gm');
 }
 
-// Data for example: http://localhost:8000/examples/bind/xhr.amp.html
+// Data for example: http://localhost:8000/examples/bind/xhr.amp.max.html
 app.use('/bind/form/get', (req, res) => {
   assertCors(req, res, ['GET']);
   res.json({
@@ -759,7 +727,7 @@ app.use('/bind/form/get', (req, res) => {
   });
 });
 
-// Data for example: http://localhost:8000/examples/bind/ecommerce.amp.html
+// Data for example: http://localhost:8000/examples/bind/ecommerce.amp.max.html
 app.use('/bind/ecommerce/sizes', (req, res) => {
   assertCors(req, res, ['GET']);
   setTimeout(() => {
@@ -869,7 +837,11 @@ app.use([cloudflareDataDir], function fakeCors(req, res, next) {
  */
 app.get([fakeAdNetworkDataDir + '/*', cloudflareDataDir + '/*'], (req, res) => {
   let filePath = req.path;
-  let unwrap = !req.path.endsWith('.html');
+  let unwrap = false;
+  if (req.path.endsWith('.html')) {
+    filePath = req.path.slice(0,-5);
+    unwrap = true;
+  }
   filePath = pc.cwd() + filePath;
   fs.readFileAsync(filePath).then(file => {
     res.setHeader('X-AmpAdRender', 'nameframe');
@@ -917,7 +889,7 @@ app.get('/dist/rtv/*/v0/*.js', (req, res, next) => {
  */
 app.get(['/dist/sw.js', '/dist/sw-kill.js', '/dist/ww.js'],
     (req, res, next) => {
-      // Special case for entry point script url. Use compiled for testing
+      // Speical case for entry point script url. Use compiled for testing
       const mode = pc.env.SERVE_MODE;
       const fileName = path.basename(req.path);
       if (mode == 'cdn') {
@@ -1045,35 +1017,29 @@ function replaceUrls(mode, file, hostName, inabox) {
   hostName = hostName || '';
   if (mode == 'default') {
     file = file.replace(
-        /https:\/\/cdn\.ampproject\.org\/v0\.js/g,
+        'https://cdn.ampproject.org/v0.js',
         hostName + '/dist/amp.js');
     file = file.replace(
-        /https:\/\/cdn\.ampproject\.org\/shadow-v0\.js/g,
-        hostName + '/dist/amp-shadow.js');
-    file = file.replace(
-        /https:\/\/cdn\.ampproject\.org\/amp4ads-v0\.js/g,
+        'https://cdn.ampproject.org/amp4ads-v0.js',
         hostName + '/dist/amp-inabox.js');
     file = file.replace(
-        /https:\/\/cdn\.ampproject\.org\/v0\/(.+?).js/g,
+        /https:\/\/cdn.ampproject.org\/v0\/(.+?).js/g,
         hostName + '/dist/v0/$1.max.js');
     if (inabox) {
       file = file.replace(/\/dist\/amp\.js/g, '/dist/amp-inabox.js');
     }
   } else if (mode == 'compiled') {
     file = file.replace(
-        /https:\/\/cdn\.ampproject\.org\/v0\.js/g,
+        'https://cdn.ampproject.org/v0.js',
         hostName + '/dist/v0.js');
     file = file.replace(
-        /https:\/\/cdn\.ampproject\.org\/shadow-v0\.js/g,
-        hostName + '/dist/shadow-v0.js');
-    file = file.replace(
-        /https:\/\/cdn\.ampproject\.org\/amp4ads-v0\.js/g,
+        'https://cdn.ampproject.org/amp4ads-v0.js',
         hostName + '/dist/amp4ads-v0.js');
     file = file.replace(
-        /https:\/\/cdn\.ampproject\.org\/v0\/(.+?).js/g,
+        /https:\/\/cdn.ampproject.org\/v0\/(.+?).js/g,
         hostName + '/dist/v0/$1.js');
     file = file.replace(
-        /\/dist.3p\/current\/(.*)\.max.html/g,
+        /\/dist.3p\/current\/(.*)\.max.html/,
         hostName + '/dist.3p/current-min/$1.html');
     if (inabox) {
       file = file.replace(/\/dist\/v0\.js/g, '/dist/amp4ads-v0.js');

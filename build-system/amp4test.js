@@ -17,28 +17,6 @@
 
 const app = module.exports = require('express').Router();
 
-app.use('/compose-doc', function(req, res) {
-  res.setHeader('X-XSS-Protection', '0');
-  const mode = process.env.SERVE_MODE == 'compiled' ? '' : 'max.';
-  const extensions = req.query.extensions;
-  let extensionScripts = '';
-  if (!!extensions) {
-    extensionScripts = extensions.split(',').map(function(extension) {
-      return '<script async custom-element="'
-              + extension + '" src=/dist/v0/'
-              + extension + '-0.1.' + mode + 'js></script>';
-    }).join('\n');
-  }
-
-  const experiments = req.query.experiments;
-  let metaTag = '';
-  let experimentString = '';
-  if (experiments) {
-    metaTag = '<meta name="amp-experiments-opt-in" content="' +
-      experiments + '">';
-    experimentString = '"' + experiments.split(',').join('","') + '"';
-  }
-
   res.send(`
 <!doctype html>
 <html ⚡>
@@ -74,7 +52,7 @@ const bank = {};
  * Deposit a request. An ID has to be specified. Will override previous request
  * if the same ID already exists.
  */
-app.use('/request-bank/deposit/:id', (req, res) => {
+app.get('/request-bank/deposit/:id', (req, res) => {
   if (typeof bank[req.params.id] === 'function') {
     bank[req.params.id](req);
   } else {
@@ -88,7 +66,7 @@ app.use('/request-bank/deposit/:id', (req, res) => {
  * return it immediately. Otherwise wait until it gets deposited
  * The same request cannot be withdrawn twice at the same time.
  */
-app.use('/request-bank/withdraw/:id', (req, res) => {
+app.get('/request-bank/withdraw/:id', (req, res) => {
   const result = bank[req.params.id];
   if (typeof result === 'function') {
     return res.status(500).send('another client is withdrawing this ID');

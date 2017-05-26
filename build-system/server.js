@@ -15,40 +15,19 @@
  */
 'use strict';
 
+'use strict';
+
 /**
  * @fileoverview Creates an http server to handle static
  * files and list directories for use with the gulp live server
  */
 const app = require(require.resolve('./app.js'));
-const isRunning = require('is-running');
+const webserver = require('gulp-webserver');
 const gulp = require('gulp-help')(require('gulp'));
 const morgan = require('morgan');
-const util = require('gulp-util');
-const webserver = require('gulp-webserver');
-
 const host = process.env.SERVE_HOST;
 const port = process.env.SERVE_PORT;
-const useHttps = process.env.SERVE_USEHTTPS == 'true';
-const gulpProcess = process.env.SERVE_PROCESS_ID;
-const quiet = process.env.SERVE_QUIET == 'true';
-
-// Exit if the port is in use.
-process.on('uncaughtException', function(err) {
-  if(err.errno === 'EADDRINUSE') {
-    util.log(util.colors.red('Port', port, 'in use, shutting down server'));
-  } else {
-    util.log(util.colors.red(err));
-  }
-  process.kill(gulpProcess, 'SIGINT');
-  process.exit(1);
-});
-
-// Exit in the event of a crash in the parent gulp process.
-setInterval(function() {
-  if (!isRunning(gulpProcess)) {
-    process.exit(1);
-  }
-}, 1000);
+const useHttps = process.env.SERVE_USEHTTPS == 'true' ? true : false;
 
 // Start gulp webserver
 gulp.src(process.cwd())
