@@ -26,7 +26,6 @@ import {getCookie, setCookie} from './cookies';
 import {getServicePromise} from './service';
 import {getSourceOrigin, parseQueryString, parseUrl} from './url';
 import {user} from './log';
-import {parseJson} from './json';
 
 /** @const {string} */
 const TAG = 'experiments';
@@ -46,6 +45,12 @@ const TOGGLES_WINDOW_PROPERTY = '__AMP__EXPERIMENT_TOGGLES';
 //TODO(kmh287, #8331) Uncomment and replace empty object literal with real
 // experiment public key jwk.
 /** @type {!Promise<undefined>} */
+const originTrialsPromise = Promise.resolve();
+// const originTrialsPromise = enableExperimentsForOriginTrials(self, {});
+
+//TODO(kmh287, #8331) Uncomment and replace empty object literal with real
+// experiment public key jwk.
+/** @type {!Promise} */
 const originTrialsPromise = Promise.resolve();
 // const originTrialsPromise = enableExperimentsForOriginTrials(self, {});
 
@@ -181,6 +186,135 @@ export function enableExperimentsForOriginTrials(win, publicJwk) {
       if (token) {
         const tokenPromise =
             enableExperimentsFromToken(win, token, crypto, key)
+                .catch(err => {
+                  // Log message but do not prevent scans of other tokens.
+                  user().warn(TAG, err);
+                });
+        tokenPromises.push(tokenPromise);
+      } else {
+        user().warn(TAG, 'Unable to read experiments token');
+      }
+    }
+    return Promise.all(tokenPromises);
+  });
+}
+
+/**
+ * Determines if the specified experiment is on or off for origin trials.
+ * Callers should check if the experiment is already enabled before calling this
+ * function.
+ *
+ * @param {!Window} win
+ * @param {string} experimentId
+ * @return {!Promise<boolean>}
+ */
+export function isExperimentOnForOriginTrial(win, experimentId) {
+  return originTrialsPromise.then(() => isExperimentOn(win, experimentId));
+}
+
+/**
+ * Enable experiments detailed in an origin trials token iff the token is
+ * valid. A token is invalid if *
+ *   1. The token is malformed (e.g. non-existant version number)
+ *   2. The token is not for this origin
+ *   3. The experiments data was not signed with our private key
+ * @param {!Window} win
+ * @param {string} token
+ * @param {!Object} crypto Crypto service
+ * @param {!Object} keyInfo Key info for the public key used to verify
+ *    the token's signature.
+ * @return {!Promise}
+ */
+function enableExperimentsFromToken(win, token, crypto, keyInfo) {
+  if (!crypto.isCryptoAvailable()) {
+    user().warn(TAG, 'Crypto is unavailable');
+    return Promise.resolve();
+  }
+  /**
+   * token = encode64(version + length + config + sign(config, private_key))
+   * version = 1 byte version of the token format (starting at 0x0)
+   */
+  let current = 0;
+  const bytes = stringToBytes(atob(token));
+  const version = bytes[current];
+  if (version !== 0) {
+    // Unrecognized version number
+    return Promise.reject(
+        new Error(`Unrecognized experiments token version: ${version}`));
+  }
+  current++;
+  /**
+   * Version 0:
+   * length = 4 bytes representing number of bytes in config
+   * config = string containing the experiment ID, origin URL, etc.
+   */
+  const bytesForConfigSize = 4;
+  const configSize =
+      bytesToUInt32(bytes.subarray(current, current + bytesForConfigSize));
+  current += bytesForConfigSize;
+  if (configSize > bytes.length - current) {
+    return Promise.reject(
+        new Error('Specified len extends past end of buffer'));
+  }
+  const configBytes = bytes.subarray(current, current + configSize);
+  current += configSize;
+  const signedBytes = bytes.subarray(0, current);
+  const signatureBytes = bytes.subarray(current);
+
+  return crypto.verifySignature(signedBytes, signatureBytes, keyInfo)
+      .then(verified => {
+        if (!verified) {
+          throw new Error('Failed to verify config signature');
+        }
+        const configStr = utf8DecodeSync(configBytes);
+        const config = JSON.parse(configStr);
+
+        const approvedOrigin = parseUrl(config['origin']).origin;
+        const sourceOrigin = getSourceOrigin(win.location);
+        if (approvedOrigin !== sourceOrigin) {
+          throw new Error('Config does not match current origin');
+        }
+
+        const experimentId = config['experiment'];
+        const expiration = config['expiration'];
+        const now = Date.now();
+        if (expiration >= now) {
+          toggleExperiment(win,
+              experimentId,
+              /* opt_on */ true,
+              /* opt_transientExperiment */ true);
+        } else {
+          throw new Error(`Experiment ${experimentId} has expired`);
+        }
+      });
+}
+
+
+/**
+ * Scan the page for origin trial tokens. Enable experiments detailed in the
+ * tokens iff the token is well-formed. A token
+ * @param {!Window} win
+  *@param {!Object} publicJwk Used for testing only.
+ * @return {!Promise}
+ */
+export function enableExperimentsForOriginTrials(win, publicJwk) {
+  const metas =
+      win.document.head.querySelectorAll('meta[name="amp-experiment-token"]');
+  if (metas.length == 0 || Object.keys(publicJwk).length == 0) {
+    return Promise.resolve();
+  }
+  let crypto;
+  return getServicePromise(win, 'crypto').then(c => {
+    crypto = c;
+    return crypto.importPublicKey('experiments', publicJwk);
+  }).then(keyInfo => {
+    const tokenPromises = [];
+    for (let i = 0; i < metas.length; i++) {
+      const meta = metas[i];
+      const token = meta.getAttribute('content');
+      if (token) {
+        const tokenPromise =
+            enableExperimentsFromToken(win, token, crypto, keyInfo)
                 .catch(err => {
                   // Log message but do not prevent scans of other tokens.
                   user().warn(TAG, err);
@@ -489,3 +623,4 @@ export function forceExperimentBranch(win, experimentName, branchId) {
   toggleExperiment(win, experimentName, !!branchId, true);
   win.experimentBranches[experimentName] = branchId;
 }
+
