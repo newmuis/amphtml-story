@@ -282,17 +282,18 @@ describes.sandboxed('AmpAnimation', {}, () => {
           {duration: 1001, animations: []});
       anim.activate();
       anim.visible_ = true;
-      yield anim.startOrResume_();
-      expect(anim.triggered_).to.be.true;
-      expect(anim.runner_).to.exist;
+      return anim.startOrResume_().then(() => {
+        expect(anim.triggered_).to.be.true;
+        expect(anim.runner_).to.exist;
 
-      runner.setPlayState_(WebAnimationPlayState.FINISHED);
-      expect(anim.triggered_).to.be.false;
-      expect(anim.runner_).to.be.null;
+        runner.setPlayState_(WebAnimationPlayState.FINISHED);
+        expect(anim.triggered_).to.be.false;
+        expect(anim.runner_).to.be.null;
+      });
     });
 
-    it('should resize from ampdoc viewport', function* () {
-      const anim = yield createAnim({}, {duration: 1001});
+    it('should resize from ampdoc viewport', () => {
+      const anim = createAnim({}, {duration: 1001});
       const stub = sandbox.stub(anim, 'onResize_');
       const viewport = win.services.viewport.obj;
 
@@ -734,10 +735,10 @@ describes.sandboxed('AmpAnimation', {}, () => {
       expect(anim.visible_).to.be.true;
     });
 
-    it('should find target in the embed only via selector', function* () {
+    it('should find target in the embed only via selector', () => {
       const parentWin = env.ampdoc.win;
       const embedWin = embed.win;
-      const anim = yield createAnim({},
+      const anim = createAnim({},
           {duration: 1001, selector: '#target1', keyframes: {}});
       const targetInDoc = parentWin.document.createElement('div');
       targetInDoc.setAttribute('id', 'target1');
@@ -752,10 +753,10 @@ describes.sandboxed('AmpAnimation', {}, () => {
       });
     });
 
-    it('should find target in the embed only via target', function* () {
+    it('should find target in the embed only via target', () => {
       const parentWin = env.ampdoc.win;
       const embedWin = embed.win;
-      const anim = yield createAnim({},
+      const anim = createAnim({},
           {duration: 1001, target: 'target1', keyframes: {}});
       const targetInDoc = parentWin.document.createElement('div');
       targetInDoc.setAttribute('id', 'target1');

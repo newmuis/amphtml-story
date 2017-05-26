@@ -17,9 +17,8 @@
 import {CssNumberNode, CssTimeNode, isVarCss} from './css-expr-ast';
 import {Observable} from '../../../src/observable';
 import {assertHttpsUrl, resolveRelativeUrl} from '../../../src/url';
-import {closestBySelector, matches} from '../../../src/dom';
+import {closestBySelector} from '../../../src/dom';
 import {dev, user} from '../../../src/log';
-import {extractKeyframes} from './keyframes-extractor';
 import {getMode} from '../../../src/mode';
 import {getVendorJsPropertyName, computedStyle} from '../../../src/style';
 import {isArray, isObject, toArray} from '../../../src/types';
@@ -451,22 +450,19 @@ export class Builder {
 export class MeasureScanner extends Scanner {
 
   /**
-   * @param {!Builder} builder
-   * @param {!CssContextImpl} css
-   * @param {!Array<string>} path
-   * @param {?Element} target
-   * @param {?number} index
-   * @param {?Object<string, *>} vars
-   * @param {?WebAnimationTimingDef} timing
+   * @param {!Window} win
+   * @param {!Node} rootNode
+   * @param {string} baseUrl
+   * @param {boolean} validate
    */
-  constructor(builder, css, path, target, index, vars, timing) {
+  constructor(win, rootNode, baseUrl, validate) {
     super();
 
     /** @const @private */
-    this.builder_ = builder;
+    this.rootNode_ = rootNode;
 
     /** @const @private */
-    this.css_ = css;
+    this.css_ = new CssContextImpl(win, rootNode, baseUrl);
 
     /** @const @private */
     this.path_ = path;
@@ -495,14 +491,17 @@ export class MeasureScanner extends Scanner {
     /** @private {!Array<!InternalWebAnimationRequestDef>} */
     this.requests_ = [];
 
-    /**
-     * Dependencies required to resolve all animation requests. In case of
-     * composition, all requests can only be resolved asynchronously. This
-     * dependencies are used to block `resolveRequests` to collect all
-     * dependenices.
-     * @const @private {!Array<!Promise>}
-     */
-    this.deps_ = [];
+  /**
+   * @param {!../../../src/service/resources-impl.Resources} resources
+   * @return {!Promise<!WebAnimationRunner>}
+   */
+  createRunner(resources) {
+    if (getMode().localDev || getMode().development) {
+      user().fine(TAG, 'Animation: ', this.requests_);
+    }
+    return this.unblockElements_(resources).then(() => {
+      return new WebAnimationRunner(this.requests_);
+    });
   }
 
   /**
@@ -761,7 +760,7 @@ export class MeasureScanner extends Scanner {
     if (spec.selector) {
       user().assert(!spec.target,
           'Both "selector" and "target" are not allowed');
-      targets = this.css_.queryElements(spec.selector);
+      targets = this.queryTargets_(spec.selector);
       if (targets.length == 0) {
         user().warn(TAG, `Target not found: "${spec.selector}"`);
       }
@@ -772,7 +771,7 @@ export class MeasureScanner extends Scanner {
       }
       const target = user().assertElement(
           typeof spec.target == 'string' ?
-              this.css_.getElementById(spec.target) :
+              this.resolveTarget_(spec.target) :
               spec.target,
           `Target not found: "${spec.target}"`);
       targets = [target];
@@ -864,6 +863,30 @@ export class MeasureScanner extends Scanner {
   }
 
   /**
+   * @param {string} id
+   * @return {?Element}
+   * @private
+   * TODO(dvoytenko, #9129): cleanup deprecated string targets.
+   */
+  resolveTarget_(id) {
+    return this.rootNode_.getElementById(id);
+  }
+
+  /**
+   * @param {string} selector
+   * @return {!Array<!Element>}
+   * @private
+   */
+  queryTargets_(selector) {
+    try {
+      return toArray(this.rootNode_./*OK*/querySelectorAll(selector));
+    } catch (e) {
+      throw user().createError('Invalid selector: ', selector);
+    }
+  }
+
+
+  /**
    * Merges timing by defaulting values from the previous timing.
    * @param {!WebAnimationTimingDef} newTiming
    * @param {!WebAnimationTimingDef} prevTiming
@@ -949,7 +972,7 @@ export class MeasureScanner extends Scanner {
 class CssContextImpl {
   /**
    * @param {!Window} win
-   * @param {!Document|!ShadowRoot} rootNode
+   * @param {!Node} rootNode
    * @param {string} baseUrl
    */
   constructor(win, rootNode, baseUrl) {

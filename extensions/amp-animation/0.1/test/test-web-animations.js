@@ -36,9 +36,15 @@ describes.realWin('MeasureScanner', {amp: 1}, env => {
   let warnStub;
 
   beforeEach(() => {
-    win = env.win;
-    doc = win.document;
-    sandbox.stub(win, 'matchMedia', query => {
+    target1 = document.createElement('div');
+    target1.id = 'target1';
+    target1.classList.add('target');
+    target2 = document.createElement('div');
+    target2.id = 'target2';
+    target2.classList.add('target');
+    document.body.appendChild(target1);
+    document.body.appendChild(target2);
+    sandbox.stub(window, 'matchMedia', query => {
       if (query == 'match') {
         return {matches: true};
       }
@@ -84,16 +90,10 @@ describes.realWin('MeasureScanner', {amp: 1}, env => {
   });
 
   function scan(spec) {
-    const builder = new Builder(win, doc, 'https://acme.org/',
-        /* vsync */ null, /* resources */ null);
-    sandbox.stub(builder, 'requireLayout');
-    const scanner = builder.createScanner_([]);
-    const success = scanner.scan(spec);
-    if (success) {
-      return scanner.requests_;
-    }
-    expect(scanner.requests_).to.have.length(0);
-    return null;
+    const scanner = new MeasureScanner(
+        window, document, 'https://acme.org/', true);
+    scanner.scan(spec);
+    return scanner.requests_;
   }
 
   function scanTiming(spec) {
@@ -669,35 +669,6 @@ describes.realWin('MeasureScanner', {amp: 1}, env => {
     expect(keyframes.opacity).to.jsonEqual(['0', '0.525']);
   });
 
-  it('should fail when cannot discover style keyframes', () => {
-    expect(() => scan({target: target1, keyframes: 'keyframes1'}))
-        .to.throw(/Keyframes not found/);
-  });
-
-  it('should discover style keyframes', () => {
-    const name = 'keyframes1';
-    const css = 'from{opacity: 0} to{opacity: 1}';
-    return writeAndWaitForStyleKeyframes(name, css).then(() => {
-      const keyframes = scan({target: target1, keyframes: name})[0].keyframes;
-      expect(keyframes).to.jsonEqual([
-        {offset: 0, opacity: '0'},
-        {offset: 1, opacity: '1'},
-      ]);
-    });
-  });
-
-  it('should polyfill partial style keyframes', () => {
-    const name = 'keyframes2';
-    const css = 'to{opacity: 0}';
-    return writeAndWaitForStyleKeyframes(name, css).then(() => {
-      const keyframes = scan({target: target1, keyframes: name})[0].keyframes;
-      expect(keyframes).to.jsonEqual([
-        {opacity: '1'},
-        {offset: 1, opacity: '0'},
-      ]);
-    });
-  });
-
   it('should check media in top animation', () => {
     const requests = scan({
       duration: 500,
@@ -1152,10 +1123,9 @@ describes.realWin('MeasureScanner', {amp: 1}, env => {
     let parseSpy;
 
     beforeEach(() => {
-      const builder = new Builder(
-          win, doc, 'https://acme.org/',
-          /* vsync */ null, /* resources */ null);
-      css = builder.css_;
+      const scanner = new MeasureScanner(
+          window, document, 'https://acme.org/', true);
+      css = scanner.css_;
       parseSpy = sandbox.spy(css, 'resolveAsNode_');
     });
 
@@ -1390,6 +1360,28 @@ describes.realWin('MeasureScanner', {amp: 1}, env => {
           .to.deep.equal({width: 11, height: 12});
     });
 
+    it('should resolve the selected element size', () => {
+      target1.style.width = '11px';
+      target1.style.height = '12px';
+      target1.classList.add('parent');
+      const child = target1.ownerDocument.createElement('div');
+      target1.appendChild(child);
+
+      // Normal selectors search whole DOM and don't need context.
+      expect(css.getElementSize('#target1', null))
+          .to.deep.equal({width: 11, height: 12});
+      expect(css.withTarget_(target2,
+          () => css.getElementSize('#target1', null)))
+          .to.deep.equal({width: 11, height: 12});
+
+      // Closest selectors always need a context node.
+      expect(() => css.getElementSize('#target1', 'closest'))
+          .to.throw(/target is specified/);
+      expect(css.withTarget_(child,
+          () => css.getElementSize('.parent', 'closest')))
+          .to.deep.equal({width: 11, height: 12});
+    });
+
     it('should resolve a valid URL', () => {
       expect(css.resolveUrl('/path'))
           .to.equal('https://acme.org/path');
@@ -1427,10 +1419,10 @@ describes.realWin('MeasureScanner', {amp: 1}, env => {
     }
 
     function createRunner(spec) {
-      const builder = new Builder(
-          win, doc, 'https://acme.org/',
-          vsync, resources);
-      return builder.createRunner(spec);
+      const scanner = new MeasureScanner(
+          window, document, 'https://acme.org/', true);
+      scanner.scan(spec);
+      return scanner.createRunner(resources);
     }
 
     it('should unblock non-AMP elements immediately', () => {

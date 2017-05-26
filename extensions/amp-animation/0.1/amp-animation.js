@@ -460,13 +460,12 @@ export class AmpAnimation extends AMP.BaseElement {
     const hostWin = this.embed_ ? this.embed_.win : this.win;
     const baseUrl = this.embed_ ? this.embed_.getUrl() : ampdoc.getUrl();
     return readyPromise.then(() => {
-      const builder = new Builder(
-          hostWin,
-          this.getRootNode_(),
-          baseUrl,
-          this.getVsync(),
-          this.element.getResources());
-      return builder.createRunner(configJson, args);
+      const measurer = new MeasureScanner(
+          hostWin, this.getRootNode_(), baseUrl, /* validate */ true);
+      return vsync.measurePromise(() => {
+        measurer.scan(configJson);
+        return measurer.createRunner(this.element.getResources());
+      });
     });
   }
 
