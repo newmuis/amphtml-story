@@ -109,17 +109,18 @@ describes.realWin('amp-accordion', {
   });
 
   it('should allow for clickable links in header', () => {
-    return getAmpAccordion().then(ampAccordion => {
-      const headerElements = doc.querySelectorAll(
+    return getAmpAccordion().then(obj => {
+      const iframe = obj.iframe;
+      const headerElements = iframe.doc.querySelectorAll(
           'section > *:first-child');
-      const a = doc.createElement('a');
+      const a = iframe.doc.createElement('a');
       headerElements[0].appendChild(a);
       const aClickEvent = {
         target: a,
         currentTarget: headerElements[0],
         preventDefault: sandbox.spy(),
       };
-      ampAccordion.implementation_.clickHandler_(aClickEvent);
+      obj.ampAccordion.implementation_.clickHandler_(aClickEvent);
       expect(aClickEvent.preventDefault).to.not.have.been.called;
     });
   });
