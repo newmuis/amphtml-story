@@ -52,9 +52,8 @@ export class Platform {
    * @return {boolean}
    */
   isSafari() {
-    return /Safari/i.test(this.navigator_.userAgent) &&
-        !this.isChrome() && !this.isIe() && !this.isEdge() && !this.isFirefox()
-        && !this.isOpera();
+    return /Safari/i.test(this.navigator_.userAgent) && !this.isChrome() &&
+        !this.isEdge() && !this.isFirefox();
   }
 
   /**
@@ -73,14 +72,6 @@ export class Platform {
    */
   isFirefox() {
     return /Firefox|FxiOS/i.test(this.navigator_.userAgent) && !this.isEdge();
-  }
-
-  /**
-   * Whether the current browser is an Opera browser.
-   * @return {boolean}
-   */
-  isOpera() {
-    return /OPR|Opera|OPiOS/i.test(this.navigator_.userAgent);
   }
 
   /**
@@ -129,9 +120,6 @@ export class Platform {
     }
     if (this.isFirefox()) {
       return this.evalMajorVersion_(/(Firefox|FxiOS)\/(\d+)/, 2);
-    }
-    if (this.isOpera()) {
-      return this.evalMajorVersion_(/(OPR|Opera|OPiOS)\/(\d+)/, 2);
     }
     if (this.isIe()) {
       return this.evalMajorVersion_(/MSIE\s(\d+)/, 1);
