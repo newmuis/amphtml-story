@@ -21,7 +21,6 @@ import {
 } from '../concurrent-load';
 import {createElementWithAttributes} from '../../../../src/dom';
 import {installTimerService} from '../../../../src/service/timer-impl';
-import {macroTask} from '../../../../testing/yield';
 import * as lolex from 'lolex';
 
 describes.realWin('concurrent-load', {}, env => {
@@ -76,27 +75,13 @@ describes.realWin('concurrent-load', {}, env => {
       installTimerService(win);
     });
 
-    it('should throttle ad loading one per second', function* () {
+    it('should throttle ad loading one per second', () => {
       expect(is3pThrottled(win)).to.be.false;
       incrementLoadingAds(win);
       expect(is3pThrottled(win)).to.be.true;
       clock.tick(999);
-      yield macroTask();
       expect(is3pThrottled(win)).to.be.true;
       clock.tick(1);
-      yield macroTask();
-      expect(is3pThrottled(win)).to.be.false;
-    });
-
-    it('should throttle ad one a time', function* () {
-      expect(is3pThrottled(win)).to.be.false;
-      let resolver;
-      incrementLoadingAds(win, new Promise(res => {
-        resolver = res;
-      }));
-      expect(is3pThrottled(win)).to.be.true;
-      resolver();
-      yield macroTask();
       expect(is3pThrottled(win)).to.be.false;
     });
   });
