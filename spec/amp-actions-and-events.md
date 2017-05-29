@@ -212,28 +212,12 @@ event.response</pre></td>
     <td>Hides the target element.</td>
   </tr>
   <tr>
-    <td><code>show</code></td>
+    <td>show</td>
     <td>Shows the target element.</td>
   </tr>
   <tr>
-    <td><code>toggleVisibility</code></td>
+    <td>toggleVisibility</td>
     <td>Toggles the visibility of the target element.</td>
-  </tr>
-  <tr>
-    <td><code>scrollTo(duration=INTEGER, position=STRING)</code></td>
-    <td>Scrolls an element into view with a smooth animation. If defined,
-    <code>duration</code> specifies the length of the animation in milliseconds
-    (default is 500ms). <code>position</code> is optional and takes one of
-    <code>top</code>, <code>center</code> or <code>bottom</code> defining where
-    in the viewport the element will be at the end of the scroll (default is
-    <code>top</code>).</td>
-  </tr>
-  <tr>
-    <td><code>focus</code></td>
-    <td>Makes the target element gain focus. To lose focus, <code>focus</code>
-    on another element (usually parent element). We strongly advise against
-    losing focus by focusing on <code>body</code>/<code>documentElement</code>
-    for accessibility reasons.</td>
   </tr>
 </table>
 
