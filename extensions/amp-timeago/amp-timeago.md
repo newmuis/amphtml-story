@@ -22,6 +22,10 @@ limitations under the License.
     <td>Provides fuzzy timestamps by formatting dates as `*** time ago` (for example, 3 hours ago).</td>
   </tr>
   <tr>
+    <td width="40%"><strong>Availability</strong></td>
+    <td>Stable</td>
+  </tr>
+  <tr>
     <td width="40%"><strong>Required Script</strong></td>
     <td><code>&lt;script async custom-element="amp-timeago" src="https://cdn.ampproject.org/v0/amp-timeago-0.1.js">&lt;/script></code></td>
   </tr>
@@ -96,14 +100,10 @@ By default, the local is set to <code>en</code>; however, you can specify one of
   <li>zhTW (Taiwanese)</li>
 </ul>
 
-##### cutoff (optional)
-
-Display the original date if time distance is older than cutoff (seconds).
-
-##### common attributes
+**common attributes**
 
 This element includes [common attributes](https://www.ampproject.org/docs/reference/common_attributes) extended to AMP components.
 
 ## Validation
 
-See [amp-timeago rules](https://github.com/ampproject/amphtml/blob/master/extensions/amp-timeago/validator-amp-timeago.protoascii) in the AMP validator specification.
+See [amp-timeago rules](https://github.com/ampproject/amphtml/blob/master/extensions/amp-timeago/0.1/validator-amp-timeago.protoascii) in the AMP validator specification.
