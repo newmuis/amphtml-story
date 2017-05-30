@@ -20,11 +20,15 @@ import {Layout} from '../../../src/layout';
 import {dev,user} from '../../../src/log';
 import {removeElement} from '../../../src/dom';
 import {toggle, computedStyle} from '../../../src/style';
+import {isExperimentOn} from '../../../src/experiments';
 import {
   setStyle,
   removeAlphaFromColor,
 } from '../../../src/style';
 import {whenUpgradedToCustomElement} from '../../../src/dom';
+
+/** @const */
+const EARLY_LOAD_EXPERIMENT = 'sticky-ad-early-load';
 
 class AmpStickyAd extends AMP.BaseElement {
   /** @param {!AmpElement} element */
