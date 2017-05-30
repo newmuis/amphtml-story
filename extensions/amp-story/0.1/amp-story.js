@@ -35,25 +35,23 @@ export class AmpStory extends AMP.BaseElement {
   /** @param {!AmpElement} element */
   constructor(element) {
     super(element);
-
-    /** @private {!Element} */
-    this.carousel_ = this.win.document.createElement('amp-carousel');
-    this.carousel_.setAttribute('type', 'slides');
-    this.carousel_.setAttribute('layout', 'fill');
-
-    /** @private {!Element} */
-    this.bookend_ = this.win.document.createElement('section');
-    this.bookend_.textContent = 'bookend goes here';
   }
 
   /** @override */
   buildCallback() {
+    const carousel = this.win.document.createElement('amp-carousel');
+    carousel.setAttribute('type', 'slides');
+    carousel.setAttribute('layout', 'fill');
+
+    const bookend = this.win.document.createElement('section');
+    bookend.textContent = 'bookend goes here';
+
     extensionsFor(this.win).loadExtension('amp-carousel');
-    this.getRealChildren().forEach((child) => {
-      this.carousel_.appendChild(child);
+    this.getRealChildren().forEach(child => {
+      carousel.appendChild(child);
     });
-    this.carousel_.appendChild(this.bookend_);
-    this.element.appendChild(this.carousel_);
+    carousel.appendChild(bookend);
+    this.element.appendChild(carousel);
   }
 
   /** @override */
