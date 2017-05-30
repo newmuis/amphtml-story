@@ -15,8 +15,6 @@
  */
 'use strict';
 
-'use strict';
-
 /**
  * @fileoverview Creates an http server to handle static
  * files and list directories for use with the gulp live server
@@ -471,7 +469,7 @@ function getLiveBlogItemWithBindAttributes() {
       <div id="live-blog-item-${now}" data-sort-time="${now}">
         <div class="article-body">
           ${body}
-          <p> As you can see, bacon is far superior to 
+          <p> As you can see, bacon is far superior to
           <b><span [text]='favoriteFood'>everything!</span></b>!</p>
         </div>
       </div>
@@ -544,7 +542,7 @@ app.get('/iframe/*', (req, res) => {
   res.send(`<!doctype html>
           <html style="width:100%; height:100%;">
             <body style="width:98%; height:98%;">
-              <iframe src="${req.url.substr(7)}" 
+              <iframe src="${req.url.substr(7)}"
                   style="width:100%; height:100%;">
               </iframe>
             </body>

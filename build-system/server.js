@@ -15,8 +15,6 @@
  */
 'use strict';
 
-'use strict';
-
 /**
  * @fileoverview Creates an http server to handle static
  * files and list directories for use with the gulp live server
