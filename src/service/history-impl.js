@@ -21,13 +21,14 @@ import {
 } from '../service';
 import {getMode} from '../mode';
 import {dev} from '../log';
-import {dict, map} from '../utils/object';
-import {Services} from '../services';
+import {map} from '../utils/object';
+import {timerFor} from '../services';
+import {viewerForDoc} from '../services';
 
-/** @private @const {string} */
+/** @private @const */
 const TAG_ = 'History';
 
-/** @private @const {string} */
+/** @private @const */
 const HISTORY_PROP_ = 'AMP.History';
 
 /** @typedef {number} */
