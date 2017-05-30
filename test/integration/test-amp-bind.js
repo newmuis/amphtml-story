@@ -21,12 +21,12 @@ describe.configure().retryOnSaucelabs().run('amp-bind', function() {
   let fixture;
   let sandbox;
   let numSetStates;
-  let numTemplated;
+  let numMutated;
 
   beforeEach(() => {
     sandbox = sinon.sandbox.create();
     numSetStates = 0;
-    numTemplated = 0;
+    numMutated = 0;
   });
 
   afterEach(() => {
@@ -54,13 +54,13 @@ describe.configure().retryOnSaucelabs().run('amp-bind', function() {
     // Bind should be available, but need to wait for actions to resolve
     // service promise for bind and call setState.
     return bindForDoc(ampdoc).then(unusedBind =>
-        fixture.awaitEvent('amp:bind:setState', 1));
+        fixture.awaitEvent('amp:bind:setState', ++numSetStates));
   }
 
   /** @return {!Promise} */
   function waitForAllMutations() {
     return bindForDoc(ampdoc).then(unusedBind =>
-        fixture.awaitEvent('amp:bind:mutated', 1));
+        fixture.awaitEvent('amp:bind:mutated', ++numMutated));
   }
 
   describe('[text] and [class] integration', () => {
@@ -155,7 +155,7 @@ describe.configure().retryOnSaucelabs().run('amp-bind', function() {
       });
     });
 
-    it('should update input[checked] when its binding changes', () => {
+    it('should update checkbox checked attr when its binding changes', () => {
       // Does *NOT* have the `checked` attribute.
       const checkbox = fixture.doc.getElementById('checkedBound');
       const button = fixture.doc.getElementById('toggleCheckedButton');
@@ -167,11 +167,11 @@ describe.configure().retryOnSaucelabs().run('amp-bind', function() {
       expect(checkbox.hasAttribute('checked')).to.be.false;
       expect(checkbox.checked).to.be.true;
       button.click();
-      return waitForSetState().then(() => {
+      return waitForBindApplication().then(() => {
         expect(checkbox.hasAttribute('checked')).to.be.false;
         expect(checkbox.checked).to.be.false;
         button.click();
-        return waitForSetState();
+        return waitForBindApplication();
       }).then(() => {
         // When Bind checks the box back to true, it adds the checked attr.
         expect(checkbox.hasAttribute('checked')).to.be.true;
@@ -179,7 +179,7 @@ describe.configure().retryOnSaucelabs().run('amp-bind', function() {
       });
     });
 
-    it('should update on radio input changes', () => {
+    it('should update dependent bindings on radio input changes', () => {
       const radioText = fixture.doc.getElementById('radioText');
       const radio = fixture.doc.getElementById('radio');
       expect(radioText.textContent).to.equal('Unbound');
