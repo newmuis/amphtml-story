@@ -431,58 +431,26 @@ export class AmpAdNetworkDoubleclickImpl extends AmpA4A {
     }, googleBlockParameters(this));
   }
 
-  /**
-   * Populate's block-level state for ad URL construction.
-   * @visibileForTesting
-   */
-  populateAdUrlState() {
-    // Allow for pub to override height/width via override attribute.
-    const width = Number(this.element.getAttribute('data-override-width')) ||
-      Number(this.element.getAttribute('width'));
-    const height = Number(this.element.getAttribute('data-override-height')) ||
-      Number(this.element.getAttribute('height'));
-    this.initialSize_ = width && height
-        ? {width, height}
-        // width/height could be 'auto' in which case we fallback to measured.
-        : this.getIntersectionElementLayoutBox();
-    this.jsonTargeting_ =
-      tryParseJson(this.element.getAttribute('json')) || {};
-    this.adKey_ = this.generateAdKey_(
-        `${this.initialSize_.width}x${this.initialSize_.height}`);
-  }
-
-  /** @override */
-  getAdUrl() {
-    if (this.iframe && !this.isRefreshing) {
-      dev().warn(TAG, `Frame already exists, sra: ${this.useSra}`);
-      return '';
-    }
-    // TODO(keithwrightbos): SRA blocks currently unnecessarily generate full
-    // ad url.  This could be optimized however non-SRA ad url is required to
-    // fallback to non-SRA if single block.
-    this.populateAdUrlState();
-    // TODO: Check for required and allowed parameters. Probably use
-    // validateData, from 3p/3p/js, after noving it someplace common.
-    const startTime = Date.now();
-
-    const pageLevelParametersPromise = getPageLevelParameters_(
-        this.win, this.getAmpDoc(), startTime);
-    const rtcRequestPromise = isExperimentOn(this.win, 'disable-rtc') ?
-    Promise.resolve({}) : this.executeRtc_();
-    return Promise.all(
-      [pageLevelParametersPromise, rtcRequestPromise]).then(values => {
-        return googleAdUrl(
-            this, DOUBLECLICK_BASE_URL, startTime, Object.assign(
-                this.getBlockParameters_(),
-                /* RTC Parameters */ values[1],
-                /* pageLevelParameters */ values[0]));
-      });
-  }
-
-  /** @override */
-  onNetworkFailure(error, adUrl) {
-    dev().info(TAG, 'network error, attempt adding of error parameter', error);
-    return {adUrl: maybeAppendErrorParameter(adUrl, 'n')};
+    return googleAdUrl(this, DOUBLECLICK_BASE_URL, startTime, [
+      {name: 'iu', value: this.element.getAttribute('data-slot')},
+      {name: 'co', value: jsonParameters['cookieOptOut'] ? '1' : null},
+      {name: 'adk', value: this.adKey_(sizeStr)},
+      {name: 'gdfp_req', value: '1'},
+      {name: 'impl', value: 'ifr'},
+      {name: 'sfv', value: 'A'},
+      {name: 'sz', value: sizeStr},
+      {name: 'tfcd', value: tfcd == undefined ? null : tfcd},
+      {name: 'u_sd', value: global.devicePixelRatio},
+      {name: 'adtest', value: adTestOn ? 'on' : null},
+      {name: 'asnt', value: this.sentinel},
+    ], [
+      {
+        name: 'scp',
+        value: serializeTargeting(
+            jsonParameters['targeting'] || null,
+            jsonParameters['categoryExclusions'] || null),
+      },
+    ], ['108809080']);
   }
 
   /** @override */

@@ -347,45 +347,24 @@ describes.realWin('amp-ad-network-doubleclick-impl', realWinConfig, env => {
       new AmpAd(element).upgradeCallback();
       addExperimentIdToElement('12345678', element);
       return impl.getAdUrl().then(url => {
-        [
-          /^https:\/\/securepubads\.g\.doubleclick\.net\/gampad\/ads/,
-          /(\?|&)adk=\d+(&|$)/,
-          /(\?|&)gdfp_req=1(&|$)/,
-          /(\?|&)impl=ifr(&|$)/,
-          /(\?|&)sfv=\d+-\d+-\d+(&|$)/,
-          /(\?|&)sz=320x50(&|$)/,
-          /(\?|&)u_sd=[0-9]+(&|$)/,
-          /(\?|&)is_amp=3(&|$)/,
-          /(\?|&)amp_v=%24internalRuntimeVersion%24(&|$)/,
-          /(\?|&)d_imp=1(&|$)/,
-          /(\?|&)dt=[0-9]+(&|$)/,
-          /(\?|&)ifi=[0-9]+(&|$)/,
-          /(\?|&)adf=[0-9]+(&|$)/,
-          /(\?|&)c=[0-9]+(&|$)/,
-          /(\?|&)output=html(&|$)/,
-          /(\?|&)nhd=\d+(&|$)/,
-          /(\?|&)biw=[0-9]+(&|$)/,
-          /(\?|&)bih=[0-9]+(&|$)/,
-          /(\?|&)adx=-?[0-9]+(&|$)/,
-          /(\?|&)ady=-?[0-9]+(&|$)/,
-          /(\?|&)u_aw=[0-9]+(&|$)/,
-          /(\?|&)u_ah=[0-9]+(&|$)/,
-          /(\?|&)u_cd=24(&|$)/,
-          /(\?|&)u_w=[0-9]+(&|$)/,
-          /(\?|&)u_h=[0-9]+(&|$)/,
-          /(\?|&)u_tz=-?[0-9]+(&|$)/,
-          /(\?|&)u_his=[0-9]+(&|$)/,
-          /(\?|&)oid=2(&|$)/,
-          /(\?|&)isw=[0-9]+(&|$)/,
-          /(\?|&)ish=[0-9]+(&|$)/,
-          /(\?|&)pfx=(1|0)(&|$)/,
-          /(\?|&)eid=([^&]+%2c)*12345678(%2c[^&]+)*(&|$)/,
-          /(\?|&)url=https?%3A%2F%2F[a-zA-Z0-9.:%-]+(&|$)/,
-          /(\?|&)top=localhost(&|$)/,
-          /(\?|&)ref=https?%3A%2F%2Flocalhost%3A9876%2F[a-zA-Z0-9.:%-]+(&|$)/,
-          /(\?|&)dtd=[0-9]+(&|$)/,
-          /(\?|&)vis=[0-5]+(&|$)/,
-        ].forEach(regexp => expect(url).to.match(regexp));
+        expect(url).to.match(new RegExp(
+          '^https://securepubads\\.g\\.doubleclick\\.net/gampad/ads' +
+          // Depending on how the test is run, it can get different results.
+          '\\?adk=[0-9]+&gdfp_req=1&impl=ifr&sfv=A&sz=320x50' +
+          '&u_sd=[0-9]+(&asnt=[0-9]+-[0-9]+)?(&art=2)?' +
+          '&is_amp=3&amp_v=%24internalRuntimeVersion%24' +
+          '&d_imp=1&dt=[0-9]+&ifi=[0-9]+&adf=[0-9]+' +
+          '&c=[0-9]+&output=html&nhd=1&eid=([^&]+%2c)*108809080(%2c[^&]+)*' +
+          '&biw=[0-9]+&bih=[0-9]+' +
+          '&adx=-?[0-9]+&ady=-?[0-9]+&u_aw=[0-9]+&u_ah=[0-9]+&u_cd=24' +
+          '&u_w=[0-9]+&u_h=[0-9]+&u_tz=-?[0-9]+&u_his=[0-9]+' +
+          '&oid=2&brdim=-?[0-9]+(%2C-?[0-9]+){9}' +
+          '&isw=[0-9]+&ish=[0-9]+&pfx=(1|0)' +
+          '&url=https?%3A%2F%2F[a-zA-Z0-9.:%]+' +
+          '&top=https?%3A%2F%2Flocalhost%3A9876%2F%3Fid%3D[0-9]+' +
+          '(&loc=https?%3A%2F%2[a-zA-Z0-9.:%]+)?' +
+          '&ref=https?%3A%2F%2Flocalhost%3A9876%2F%3Fid%3D[0-9]+' +
+          '&dtd=[0-9]+$'));
       });
     });
 
