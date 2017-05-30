@@ -283,12 +283,12 @@ export class Performance {
   tick(label, opt_delta) {
     const value = (opt_delta == undefined) ? this.win.Date.now() : undefined;
 
-    const data = dict({
-      'label': label,
-      'value': value,
+    const data = {
+      label,
+      value,
       // Delta can negative, but will always be changed to 0.
-      'delta': opt_delta != null ? Math.max(opt_delta, 0) : undefined,
-    });
+      delta: opt_delta != null ? Math.max(opt_delta, 0) : undefined,
+    };
     if (this.isMessagingReady_ && this.isPerformanceTrackingOn_) {
       this.viewer_.sendMessage('tick', data);
     } else {
