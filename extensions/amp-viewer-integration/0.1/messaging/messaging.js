@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import {parseJson} from '../../../../src/json';
-import {getData} from '../../../../src/event-helper';
 
 const TAG = 'amp-viewer-messaging';
 export const APP = '__AMPHTML__';
@@ -52,7 +50,7 @@ export function parseMessage(message) {
 
   try {
     return /** @type {?Message} */ (
-        /** @type {?} */ (parseJson(/** @type {string} */ (message))));
+      JSON.parse(/** @type {string} */ (message)));
   } catch (e) {
     return null;
   }
@@ -173,7 +171,7 @@ export class Messaging {
    * @private
    */
   handleMessage_(event) {
-    const message = parseMessage(getData(event));
+    const message = parseMessage(event.data);
     if (!message) {
       return;
     }
@@ -218,7 +216,7 @@ export class Messaging {
    * @private
    */
   sendResponse_(requestId, messageName, messageData) {
-    this.sendMessage_(/** @type {!AmpViewerMessage} */ ({
+    this.sendMessage_({
       app: APP,
       requestid: requestId,
       type: MessageType.RESPONSE,
@@ -282,7 +280,7 @@ export class Messaging {
       const requestId = message.requestid;
       if (!promise) {
         this.sendResponseError_(
-            requestId, message.name, new Error('no response'));
+          requestId, message.name, new Error('no response'));
         throw new Error('expected response but none given: ' + message.name);
       }
       promise.then(data => {

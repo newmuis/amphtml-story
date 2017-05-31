@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import '../../../../third_party/babel/custom-babel-helpers';
 import {
   APP,
   Messaging,
