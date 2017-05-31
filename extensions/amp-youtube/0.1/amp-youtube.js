@@ -41,8 +41,7 @@ import {startsWith} from '../../../src/string';
  * @private
  */
 
- // Correct PlayerStates taken from
- // https://developers.google.com/youtube/iframe_api_reference#Playback_status
+ // Correct PlayerStates taken from: https://developers.google.com/youtube/iframe_api_reference#Playback_status
 const PlayerStates = {
   UNSTARTED: -1,
   ENDED: 0,
@@ -304,10 +303,11 @@ class AmpYoutube extends AMP.BaseElement {
     if (data === undefined) {
       return; // We only process valid JSON.
     }
-    if (data['event'] == 'infoDelivery' &&
-        data['info'] && data['info']['playerState'] !== undefined) {
-      this.playerState_ = data['info']['playerState'];
-      if (this.playerState_ == PlayerStates.PAUSED) {
+    if (data.event == 'infoDelivery' &&
+        data.info && data.info.playerState !== undefined) {
+      this.playerState_ = data.info.playerState;
+      if (this.playerState_ == PlayerStates.PAUSED ||
+          this.playerState_ == PlayerStates.ENDED) {
         this.element.dispatchCustomEvent(VideoEvents.PAUSE);
       } else if (this.playerState_ == PlayerStates.ENDED) {
         // YT does not fire pause and ended together.
