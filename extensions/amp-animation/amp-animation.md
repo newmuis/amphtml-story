@@ -86,7 +86,7 @@ and is comprised of:
 ```text
 {
   "selector": "#target-id",
-  // Conditions
+  "media": "(min-width:300px)",
   // Variables
   // Timing properties
   // Subtargets
@@ -106,63 +106,6 @@ for [Window.matchMedia](https://developer.mozilla.org/en-US/docs/Web/API/Window/
 
 If value is specified for an animation component, the animation component will only be included if the
 media query will match the current environment.
-
-#### Supports condition
-
-Supports condition can be specified using the `supports` property. This property can contain any expression allowed
-for [CSS.supports](https://developer.mozilla.org/en-US/docs/Web/API/CSS/supports) API and corresponds to `@supports` CSS rule.
-
-If value is specified for an animation component, the animation component will only be included if the
-supports condition will match the current environment.
-
-
-### Animation `switch` statement
-
-In some cases it's convenient to combine multiple [conditional animations](#conditions) with an optional default into a single animation. This can be done using `switch` animation statement in this format:
-
-```
-{
-  // Optional selector, vars, timing
-  ...
-  "switch": [
-    {
-      "media": "(min-width: 320px)",
-      "keyframes": {...},
-    },
-    {
-      "supports": "offset-distance: 0",
-      "keyframes": {...},
-    },
-    {
-      // Optional default: no conditionals
-    }
-  ]
-}
-```
-
-In `switch` animation, the candidates are evaluated in the defined order and the first animation that matches [conditional statements](#conditions) is executed and the rest are ignored.
-
-For instance, this animation runs motion-path animation if supported and falls back to transform:
-```
-{
-  "selector": "#target1",
-  "duration": "1s",
-  "switch": [
-    {
-      "supports": "offset-distance: 0",
-      "keyframes": {
-        "offsetDistance": [0, '300px']
-      }
-    },
-    {
-      "keyframes": {
-        "transform": [0, '300px']
-      }
-    }
-  ]
-}
-```
-
 
 ### Variables
 
@@ -520,6 +463,9 @@ Both `var()` and `calc()` polyfilled on platforms that do not directly support t
 </script>
 </amp-animation>
 ```
+
+Animation components can specify their own variables as `--var-name` fields. These variables are propagated into nested animations and override variables of target elements specified via `<style>`. `var()` expressions first try to resolve variable values specified in the animations and then by querying target styles.
+
 
 ### CSS extensions
 

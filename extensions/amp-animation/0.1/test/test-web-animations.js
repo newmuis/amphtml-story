@@ -36,15 +36,9 @@ describes.realWin('MeasureScanner', {amp: 1}, env => {
   let warnStub;
 
   beforeEach(() => {
-    target1 = document.createElement('div');
-    target1.id = 'target1';
-    target1.classList.add('target');
-    target2 = document.createElement('div');
-    target2.id = 'target2';
-    target2.classList.add('target');
-    document.body.appendChild(target1);
-    document.body.appendChild(target2);
-    sandbox.stub(window, 'matchMedia', query => {
+    win = env.win;
+    doc = win.document;
+    sandbox.stub(win, 'matchMedia', query => {
       if (query == 'match') {
         return {matches: true};
       }
@@ -90,8 +84,10 @@ describes.realWin('MeasureScanner', {amp: 1}, env => {
   });
 
   function scan(spec) {
-    const scanner = new MeasureScanner(
-        window, document, 'https://acme.org/', true);
+    const builder = new Builder(win, doc, 'https://acme.org/',
+        /* vsync */ null, /* resources */ null);
+    sandbox.stub(builder, 'requireLayout');
+    const scanner = builder.createScanner_([]);
     scanner.scan(spec);
     return scanner.requests_;
   }
@@ -154,6 +150,7 @@ describes.realWin('MeasureScanner', {amp: 1}, env => {
     // Note! The negative "delay" is allowed.
     expect(scanTiming({delay: -1}).delay).to.equal(-1);
     expect(() => scanTiming({delay: 'a'})).to.throw(/"delay" is invalid/);
+    expect(() => scanTiming({delay: -1})).to.throw(/"delay" is invalid/);
 
     expect(scanTiming({}).endDelay).to.equal(0);
     expect(scanTiming({endDelay: 0}).endDelay).to.equal(0);
@@ -286,52 +283,6 @@ describes.realWin('MeasureScanner', {amp: 1}, env => {
     expect(requests[1].timing.duration).to.equal(300);
   });
 
-  it('should accept multi-animation array with some disabled elements', () => {
-    const requests = scan([
-      {media: 'not-match', target: target1, keyframes: {}},
-      {media: 'match', target: target2, duration: 300, keyframes: {}},
-    ]);
-    expect(requests).to.have.length(1);
-    expect(requests[0].target).to.equal(target2);
-    expect(requests[0].timing.duration).to.equal(300);
-  });
-
-  it('should accept multi-animation array with all disabled elements', () => {
-    const requests = scan([
-      {media: 'not-match', target: target1, keyframes: {}},
-      {media: 'not-match', target: target2, duration: 300, keyframes: {}},
-    ]);
-    expect(requests).to.be.null;
-  });
-
-  it('should accept switch-animation with first match', () => {
-    const requests = scan({switch: [
-      {media: 'match', target: target1, keyframes: {}},
-      {media: 'match', target: target2, duration: 300, keyframes: {}},
-    ]});
-    expect(requests).to.have.length(1);
-    expect(requests[0].target).to.equal(target1);
-    expect(requests[0].timing.duration).to.equal(0);
-  });
-
-  it('should accept switch-animation with second match', () => {
-    const requests = scan({switch: [
-      {media: 'not-match', target: target1, keyframes: {}},
-      {media: 'match', target: target2, duration: 300, keyframes: {}},
-    ]});
-    expect(requests).to.have.length(1);
-    expect(requests[0].target).to.equal(target2);
-    expect(requests[0].timing.duration).to.equal(300);
-  });
-
-  it('should accept switch-animation with no matches', () => {
-    const requests = scan({switch: [
-      {media: 'not-match', target: target1, keyframes: {}},
-      {media: 'not-match', target: target2, duration: 300, keyframes: {}},
-    ]});
-    expect(requests).to.have.length(0);
-  });
-
   it('should propagate vars', () => {
     sandbox.stub(win, 'getComputedStyle', target => {
       if (target == target2) {
@@ -352,7 +303,7 @@ describes.realWin('MeasureScanner', {amp: 1}, env => {
       animations: [
         {target: target1, keyframes: {}, '--var1': '20px', '--var2': '30px'},
         {target: target2, duration: 300, keyframes: {},
-          '--var2': '40px', '--var3': 'var(--var4)'},
+            '--var2': '40px', '--var3': 'var(--var4)'},
       ],
     });
     expect(requests).to.have.length(2);
@@ -385,7 +336,7 @@ describes.realWin('MeasureScanner', {amp: 1}, env => {
         '--child5': 'var(--child6)',  // Reverse order dependency.
         '--child6': '23px',
         keyframes: {
-          transform: 'translate(var(--child3), var(--child4))',
+          transform: 'translate()',
         },
       }],
     });
@@ -400,79 +351,6 @@ describes.realWin('MeasureScanner', {amp: 1}, env => {
       '--child5': '23px',
       '--child6': '23px',
     });
-    expect(requests[0].keyframes.transform[1])
-        .to.equal('translate(11px,22px)');
-  });
-
-  it('should override vars in subtargets with index', () => {
-    const requests = scan({
-      '--parent1': '11px',
-      '--parent2': '12px',
-      animations: [{
-        selector: '.target',
-        '--child1': '21px',
-        '--parent2': '22px',  // Override parent.
-        '--child2': 'var(--child1)',
-        '--child3': 'var(--parent1)',
-        '--child4': 'var(--parent2)',
-        '--child5': 'var(--child6)',  // Reverse order dependency.
-        '--child6': '23px',
-        subtargets: [
-          // By index.
-          {
-            index: 0,
-            '--child6': '31px',
-          },
-          {
-            index: 1,
-            '--child6': '32px',
-          },
-          // By selector.
-          {
-            selector: '#target1',
-            '--child1': '33px',
-          },
-          {
-            selector: '#target2',
-            '--child1': '34px',
-          },
-          {
-            selector: 'div',
-            '--child2': '35px',
-          },
-        ],
-        keyframes: {
-          transform: 'translate(var(--child6), var(--child1))',
-        },
-      }],
-    });
-    expect(requests).to.have.length(2);
-
-    // `#target1`
-    expect(requests[0].vars).to.jsonEqual({
-      '--parent1': '11px',
-      '--parent2': '22px',
-      '--child1': '33px',  // Overriden via `#target1`
-      '--child2': '35px',  // Overriden via `div`
-      '--child3': '11px',
-      '--child4': '22px',
-      '--child5': '31px',  // Overriden via `index: 0`
-      '--child6': '31px',  // Overriden via `index: 0`
-    });
-    expect(requests[0].keyframes.transform[1]).to.equal('translate(31px,33px)');
-
-    // `#target2`
-    expect(requests[1].vars).to.jsonEqual({
-      '--parent1': '11px',
-      '--parent2': '22px',
-      '--child1': '34px',  // Overriden via `#target2`
-      '--child2': '35px',  // Overriden via `div`
-      '--child3': '11px',
-      '--child4': '22px',
-      '--child5': '32px',  // Overriden via `index: 1`
-      '--child6': '32px',  // Overriden via `index: 1`
-    });
-    expect(requests[1].keyframes.transform[1]).to.equal('translate(32px,34px)');
   });
 
   it('should accept keyframe animation', () => {
@@ -853,40 +731,6 @@ describes.realWin('MeasureScanner', {amp: 1}, env => {
         .to.deep.equal(['translateY(0px)', 'translateY(100px)']);
   });
 
-  it('should resolve index() for multiple targets', () => {
-    const requests = scan({
-      selector: '.target',
-      delay: 'calc(100ms * index())',
-      keyframes: {},
-    });
-    expect(requests).to.have.length(2);
-    expect(requests[0].timing.delay).to.equal(0);
-    expect(requests[1].timing.delay).to.equal(100);
-  });
-
-  it('should be able to resolve animation with args', () => {
-    const builder = new Builder(win, doc, 'https://acme.org/',
-        vsync, /* resources */ null);
-    sandbox.stub(builder, 'requireLayout');
-    const spec = {target: target1, delay: 101, keyframes: {}};
-    const args = {
-      'duration': 1001,
-      '--var1': '10px',
-      '--var2': '20px',
-    };
-    return builder.resolveRequests([], spec, args).then(requests => {
-      expect(requests).to.have.length(1);
-      const request = requests[0];
-      expect(request.target).to.equal(target1);
-      expect(request.vars).to.deep.equal({
-        '--var1': '10px',
-        '--var2': '20px',
-      });
-      expect(request.timing.duration).to.equal(1001);
-      expect(request.timing.delay).to.equal(101);
-    });
-  });
-
   describe('composite animations', () => {
     let builder, scanner;
     let animation2;
@@ -1071,51 +915,6 @@ describes.realWin('MeasureScanner', {amp: 1}, env => {
         });
       });
     });
-
-    it('should propagate vars and index by selector from parent', () => {
-      animation2Spec = {
-        duration: 2000,
-        keyframes: {},
-      };
-      return scanner.resolveRequests({
-        selector: '.target',
-        animation: 'animation2',
-        delay: 'calc((index() + 1) * 1s)',
-        subtargets: [
-          {index: 0, '--y': '11px'},
-          {index: 1, '--y': '12px'},
-        ],
-      }).then(requests => {
-        expect(requests).to.have.length(2);
-        expect(requests[0].timing.delay).to.equal(1000);
-        expect(requests[0].vars).to.deep.equal({'--y': '11px'});
-        expect(requests[1].timing.delay).to.equal(2000);
-        expect(requests[1].vars).to.deep.equal({'--y': '12px'});
-      });
-    });
-
-    it('should propagate vars and index by selector from child', () => {
-      animation2Spec = {
-        delay: 'calc((index() + 1) * 1s)',
-        subtargets: [
-          {index: 0, '--y': '11px'},
-          {index: 1, '--y': '12px'},
-        ],
-        duration: 2000,
-        keyframes: {},
-      };
-      return scanner.resolveRequests({
-        selector: '.target',
-        animation: 'animation2',
-        delay: 100,
-      }).then(requests => {
-        expect(requests).to.have.length(2);
-        expect(requests[0].timing.delay).to.equal(1000);
-        expect(requests[0].vars).to.deep.equal({'--y': '11px'});
-        expect(requests[1].timing.delay).to.equal(2000);
-        expect(requests[1].vars).to.deep.equal({'--y': '12px'});
-      });
-    });
   });
 
   describe('CSS evaluations', () => {
@@ -1123,9 +922,10 @@ describes.realWin('MeasureScanner', {amp: 1}, env => {
     let parseSpy;
 
     beforeEach(() => {
-      const scanner = new MeasureScanner(
-          window, document, 'https://acme.org/', true);
-      css = scanner.css_;
+      const builder = new Builder(
+          win, doc, 'https://acme.org/',
+          /* vsync */ null, /* resources */ null);
+      css = builder.css_;
       parseSpy = sandbox.spy(css, 'resolveAsNode_');
     });
 
@@ -1166,8 +966,11 @@ describes.realWin('MeasureScanner', {amp: 1}, env => {
       expect(css.resolveCss(-1)).to.equal('-1');
       expect(css.resolveCss(Infinity)).to.equal('Infinity');
       expect(css.resolveCss('10px')).to.equal('10px');
-      expect(css.resolveCss('translateY(10px)')).to.equal('translateY(10px)');
+      expect(css.resolveCss('10em')).to.equal('10em');
+      expect(css.resolveCss('10vh')).to.equal('10vh');
       expect(css.resolveCss('rgb(0,0,0)')).to.equal('rgb(0,0,0)');
+      expect(css.resolveCss('translateY(10vh)'))
+          .to.equal('translateY(10vh)');
       expect(parseSpy).to.not.be.called;
     });
 
@@ -1196,8 +999,7 @@ describes.realWin('MeasureScanner', {amp: 1}, env => {
       expect(() => css.resolveCss('calc(10em + 10px)'))
           .to.throw(/target is specified/);
       target1.style.fontSize = '10px';
-      expect(css.withTarget(target1, 0,
-          () => css.resolveCss('calc(10em + 10px)')))
+      expect(css.withTarget(target1, () => css.resolveCss('calc(10em + 10px)')))
           .to.equal('110px');
     });
 
@@ -1255,7 +1057,7 @@ describes.realWin('MeasureScanner', {amp: 1}, env => {
       // With element.
       warnStub.reset();
       stub.reset();
-      expect(css.withTarget(target1, 0, () => css.getVar('--var1')).num_)
+      expect(css.withTarget(target1, () => css.getVar('--var1')).num_)
           .to.equal(10);
       expect(stub).to.be.calledWith(target1, '--var1');
       expect(warnStub).to.have.callCount(0);
@@ -1267,7 +1069,7 @@ describes.realWin('MeasureScanner', {amp: 1}, env => {
         // No element, but predefined vars.
         expect(css.getVar('--var1').num_).to.equal(11);
         // Predefined vars override the element.
-        expect(css.withTarget(target1, 0, () => css.getVar('--var1')).num_)
+        expect(css.withTarget(target1, () => css.getVar('--var1')).num_)
             .to.equal(11);
 
         expect(stub).to.not.be.called;
@@ -1324,9 +1126,9 @@ describes.realWin('MeasureScanner', {amp: 1}, env => {
 
       target1.style.fontSize = '16px';
       expect(() => css.getCurrentFontSize()).to.throw(/target is specified/);
-      expect(css.withTarget(target1, 0, () => css.getCurrentFontSize()))
+      expect(css.withTarget(target1, () => css.getCurrentFontSize()))
           .to.equal(16);
-      expect(css.withTarget(target2, 0, () => css.getCurrentFontSize()))
+      expect(css.withTarget(target2, () => css.getCurrentFontSize()))
           .to.equal(12);
     });
 
@@ -1334,7 +1136,7 @@ describes.realWin('MeasureScanner', {amp: 1}, env => {
       target1.style.width = '11px';
       target1.style.height = '12px';
       expect(() => css.getCurrentElementSize()).to.throw(/target is specified/);
-      expect(css.withTarget(target1, 0, () => css.getCurrentElementSize()))
+      expect(css.withTarget(target1, () => css.getCurrentElementSize()))
           .to.deep.equal({width: 11, height: 12});
     });
 
@@ -1348,36 +1150,14 @@ describes.realWin('MeasureScanner', {amp: 1}, env => {
       // Normal selectors search whole DOM and don't need context.
       expect(css.getElementSize('#target1', null))
           .to.deep.equal({width: 11, height: 12});
-      expect(css.withTarget(target2, 0,
+      expect(css.withTarget(target2,
           () => css.getElementSize('#target1', null)))
           .to.deep.equal({width: 11, height: 12});
 
       // Closest selectors always need a context node.
       expect(() => css.getElementSize('#target1', 'closest'))
           .to.throw(/target is specified/);
-      expect(css.withTarget(child, 0,
-          () => css.getElementSize('.parent', 'closest')))
-          .to.deep.equal({width: 11, height: 12});
-    });
-
-    it('should resolve the selected element size', () => {
-      target1.style.width = '11px';
-      target1.style.height = '12px';
-      target1.classList.add('parent');
-      const child = target1.ownerDocument.createElement('div');
-      target1.appendChild(child);
-
-      // Normal selectors search whole DOM and don't need context.
-      expect(css.getElementSize('#target1', null))
-          .to.deep.equal({width: 11, height: 12});
-      expect(css.withTarget_(target2,
-          () => css.getElementSize('#target1', null)))
-          .to.deep.equal({width: 11, height: 12});
-
-      // Closest selectors always need a context node.
-      expect(() => css.getElementSize('#target1', 'closest'))
-          .to.throw(/target is specified/);
-      expect(css.withTarget_(child,
+      expect(css.withTarget(child,
           () => css.getElementSize('.parent', 'closest')))
           .to.deep.equal({width: 11, height: 12});
     });
@@ -1419,10 +1199,10 @@ describes.realWin('MeasureScanner', {amp: 1}, env => {
     }
 
     function createRunner(spec) {
-      const scanner = new MeasureScanner(
-          window, document, 'https://acme.org/', true);
-      scanner.scan(spec);
-      return scanner.createRunner(resources);
+      const builder = new Builder(
+          win, doc, 'https://acme.org/',
+          vsync, resources);
+      return builder.createRunner(spec);
     }
 
     it('should unblock non-AMP elements immediately', () => {
@@ -1543,26 +1323,7 @@ describes.sandboxed('WebAnimationRunner', {}, () => {
     return style;
   }
 
-  it('should call init on all animations and stay in IDLE state', () => {
-    target1Mock.expects('animate')
-        .withExactArgs(keyframes1, timing1)
-        .returns(anim1)
-        .once();
-    target2Mock.expects('animate')
-        .withExactArgs(keyframes2, timing2)
-        .returns(anim2)
-        .once();
-
-    expect(runner.getPlayState()).to.equal(WebAnimationPlayState.IDLE);
-    runner.init();
-    expect(runner.getPlayState()).to.equal(WebAnimationPlayState.IDLE);
-    expect(runner.players_).to.have.length(2);
-    expect(runner.players_[0]).equal(anim1);
-    expect(runner.players_[1]).equal(anim2);
-    expect(playStateSpy).not.to.be.called;
-  });
-
-  it('should call start on all animations', () => {
+  it('should call start on all animatons', () => {
     target1Mock.expects('animate')
         .withExactArgs(keyframes1, timing1)
         .returns(anim1)

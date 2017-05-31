@@ -16,12 +16,7 @@
 
 
 /**
- * @typedef {
- *   !WebMultiAnimationDef|
- *   !WebSwitchAnimationDef|
- *   !WebCompAnimationDef|
- *   !WebKeyframeAnimationDef
- * }
+ * @typedef {!WebMultiAnimationDef|!WebCompAnimationDef|!WebKeyframeAnimationDef}
  */
 export let WebAnimationDef;
 
@@ -41,20 +36,7 @@ export let WebMultiAnimationDef;
 /**
  * @mixes WebAnimationSelectorDef
  * @mixes WebAnimationTimingDef
- * @mixes WebAnimationVarsDef
- * @mixes WebAnimationConditionalDef
- * @typedef {{
- *   switch: !Array<!WebAnimationDef>,
- * }}
- */
-export let WebSwitchAnimationDef;
-
-
-/**
- * @mixes WebAnimationSelectorDef
- * @mixes WebAnimationTimingDef
- * @mixes WebAnimationVarsDef
- * @mixes WebAnimationConditionalDef
+ * @mixes WebAnimationMediaDef
  * @typedef {{
  *   animation: string,
  * }}
@@ -68,7 +50,7 @@ export let WebCompAnimationDef;
  * @mixes WebAnimationVarsDef
  * @mixes WebAnimationConditionalDef
  * @typedef {{
- *   keyframes: (string|!WebKeyframesDef),
+ *   keyframes: !WebKeyframesDef,
  * }}
  */
 export let WebKeyframeAnimationDef;
@@ -140,6 +122,15 @@ export let WebAnimationSelectorDef;
  * }}
  */
 export let WebAnimationSubtargetDef;
+
+
+/**
+ * @typedef {{
+ *   target: (!Element|undefined),
+ *   selector: (string|undefined),
+ * }}
+ */
+export let WebAnimationSelectorDef;
 
 
 /**
