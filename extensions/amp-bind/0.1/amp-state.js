@@ -151,8 +151,7 @@ export class AmpState extends AMP.BaseElement {
     const id = user().assert(this.element.id, '<amp-state> must have an id.');
     const state = /** @type {!JsonObject} */ (map());
     state[id] = json;
-    Services.bindForDocOrNull(this.element).then(bind => {
-      dev().assert(bind, 'Bind service can not be found.');
+    bindForDoc(this.element).then(bind => {
       bind.setState(state,
           /* opt_skipEval */ isInit, /* opt_isAmpStateMutation */ !isInit);
     });

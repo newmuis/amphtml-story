@@ -108,14 +108,21 @@ export class StandardActions {
     switch (method) {
       case 'pushState':
       case 'setState':
-        const actions = /** @type {!Array} */ (dev().assert(opt_actionInfos));
-        const index = dev().assertNumber(opt_actionIndex);
-        // Allow one amp-bind state action per event.
-        for (let i = 0; i < index; i++) {
-          const action = actions[i];
-          if (action.target == 'AMP' && action.method.indexOf('State') >= 0) {
-            user().error('AMP-BIND', 'One state action allowed per event.');
-            return null;
+        bindForDoc(invocation.target).then(bind => {
+          const args = invocation.args;
+          const objectString = args[OBJECT_STRING_ARGS_KEY];
+          if (objectString) {
+            // Object string arg.
+            const scope = Object.create(null);
+            const event = invocation.event;
+            if (event && event.detail) {
+              scope['event'] = event.detail;
+            }
+            bind.setStateWithExpression(objectString, scope);
+          } else {
+            user().error('AMP-BIND', `Please use the object-literal syntax, `
+                + `e.g. "AMP.setState({foo: 'bar'})" instead of `
+                + `"AMP.setState(foo='bar')".`);
           }
         }
         return this.handleAmpBindAction_(invocation, method == 'pushState');

@@ -25,6 +25,7 @@ import {dev, user} from '../../../src/log';
 import {dict, deepMerge} from '../../../src/utils/object';
 import {getMode} from '../../../src/mode';
 import {filterSplice} from '../../../src/utils/array';
+import {formOrNullForElement} from '../../../src/form';
 import {installServiceInEmbedScope} from '../../../src/service';
 import {invokeWebWorker} from '../../../src/web-worker/amp-worker';
 import {isArray, isObject, toArray} from '../../../src/types';
@@ -94,6 +95,11 @@ export class Bind {
    * @param {!Window=} opt_win
    */
   constructor(ampdoc, opt_win) {
+    // Allow integration test to access this class in testing mode.
+    /** @const @private {boolean} */
+    this.enabled_ = isBindEnabledFor(ampdoc.win);
+    user().assert(this.enabled_, `Experiment "${TAG}" is disabled.`);
+
     /** @const {!../../../src/service/ampdoc-impl.AmpDoc} */
     this.ampdoc = ampdoc;
 
@@ -103,8 +109,7 @@ export class Bind {
     /**
      * The window containing the document to scan.
      * May differ from the `ampdoc`'s window e.g. in FIE.
-     * @const @private {!Window}
-     */
+     * @const @private {!Window} */
     this.localWin_ = opt_win || ampdoc.win;
 
     /** @private {!Array<BoundElementDef>} */
@@ -155,10 +160,13 @@ export class Bind {
      * Resolved when the service finishes scanning the document for bindings.
      * @const @private {Promise}
      */
-    this.initializePromise_ =
-        this.viewer_.whenFirstVisible().then(() => bodyPromise).then(body => {
-          return this.initialize_(body);
-        });
+    this.initializePromise_ = Promise.all([
+      waitForBodyPromise(this.localWin_.document), // Wait for body.
+      this.viewer_.whenFirstVisible(), // Don't initialize in prerender mode.
+    ]).then(() => {
+      const rootNode = dev().assertElement(this.localWin_.document.body);
+      return this.initialize_(rootNode);
+    });
 
     /** @private {Promise} */
     this.setStatePromise_ = null;
@@ -223,30 +231,20 @@ export class Bind {
     return this.setStatePromise_;
   }
 
-  /**
-   * Same as setStateWithExpression() except also pushes new history.
-   * Popping the new history stack entry will restore the values of variables
-   * in `expression`.
-   * @param {string} expression
-   * @param {!JsonObject} scope
-   * @return {!Promise}
-   */
-  pushStateWithExpression(expression, scope) {
-    return this.evaluateExpression_(expression, scope).then(result => {
-      // Store the current values of each referenced variable in `expression`
-      // so that we can restore them on history-pop.
-      const oldState = map();
-      Object.keys(result).forEach(variable => {
-        const s = map();
-        const value = this.state_[variable];
-        s[variable] = (value === undefined) ? null : value;
-        deepMerge(oldState, s, MAX_MERGE_DEPTH);
-      });
-
-      const onPop = () => this.setState(oldState);
-      this.history_.push(onPop);
-
-      return this.setState(result);
+    this.setStatePromise_ = this.initializePromise_.then(() => {
+      // Allow expression to reference current scope in addition to event scope.
+      Object.assign(scope, this.scope_);
+      return this.ww_('bind.evaluateExpression', [expression, scope]);
+    }).then(returnValue => {
+      const {result, error} = returnValue;
+      if (error) {
+        const userError = user().createError(`${TAG}: AMP.setState() failed `
+            + `with error: ${error.message}`);
+        userError.stack = error.stack;
+        reportError(userError);
+      } else {
+        return this.setState(result);
+      }
     });
   }
 
@@ -284,10 +282,8 @@ export class Bind {
    */
   initialize_(rootNode) {
     dev().fine(TAG, 'Scanning DOM for bindings...');
-    let promise = this.addBindingsForNodes_([rootNode]).then(() => {
-      // Listen for DOM updates (e.g. template render) to rescan for bindings.
-      rootNode.addEventListener(AmpEvents.DOM_UPDATE, this.boundOnDomUpdate_);
-    });
+    let promise = this.addBindingsForNode_(rootNode);
+    // Check default values against initial expression results in development.
     if (getMode().development) {
       // Check default values against initial expression results.
       promise = promise.then(() =>
@@ -328,13 +324,13 @@ export class Bind {
   }
 
   /**
-   * For each node in an array, scans it and its descendants for bindings.
-   * This function is not idempotent.
+   * Scans `node` and its descendants and adds bindings for nodes
+   * that contain bindable elements. This function is not idempotent.
    *
    * Returns a promise that resolves after bindings have been added.
    *
-   * @param {!Array<!Node>} nodes
-   * @return {!Promise<number>}
+   * @param {!Node} node
+   * @return {!Promise}
    * @private
    */
   addBindingsForNodes_(nodes) {
@@ -375,24 +371,8 @@ export class Bind {
       if (bindings.length == 0) {
         return bindings.length;
       } else {
-        dev().fine(TAG, 'Asking worker to parse expressions...');
-        return this.ww_('bind.addBindings', [bindings]).then(parseErrors => {
-          // Report each parse error.
-          Object.keys(parseErrors).forEach(expressionString => {
-            const elements = this.expressionToElements_[expressionString];
-            if (elements.length > 0) {
-              const parseError = parseErrors[expressionString];
-              const userError = user().createError(
-                  `${TAG}: Expression compile error in "${expressionString}". `
-                  + parseError.message);
-              userError.stack = parseError.stack;
-              reportError(userError, elements[0]);
-            }
-          });
-          dev().fine(TAG, 'Finished parsing expressions with ' +
-              `${Object.keys(parseErrors).length} errors.`);
-          return bindings.length;
-        });
+        dev().fine(TAG, `Asking worker to parse expressions...`);
+        return this.ww_('bind.addBindings', [bindings]);
       }
     });
   }
@@ -440,7 +420,7 @@ export class Bind {
 
     // Remove the bindings from the evaluator.
     if (deletedExpressions.length > 0) {
-      dev().fine(TAG, 'Asking worker to remove expressions...');
+      dev().fine(TAG, `Asking worker to remove expressions...`);
       return this.ww_(
           'bind.removeBindingsWithExpressionStrings', [deletedExpressions]);
     } else {
@@ -618,7 +598,7 @@ export class Bind {
    */
   evaluate_() {
     user().fine(TAG, 'Asking worker to re-evaluate expressions...');
-    const evaluatePromise = this.ww_('bind.evaluateBindings', [this.state_]);
+    const evaluatePromise = this.ww_('bind.evaluateBindings', [this.scope_]);
     return evaluatePromise.then(returnValue => {
       const {results, errors} = returnValue;
       // Report evaluation errors.
@@ -1036,14 +1016,7 @@ export class Bind {
    */
   dispatchEventForTesting_(name) {
     if (getMode().test) {
-      let event;
-      if (typeof this.localWin_.Event === 'function') {
-        event = new Event(name, {bubbles: true, cancelable: true});
-      } else {
-        event = this.localWin_.document.createEvent('Event');
-        event.initEvent(name, /* bubbles */ true, /* cancelable */ true);
-      }
-      this.localWin_.dispatchEvent(event);
+      this.localWin_.dispatchEvent(new Event(name));
     }
   }
 }
