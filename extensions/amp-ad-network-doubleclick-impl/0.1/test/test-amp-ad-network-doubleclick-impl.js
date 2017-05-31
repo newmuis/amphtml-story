@@ -327,7 +327,7 @@ describes.realWin('amp-ad-network-doubleclick-impl', realWinConfig, env => {
               height: 50,
             };
           });
-
+      sandbox.stub(impl, 'getAmpDoc', () => {return document;});
       // Reproduced from noopMethods in ads/google/a4a/test/test-utils.js,
       // to fix failures when this is run after 'gulp build', without a 'dist'.
       sandbox.stub(impl, 'getPageLayoutBox', () => {
