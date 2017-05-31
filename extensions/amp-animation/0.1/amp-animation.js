@@ -149,32 +149,15 @@ export class AmpAnimation extends AMP.BaseElement {
     }
 
     // Actions.
-    this.registerAction('start',
-        this.startAction_.bind(this), ActionTrust.LOW);
-    this.registerAction('restart',
-        this.restartAction_.bind(this), ActionTrust.LOW);
-    this.registerAction('pause',
-        this.pauseAction_.bind(this), ActionTrust.LOW);
-    this.registerAction('resume',
-        this.resumeAction_.bind(this), ActionTrust.LOW);
-    this.registerAction('togglePause',
-        this.togglePauseAction_.bind(this), ActionTrust.LOW);
-    this.registerAction('seekTo',
-        this.seekToAction_.bind(this), ActionTrust.LOW);
-    this.registerAction('reverse',
-        this.reverseAction_.bind(this), ActionTrust.LOW);
-    this.registerAction('finish',
-        this.finishAction_.bind(this), ActionTrust.LOW);
-    this.registerAction('cancel',
-        this.cancelAction_.bind(this), ActionTrust.LOW);
-  }
-
-  /**
-   * Returns the animation spec.
-   * @return {?JsonObject}
-   */
-  getAnimationSpec() {
-    return /** @type {?JsonObject} */ (this.configJson_);
+    this.registerAction('start', this.startAction_.bind(this));
+    this.registerAction('restart', this.restartAction_.bind(this));
+    this.registerAction('pause', this.pauseAction_.bind(this));
+    this.registerAction('resume', this.resumeAction_.bind(this));
+    this.registerAction('togglePause', this.togglePauseAction_.bind(this));
+    this.registerAction('seekTo', this.seekToAction_.bind(this));
+    this.registerAction('reverse', this.reverseAction_.bind(this));
+    this.registerAction('finish', this.finishAction_.bind(this));
+    this.registerAction('cancel', this.cancelAction_.bind(this));
   }
 
   /**
@@ -200,12 +183,11 @@ export class AmpAnimation extends AMP.BaseElement {
 
   /** @override */
   activate(invocation) {
-    return this.startAction_(invocation);
+    this.startAction_(invocation);
   }
 
   /**
    * @param {?../../../src/service/action-impl.ActionInvocation=} opt_invocation
-   * @return {?Promise}
    * @private
    */
   startAction_(opt_invocation) {
@@ -213,14 +195,13 @@ export class AmpAnimation extends AMP.BaseElement {
     // will actually be running.
     this.triggered_ = true;
     if (this.visible_) {
-      return this.startOrResume_(opt_invocation ? opt_invocation.args : null);
+      this.startOrResume_(opt_invocation ? opt_invocation.args : null);
     }
     return Promise.resolve();
   }
 
   /**
    * @param {!../../../src/service/action-impl.ActionInvocation} invocation
-   * @return {?Promise}
    * @private
    */
   restartAction_(invocation) {
@@ -229,93 +210,30 @@ export class AmpAnimation extends AMP.BaseElement {
     // will actually be running.
     this.triggered_ = true;
     if (this.visible_) {
-      return this.startOrResume_(invocation.args);
+      this.startOrResume_(invocation.args);
     }
-    return Promise.resolve();
   }
 
-  /**
-   * @return {?Promise}
-   * @private
-   */
+  /** @private */
   pauseAction_() {
-    if (!this.triggered_) {
-      return Promise.resolve();
-    }
-    return this.createRunnerIfNeeded_().then(() => {
-      this.pause_();
-      this.pausedByAction_ = true;
-    });
+    this.pause_();
   }
 
-  /**
-   * @return {?Promise}
-   * @private
-   */
+  /** @private */
   resumeAction_() {
-    if (!this.triggered_) {
-      return Promise.resolve();
+    if (this.runner_ && this.visible_ && this.triggered_) {
+      this.runner_.resume();
     }
-    return this.createRunnerIfNeeded_().then(() => {
-      if (this.visible_) {
-        this.runner_.resume();
-        this.pausedByAction_ = false;
-      }
-    });
   }
 
-  /**
-   * @return {?Promise}
-   * @private
-   */
+  /** @private */
   togglePauseAction_() {
-    if (!this.triggered_) {
-      return Promise.resolve();
-    }
-    return this.createRunnerIfNeeded_().then(() => {
-      if (this.visible_) {
-        if (this.runner_.getPlayState() == WebAnimationPlayState.PAUSED) {
-          return this.startOrResume_();
-        } else {
-          this.pause_();
-          this.pausedByAction_ = true;
-        }
+    if (this.runner_ && this.visible_ && this.triggered_) {
+      if (this.runner_.getPlayState() == WebAnimationPlayState.PAUSED) {
+        this.startOrResume_();
+      } else {
+        this.pause_();
       }
-    });
-  }
-
-  /**
-   * @param {!../../../src/service/action-impl.ActionInvocation} invocation
-   * @return {?Promise}
-   * @private
-   */
-  seekToAction_(invocation) {
-    // The animation will be triggered (in paused state) and seek will happen
-    // regardless of visibility
-    this.triggered_ = true;
-    return this.createRunnerIfNeeded_().then(() => {
-      this.pause_();
-      this.pausedByAction_ = true;
-      // time based seek
-      const time = parseFloat(invocation.args && invocation.args['time']);
-      if (isFiniteNumber(time)) {
-        this.runner_.seekTo(time);
-      }
-      // percent based seek
-      const percent = parseFloat(invocation.args && invocation.args['percent']);
-      if (isFiniteNumber(percent)) {
-        this.runner_.seekToPercent(clamp(percent, 0, 1));
-      }
-    });
-  }
-
-  /**
-   * @return {?Promise}
-   * @private
-   */
-  reverseAction_() {
-    if (!this.triggered_) {
-      return Promise.resolve();
     }
     return this.createRunnerIfNeeded_().then(() => {
       if (this.visible_) {
@@ -340,6 +258,36 @@ export class AmpAnimation extends AMP.BaseElement {
   cancelAction_() {
     this.cancel_();
     return Promise.resolve();
+  }
+
+  /**
+   * @param {!../../../src/service/action-impl.ActionInvocation} invocation
+   * @private
+   */
+  seekToAction_(invocation) {
+    if (this.runner_ && this.visible_ && this.triggered_) {
+      const time = parseFloat(invocation.args && invocation.args['time']);
+      if (time && isFinite(time)) {
+        this.runner_.seekTo(time);
+      }
+    }
+  }
+
+  /** @private */
+  reverseAction_() {
+    if (this.runner_ && this.visible_ && this.triggered_) {
+      this.runner_.reverse();
+    }
+  }
+
+  /** @private */
+  finishAction_() {
+    this.finish_();
+  }
+
+  /** @private */
+  cancelAction_() {
+    this.cancel_();
   }
 
   /**
@@ -385,7 +333,7 @@ export class AmpAnimation extends AMP.BaseElement {
   }
 
   /**
-   * @param {?JsonObject=} opt_args
+   * @param {?JSONType=} opt_args
    * @return {?Promise}
    * @private
    */
@@ -401,53 +349,34 @@ export class AmpAnimation extends AMP.BaseElement {
       return null;
     }
 
-    return this.createRunnerIfNeeded_(opt_args).then(() => {
+    return this.createRunner_(opt_args).then(runner => {
+      this.runner_ = runner;
+      this.runner_.onPlayStateChanged(this.playStateChanged_.bind(this));
+      this.setupScrollboundAnimations_();
       this.runner_.start();
     });
-  }
-
-  /**
-   * Creates the runner but animations will not start.
-   * @param {?JsonObject=} opt_args
-   * @return {!Promise}
-   * @private
-   */
-  createRunnerIfNeeded_(opt_args) {
-    if (!this.runnerPromise_) {
-      this.runnerPromise_ = this.createRunner_(opt_args).then(runner => {
-        this.runner_ = runner;
-        this.runner_.onPlayStateChanged(this.playStateChanged_.bind(this));
-        this.runner_.init();
-      });
-    }
-
-    return this.runnerPromise_;
   }
 
   /** @private */
   finish_() {
     this.triggered_ = false;
-    this.pausedByAction_ = false;
     if (this.runner_) {
       this.runner_.finish();
       this.runner_ = null;
-      this.runnerPromise_ = null;
     }
   }
 
   /** @private */
   cancel_() {
     this.triggered_ = false;
-    this.pausedByAction_ = false;
     if (this.runner_) {
       this.runner_.cancel();
       this.runner_ = null;
-      this.runnerPromise_ = null;
     }
   }
 
   /**
-   * @param {?JsonObject=} opt_args
+   * @param {?JSONType=} opt_args
    * @return {!Promise<!./web-animations.WebAnimationRunner>}
    * @private
    */
@@ -474,7 +403,7 @@ export class AmpAnimation extends AMP.BaseElement {
           baseUrl,
           this.getVsync(),
           this.element.getResources());
-      return builder.createRunner(configJson);
+      return builder.createRunner(configJson, args);
     });
   }
 

@@ -34,6 +34,12 @@ class Animation {
   }
 
   /**
+   * Current time of the animation.
+   * @type {number}
+   */
+  get currentTime() {}
+
+  /**
    * Starts or resumes playing of an animation, or begins the animation again
    * if it previously finished.
    */
