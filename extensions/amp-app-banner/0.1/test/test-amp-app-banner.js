@@ -20,16 +20,12 @@ import {
     AmpIosAppBanner,
     AmpAndroidAppBanner,
 } from '../amp-app-banner';
-import {Services} from '../../../../src/services';
+import {xhrFor} from '../../../../src/services';
+import {AmpDocSingle} from '../../../../src/service/ampdoc-impl';
+import {viewerForDoc} from '../../../../src/services';
 
+describes.realWin('amp-app-banner', {amp: true}, () => {
 
-describes.realWin('amp-app-banner', {
-  amp: {
-    extensions: ['amp-app-banner'],
-    canonicalUrl: 'https://example.com/amps.html',
-  },
-}, env => {
-  let win, doc, ampdoc;
   let vsync;
   let platform;
   let isAndroid = false;
@@ -67,56 +63,78 @@ describes.realWin('amp-app-banner', {
     }
   }
 
+  function getTestFrame() {
+    return createIframePromise(true).then(iframe => {
+      const ampdoc = new AmpDocSingle(iframe.win);
+      const viewer = viewerForDoc(ampdoc);
+      sandbox.stub(viewer, 'isEmbedded', () => isEmbedded);
+      sandbox.stub(viewer, 'hasCapability', () => hasNavigateToCapability);
+      platform = platformFor(iframe.win);
+      sandbox.stub(platform, 'isIos', () => isIos);
+      sandbox.stub(platform, 'isAndroid', () => isAndroid);
+      sandbox.stub(platform, 'isChrome', () => isChrome);
+      sandbox.stub(platform, 'isSafari', () => isSafari);
+      sandbox.stub(platform, 'isFirefox', () => isFirefox);
+      sandbox.stub(platform, 'isEdge', () => isEdge);
+
+      vsync = vsyncFor(iframe.win);
+      sandbox.stub(vsync, 'runPromise', (task, state) => {
+        runTask(task, state);
+        return Promise.resolve();
+      });
+      sandbox.stub(vsync, 'run', runTask);
+      return iframe;
+    });
+  }
+
   function getAppBanner(config = {}) {
-    if (config.iosMeta) {
-      const meta = doc.createElement('meta');
-      meta.setAttribute('name', 'apple-itunes-app');
-      meta.setAttribute('content', config.iosMeta.content);
-      doc.head.appendChild(meta);
-    }
+    return getTestFrame().then(iframe => {
+      const link = iframe.doc.createElement('link');
+      link.setAttribute('rel', 'canonical');
+      link.setAttribute('href', 'https://example.com/amps.html');
+      iframe.doc.head.appendChild(link);
 
-    const manifestObj = config.originManifest || config.androidManifest;
-    if (manifestObj) {
-      const rel = config.originManifest ? 'origin-manifest' : 'manifest';
-      const manifest = doc.createElement('link');
-      manifest.setAttribute('rel', rel);
-      manifest.setAttribute('href', manifestObj.href);
-      doc.head.appendChild(manifest);
-      sandbox.mock(Services.xhrFor(win)).expects('fetchJson')
-          .returns(Promise.resolve({
-            json() {
-              return Promise.resolve(manifestObj.content);
-            },
-          }));
-    }
+      if (config.iosMeta) {
+        const meta = iframe.doc.createElement('meta');
+        meta.setAttribute('name', 'apple-itunes-app');
+        meta.setAttribute('content', config.iosMeta.content);
+        iframe.doc.head.appendChild(meta);
+      }
 
-    const banner = doc.createElement('amp-app-banner');
-    banner.setAttribute('layout', 'nodisplay');
-    if (!config.noOpenButton) {
-      const openButton = doc.createElement('button');
-      openButton.setAttribute('open-button', '');
-      banner.appendChild(openButton);
-    }
+      const manifestObj = config.originManifest || config.androidManifest;
+      if (manifestObj) {
+        const rel = config.originManifest ? 'origin-manifest' : 'manifest';
+        const manifest = iframe.doc.createElement('link');
+        manifest.setAttribute('rel', rel);
+        manifest.setAttribute('href', manifestObj.href);
+        iframe.doc.head.appendChild(manifest);
+        sandbox.mock(xhrFor(iframe.win)).expects('fetchJson')
+            .returns(Promise.resolve(manifestObj.content));
+      }
 
-    banner.id = 'banner0';
-    doc.body.appendChild(banner);
-    return banner.build()
-        .then(() => banner.layoutCallback())
-        .then(() => banner);
+      const banner = iframe.doc.createElement('amp-app-banner');
+      banner.setAttribute('layout', 'nodisplay');
+      banner.getAmpDoc = () => iframe.ampdoc;
+      if (!config.noOpenButton) {
+        const openButton = iframe.doc.createElement('button');
+        openButton.setAttribute('open-button', '');
+        banner.appendChild(openButton);
+      }
+
+      return iframe.addElement(banner);
+    });
   }
 
   function testSetupAndShowBanner() {
     return getAppBanner({iosMeta, androidManifest}).then(banner => {
-      return banner.implementation_.isDismissed().then(() => {
-        expect(banner.parentElement).to.not.be.null;
-        expect(banner.style.display).to.be.equal('');
-        const bannerTop = banner.querySelector(
-            'i-amphtml-app-banner-top-padding');
-        expect(bannerTop).to.exist;
-        const dismissBtn = banner.querySelector(
-            '.amp-app-banner-dismiss-button');
-        expect(dismissBtn).to.exist;
-      });
+      expect(banner.parentElement).to.not.be.null;
+      expect(banner.style.display).to.be.equal('');
+      const bannerTop = banner.querySelector(
+          'i-amphtml-app-banner-top-padding');
+      expect(bannerTop).to.exist;
+      const dismissBtn = banner.querySelector(
+          '.amp-app-banner-dismiss-button');
+      expect(dismissBtn).to.exist;
     });
   }
 
@@ -171,9 +189,9 @@ describes.realWin('amp-app-banner', {
       return getAppBanner({iosMeta}).then(el => {
         expect(AbstractAppBanner.prototype.setupOpenButton_)
             .to.have.been.calledWith(
-            el.querySelector('button[open-button]'),
-            'medium://p/cb7f223fad86',
-            'https://itunes.apple.com/us/app/id828256236');
+                el.querySelector('button[open-button]'),
+                'medium://p/cb7f223fad86',
+                'https://itunes.apple.com/us/app/id828256236');
       });
     });
 
@@ -280,28 +298,6 @@ describes.realWin('amp-app-banner', {
     isEdge = false;
     isEmbedded = false;
     hasNavigateToCapability = true;
-
-    win = env.win;
-    doc = win.document;
-    ampdoc = env.ampdoc;
-    const viewer = Services.viewerForDoc(ampdoc);
-    sandbox.stub(viewer, 'isEmbedded', () => isEmbedded);
-    sandbox.stub(viewer, 'hasCapability', () => hasNavigateToCapability);
-    platform = Services.platformFor(win);
-    sandbox.stub(platform, 'isIos', () => isIos);
-    sandbox.stub(platform, 'isAndroid', () => isAndroid);
-    sandbox.stub(platform, 'isChrome', () => isChrome);
-    sandbox.stub(platform, 'isSafari', () => isSafari);
-    sandbox.stub(platform, 'isFirefox', () => isFirefox);
-    sandbox.stub(platform, 'isEdge', () => isEdge);
-
-    vsync = Services.vsyncFor(win);
-    sandbox.stub(vsync, 'runPromise', (task, state) => {
-      runTask(task, state);
-      return Promise.resolve();
-    });
-    sandbox.stub(vsync, 'run', runTask);
-  });
 
   describe('Choosing platform', () => {
     it('should upgrade to AmpIosAppBanner on iOS', () => {
@@ -480,6 +476,12 @@ describes.realWin('amp-app-banner', {
 
         testSuiteAndroid();
       });
+    });
+  });
+
+  describe('Windows Edge', () => {
+    beforeEach(() => {
+      isEdge = true;
     });
   });
 
