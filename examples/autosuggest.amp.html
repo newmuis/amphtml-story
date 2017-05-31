@@ -72,7 +72,6 @@
     target="_blank"
     id="search-form"
     on="submit:autosuggest-list.hide;submit-success:results.show"
-    autocomplete="off"
   >
     <div class="search-container">
       <input
@@ -86,7 +85,7 @@
           }),
           autosuggest-list.show,
           results.hide"
-        [value]="query || ''"
+        [value]="query"
       />
       <button class="search-submit" type="submit">Search</button>
     </div>
@@ -95,7 +94,7 @@
       layout="fixed-height"
       height="120"
       src="/form/autosuggest/query"
-      [src]="'/form/autosuggest/query?q=' + (autosuggest || '')"
+      [src]="'/form/autosuggest/query?q=' + (autosuggest ? autosuggest : '')"
       id="autosuggest-list"
       hidden
     >

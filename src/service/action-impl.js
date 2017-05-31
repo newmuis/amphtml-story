@@ -58,17 +58,30 @@ const ELEMENTS_ACTIONS_MAP_ = {
   'form': ['submit'],
 };
 
-/**
- * An expression arg value, e.g. `foo.bar` in `e:t.m(arg=foo.bar)`.
- * @typedef {{expression: string}}
- */
-let ActionInfoArgExpressionDef;
+/** @enum {string} */
+const TYPE = {
+  NUMBER: 'number',
+  BOOLEAN: 'boolean',
+  STRING: 'string',
+};
 
-/**
- * An arg value.
- * @typedef {(boolean|number|string|ActionInfoArgExpressionDef)}
- */
-let ActionInfoArgValueDef;
+/** @const {!Object<string, !Object<string, string>>} */
+const WHITELISTED_INPUT_DATA_ = {
+  'range': {
+    'min': TYPE.NUMBER,
+    'max': TYPE.NUMBER,
+    'value': TYPE.NUMBER,
+  },
+  'radio': {
+    'checked': TYPE.BOOLEAN,
+  },
+  'checkbox': {
+    'checked': TYPE.BOOLEAN,
+  },
+  'text': {
+    'value': TYPE.STRING,
+  },
+};
 
 /**
  * Map of arg names to their values, e.g. {arg: 123} in `e:t.m(arg=123)`.
