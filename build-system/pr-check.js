@@ -262,12 +262,11 @@ const command = {
   cleanBuild: function() {
     timedExecOrDie(`${gulp} clean`);
   },
-  runJsonAndLintChecks: function() {
-    timedExecOrDie(`${gulp} json-syntax`);
+  runLintChecks: function() {
     timedExecOrDie(`${gulp} lint`);
   },
-  buildCss: function() {
-    timedExecOrDie(`${gulp} css`);
+  buildRuntimeCssOnly: function() {
+    timedExecOrDie(`${gulp} build --css-only`);
   },
   buildRuntime: function() {
     timedExecOrDie(`${gulp} build`);
@@ -281,7 +280,7 @@ const command = {
   },
   runUnitTests: function() {
     // Unit tests with Travis' default chromium
-    timedExecOrDie(`${gulp} test --unit --nobuild`);
+    timedExecOrDie(`${gulp} test --nobuild`);
     // All unit tests with an old chrome (best we can do right now to pass tests
     // and not start relying on new features).
     // Disabled because it regressed. Better to run the other saucelabs tests.
@@ -306,9 +305,6 @@ const command = {
     }
     timedExecOrDie(cmd);
   },
-  verifyVisualDiffTests: function() {
-    timedExecOrDie(`${gulp} visual-diff --verify`);
-  },
   runPresubmitTests: function() {
     timedExecOrDie(`${gulp} presubmit`);
   },
@@ -322,24 +318,24 @@ const command = {
 
 function runAllCommands() {
   // Run different sets of independent tasks in parallel to reduce build time.
-  if (process.env.BUILD_SHARD == "unit_tests") {
+  if (process.env.BUILD_SHARD == "pre_build_checks_and_unit_tests") {
     command.testBuildSystem();
     command.cleanBuild();
     command.buildRuntime();
-    command.runVisualDiffTests(/* opt_mode */ 'master');
-    command.runJsonAndLintChecks();
+    command.runLintChecks();
     command.runDepAndTypeChecks();
     command.runUnitTests();
-    command.verifyVisualDiffTests();
     // command.testDocumentLinks() is skipped during push builds.
     command.buildValidatorWebUI();
     command.buildValidator();
   }
   if (process.env.BUILD_SHARD == "integration_tests") {
     command.cleanBuild();
+    command.buildRuntimeCssOnly();
     command.buildRuntimeMinified();
     command.runPresubmitTests();  // Needs runtime to be built and served.
-    command.runIntegrationTests(/* compiled */ true);
+    command.runVisualDiffTests();  // Only called during push builds.
+    command.runIntegrationTests();
   }
 }
 
@@ -406,44 +402,25 @@ function main(argv) {
       util.colors.cyan(sortedBuildTargets.join(', ')));
 
   // Run different sets of independent tasks in parallel to reduce build time.
-  if (process.env.BUILD_SHARD == "unit_tests") {
+  if (process.env.BUILD_SHARD == "pre_build_checks_and_unit_tests") {
     if (buildTargets.has('BUILD_SYSTEM')) {
       command.testBuildSystem();
     }
     if (buildTargets.has('DOCS')) {
       command.testDocumentLinks(files);
     }
-    if (buildTargets.has('RUNTIME') ||
-        buildTargets.has('INTEGRATION_TEST')) {
-      command.cleanBuild();
-      command.buildCss();
-      command.runJsonAndLintChecks();
-      command.runDepAndTypeChecks();
-      // Run unit tests only if the PR contains runtime changes.
-      if (buildTargets.has('RUNTIME')) {
-        command.runUnitTests();
-      }
-    }
-  }
 
-  if (process.env.BUILD_SHARD == "integration_tests") {
-    if (buildTargets.has('INTEGRATION_TEST') ||
-        buildTargets.has('RUNTIME') ||
-        buildTargets.has('VISUAL_DIFF')) {
+    if (buildTargets.has('RUNTIME')) {
       command.cleanBuild();
       command.buildRuntime();
-      command.runVisualDiffTests();
-      // Run presubmit and integration tests only if the PR contains runtime
-      // changes or modifies an integration test.
-      if (buildTargets.has('INTEGRATION_TEST') ||
-          buildTargets.has('RUNTIME')) {
-        command.runPresubmitTests();
-        command.runIntegrationTests(/* compiled */ false);
-      }
-      command.verifyVisualDiffTests();
-    } else {
-      // Generates a blank Percy build to satisfy the required Github check.
-      command.runVisualDiffTests(/* opt_mode */ 'skip');
+      command.runLintChecks();
+      command.runDepAndTypeChecks();
+      command.runUnitTests();
+      // Ideally, we'd run presubmit tests after `gulp dist`, as some checks run
+      // through the dist/ folder. However, to speed up the Travis queue, we no
+      // longer do a dist build for PRs, so this call won't cover dist/.
+      // TODO(rsimha-amp): Move this once integration tests are enabled.
+      command.runPresubmitTests();
     }
     if (buildTargets.has('VALIDATOR_WEBUI')) {
       command.buildValidatorWebUI();
@@ -452,6 +429,12 @@ function main(argv) {
       command.buildValidator();
     }
   }
+
+  if (process.env.BUILD_SHARD == "integration_tests") {
+    // The integration_tests shard can be skipped for PRs.
+    console.log(fileLogPrefix, 'Skipping integration_tests for PRs');
+  }
+
 
   stopTimer('pr-check.js', startTime);
   return 0;
