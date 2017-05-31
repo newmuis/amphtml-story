@@ -29,7 +29,8 @@ import {
   ShadowDomVersion,
 } from './web-components';
 import {setStyle} from './style';
-import {toArray, toWin} from './types';
+import {toArray} from './types';
+import {vsyncFor} from './services';
 
 /**
  * Used for non-composed root-node search. See `getRootNode`.
@@ -136,11 +137,6 @@ function createShadowRootPolyfill(hostElement) {
       return toArray(doc.styleSheets).filter(
           styleSheet => shadowRoot.contains(styleSheet.ownerNode));
     },
-  });
-
-  // CSS isolation.
-  installCssTransformer(shadowRoot, css => {
-    return transformShadowCss(shadowRoot, css);
   });
 
   return shadowRoot;
