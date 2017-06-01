@@ -43,59 +43,21 @@ import {
   QQID_HEADER,
 } from '../../../../ads/google/a4a/utils';
 import {createElementWithAttributes} from '../../../../src/dom';
-import {
-  toggleExperiment,
-  forceExperimentBranch,
-} from '../../../../src/experiments';
-import {Xhr} from '../../../../src/service/xhr-impl';
-import {VisibilityState} from '../../../../src/visibility-state';
-// Need the following side-effect import because in actual production code,
-// Fast Fetch impls are always loaded via an AmpAd tag, which means AmpAd is
-// always available for them. However, when we test an impl in isolation,
-// AmpAd is not loaded already, so we need to load it separately.
-import '../../../amp-ad/0.1/amp-ad';
+import {toggleExperiment} from '../../../../src/experiments';
+import {installDocService} from '../../../../src/service/ampdoc-impl';
+import * as sinon from 'sinon';
 
-/**
- * We're allowing external resources because otherwise using realWin causes
- * strange behavior with iframes, as it doesn't load resources that we
- * normally load in prod.
- * We're turning on ampAdCss because using realWin means that we don't
- * inherit that CSS from the parent page anymore.
- */
-const realWinConfig = {
-  amp: {
-    extensions: ['amp-ad-network-doubleclick-impl'],
-  },
-  ampAdCss: true,
-  allowExternalResources: true,
-};
-
-const realWinConfigAmpAd = {
-  amp: {ampdoc: 'amp-ad'},
-  ampAdCss: true,
-  allowExternalResources: true,
-};
-
-/**
- * Creates an iframe promise, and instantiates element and impl, adding the
- * former to the document of the iframe.
- * @param {{width, height, type}} config
- * @return The iframe promise.
- */
-function createImplTag(config, element, impl, env) {
-  config.type = 'doubleclick';
-  element = createElementWithAttributes(env.win.document, 'amp-ad', config);
-  // To trigger CSS styling.
-  element.setAttribute('data-a4a-upgrade-type',
-      'amp-ad-network-doubleclick-impl');
-  // Used to test styling which is targetted at first iframe child of
-  // amp-ad.
-  const iframe = env.win.document.createElement('iframe');
-  element.appendChild(iframe);
-  env.win.document.body.appendChild(element);
-  impl = new AmpAdNetworkDoubleclickImpl(element);
-  impl.iframe = iframe;
-  return [element, impl, env];
+function setupForAdTesting(fixture) {
+  installDocService(fixture.win, /* isSingleDoc */ true);
+  const doc = fixture.doc;
+  doc.win = fixture.win;
+  // TODO(a4a-cam@): This is necessary in the short term, until A4A is
+  // smarter about host document styling.  The issue is that it needs to
+  // inherit the AMP runtime style element in order for shadow DOM-enclosed
+  // elements to behave properly.  So we have to set up a minimal one here.
+  const ampStyle = doc.createElement('style');
+  ampStyle.setAttribute('amp-runtime', 'scratch-fortesting');
+  doc.head.appendChild(ampStyle);
 }
 
 
@@ -152,11 +114,21 @@ describes.realWin('amp-ad-network-doubleclick-impl', realWinConfig, env => {
     const size = {width: 200, height: 50};
 
     beforeEach(() => {
-      element = createElementWithAttributes(doc, 'amp-ad', {
-        'width': '200',
-        'height': '50',
-        'type': 'doubleclick',
-        'layout': 'fixed',
+      return createIframePromise().then(fixture => {
+        setupForAdTesting(fixture);
+        const doc = fixture.doc;
+        doc.win = window;
+        element = createElementWithAttributes(doc, 'amp-ad', {
+          'width': '200',
+          'height': '50',
+          'type': 'doubleclick',
+          'layout': 'fixed',
+        });
+        impl = new AmpAdNetworkDoubleclickImpl(element);
+        impl.size_ = size;
+        installExtensionsService(impl.win);
+        const extensions = extensionsFor(impl.win);
+        loadExtensionSpy = sandbox.spy(extensions, 'loadExtension');
       });
       impl = new AmpAdNetworkDoubleclickImpl(element);
       sandbox.stub(impl, 'getAmpDoc', () => ampdoc);
@@ -224,11 +196,21 @@ describes.realWin('amp-ad-network-doubleclick-impl', realWinConfig, env => {
 
   describe('#onCreativeRender', () => {
     beforeEach(() => {
-      doc.win = env.win;
-      element = createElementWithAttributes(doc, 'amp-ad', {
-        'width': '200',
-        'height': '50',
-        'type': 'doubleclick',
+      return createIframePromise().then(fixture => {
+        setupForAdTesting(fixture);
+        const doc = fixture.doc;
+        doc.win = window;
+        element = createElementWithAttributes(doc, 'amp-ad', {
+          'width': '200',
+          'height': '50',
+          'type': 'doubleclick',
+        });
+        impl = new AmpAdNetworkDoubleclickImpl(element);
+        // Next two lines are to ensure that internal parts not relevant for this
+        // test are properly set.
+        impl.size_ = {width: 200, height: 50};
+        impl.iframe = impl.win.document.createElement('iframe');
+        installExtensionsService(impl.win);
       });
       impl = new AmpAdNetworkDoubleclickImpl(element);
       sandbox.stub(impl, 'getAmpDoc', () => ampdoc);
@@ -327,7 +309,11 @@ describes.realWin('amp-ad-network-doubleclick-impl', realWinConfig, env => {
               height: 50,
             };
           });
-      sandbox.stub(impl, 'getAmpDoc', () => {return document;});
+
+      sandbox.stub(impl, 'getAmpDoc', () => {
+        document.win = window;
+        return document;
+      });
       // Reproduced from noopMethods in ads/google/a4a/test/test-utils.js,
       // to fix failures when this is run after 'gulp build', without a 'dist'.
       sandbox.stub(impl, 'getPageLayoutBox', () => {

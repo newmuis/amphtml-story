@@ -400,6 +400,11 @@ export class AmpAdNetworkAdsenseImpl extends AmpA4A {
     const idealHeight = Math.round(viewportSize.width / 1.2);
     return clamp(idealHeight, minHeight, maxHeight);
   }
+
+  /** @override */
+  getPreconnectUrls() {
+    return ['https://googleads.g.doubleclick.net'];
+  }
 }
 
 AMP.extension(TAG, '0.1', AMP => {

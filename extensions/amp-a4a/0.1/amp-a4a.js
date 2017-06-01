@@ -22,6 +22,7 @@ import {
   getAmpAdRenderOutsideViewport,
   incrementLoadingAds,
 } from '../../amp-ad/0.1/concurrent-load';
+import {signingServerURLs} from '../../../ads/_a4a-config';
 import {createElementWithAttributes} from '../../../src/dom';
 import {cancellation, isCancellation} from '../../../src/error';
 import {
@@ -334,23 +335,6 @@ export class AmpA4A extends AMP.BaseElement {
 
   /** @override */
   buildCallback() {
-    this.creativeSize_ = {
-      width: this.element.getAttribute('width'),
-      height: this.element.getAttribute('height'),
-    };
-    this.protectedEmitLifecycleEvent_ = protectFunctionWrapper(
-        this.emitLifecycleEvent, this,
-        (err, varArgs) => {
-          dev().error(TAG, this.element.getAttribute('type'),
-              'Error on emitLifecycleEvent', err, varArgs) ;
-        });
-    const upgradeDelayMs = Math.round(this.getResource().getUpgradeDelayMs());
-    dev().info(TAG,
-        `upgradeDelay ${this.element.getAttribute('type')}: ${upgradeDelayMs}`);
-    this.protectedEmitLifecycleEvent_('upgradeDelay', {
-      'forced_delta': upgradeDelayMs,
-    });
-
     this.uiHandler = new AMP.AmpAdUIHandler(this);
 
     const verifier = signatureVerifierFor(this.win);
@@ -384,14 +368,6 @@ export class AmpA4A extends AMP.BaseElement {
    */
   isValidElement() {
     return true;
-  }
-
-  /**
-   * @return {boolean} whether ad request should be delayed until
-   *    renderOutsideViewport is met.
-   */
-  delayAdRequestEnabled() {
-    return false;
   }
 
   /**
