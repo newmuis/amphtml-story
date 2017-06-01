@@ -19,50 +19,43 @@ limitations under the License.
 <table>
   <tr>
     <td width="40%"><strong>Description</strong></td>
-    <td>Displays an <a href="http://imgur.com">Imgur</a> post.</td>
+    <td>Displays a <a href="http://imgur.com">imgur</a>.</td>
+  </tr>
+  <tr>
+    <td width="40%"><strong>Availability</strong></td>
+    <td>in development</td>
   </tr>
   <tr>
     <td width="40%"><strong>Required Script</strong></td>
-    <td><code>&lt;script async custom-element="amp-imgur" src="https://cdn.ampproject.org/v0/amp-imgur-0.1.js">&lt;/script></code></td>
+    <td><code>&lt;script async custom-element="amp-form" src="https://cdn.ampproject.org/v0/amp-imgur-0.1.js">&lt;/script></code></td>
   </tr>
   <tr>
     <td class="col-fourty"><strong><a href="https://www.ampproject.org/docs/guides/responsive/control_layout.html">Supported Layouts</a></strong></td>
     <td>fill, fixed, fixed-height, flex-item, nodisplay, responsive</td>
   </tr>
+  <tr>
+    <td width="40%"><strong>Examples</strong></td>
+    <td>None</td>
+  </tr>
 </table>
-
-[TOC]
 
 ## Behavior
 
-This extension creates an iframe and displays an [imgur](http://imgur.com) post. 
-
-Example: 
-
-```html
-<amp-imgur data-imgur-id="f462IUj"
-    layout="responsive"
-    width="540"
-    height="663"></amp-imgur>
-```
+This extension creates an iframe and displays the imgur post. 
 
 ## Attributes
 
-##### data-imgur-id (required)
+**data-imgur-id** (required)
+The ID of the imgur to embed.
 
-The ID of the Imgur post.
+**layout** (required)
+Currently only supports `responsive`.
 
-##### width (required)
+**width** (required)
+The width of the imgur.
 
-The width of the Imgur post.
-
-##### height (required)
-
-The width of the Imgur post.
-
-##### common attributes
-
-This element includes [common attributes](https://www.ampproject.org/docs/reference/common_attributes) extended to AMP components.
+**height** (required)
+The width of the imgur.
 
 ## Validation
-See [amp-imgur rules](https://github.com/ampproject/amphtml/blob/master/extensions/amp-imgur/validator-amp-imgur.protoascii) in the AMP validator specification.
+See [amp-imgur rules](https://github.com/ampproject/amphtml/blob/master/extensions/amp-imgur/0.1/validator-amp-imgur.protoascii) in the AMP validator specification.
