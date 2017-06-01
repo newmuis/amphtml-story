@@ -50,7 +50,7 @@ export let WebCompAnimationDef;
  * @mixes WebAnimationVarsDef
  * @mixes WebAnimationConditionalDef
  * @typedef {{
- *   keyframes: !WebKeyframesDef,
+ *   keyframes: (string|!WebKeyframesDef),
  * }}
  */
 export let WebKeyframeAnimationDef;
