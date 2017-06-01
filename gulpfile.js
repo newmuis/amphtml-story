@@ -165,10 +165,6 @@ function declareExtension(name, version, hasCssOrOptions) {
 }
 
 /**
- * This function is used for declaring deprecated extensions. It simply places the current
- * version code in place of the latest versions.
- * This has the ability to break an extension verison, so please be sure that this is
- * the correct one to use.
  * @param {string} name
  * @param {string} version E.g. 0.1
  * @param {string} lastestVersion
@@ -180,32 +176,6 @@ function declareExtensionVersionAlias(name, version, lastestVersion, hasCss) {
   if (hasCss) {
     extensionAliasFilePath[name + '-' + version + '.css'] =
       name + '-' + lastestVersion + '.css';
-  }
-}
-
-/**
- * Stops the timer for the given build step and prints the execution time,
- * unless we are on Travis.
- * @param {string} stepName Name of the action, like 'Compiled' or 'Minified'
- * @param {string} targetName Name of the target, like a filename or path
- * @param {DOMHighResTimeStamp} startTime Start time of build step
- */
-function endBuildStep(stepName, targetName, startTime) {
-  const endTime = Date.now();
-  const executionTime = new Date(endTime - startTime);
-  const secs = executionTime.getSeconds();
-  const ms = executionTime.getMilliseconds().toString().padStart(3, '0');
-  var timeString = '(';
-  if (secs === 0) {
-    timeString += ms + ' ms)';
-  } else {
-    timeString += secs + '.' + ms + ' s)';
-  }
-  if (!process.env.TRAVIS) {
-    $$.util.log(
-        stepName,
-        $$.util.colors.cyan(targetName),
-        $$.util.colors.green(timeString));
   }
 }
 
@@ -471,9 +441,6 @@ function watch() {
 function buildExtension(name, version, hasCss, options, opt_extraGlobs) {
   options = options || {};
   options.extraGlobs = opt_extraGlobs;
-  if (options.compileOnlyCss && !hasCss) {
-    return Promise.resolve();
-  }
   var path = 'extensions/' + name + '/' + version;
   var jsPath = path + '/' + name + '.js';
   var jsTestPath = path + '/test/' + 'test-' + name + '.js';
@@ -605,23 +572,20 @@ function dist() {
   process.env.NODE_ENV = 'production';
   writeAmpConfig();
   cleanupBuildDir();
-  return compileCss().then(() => {
-    return Promise.all([
-      compile(false, true, true),
-      // NOTE:
-      // When adding a line here, consider whether you need to include polyfills
-      // and whether you need to init logging (initLogConstructor).
-      buildAlp({minify: true, watch: false, preventRemoveAndMakeDir: true}),
-      buildExaminer({minify: true, watch: false, preventRemoveAndMakeDir: true}),
-      buildSw({minify: true, watch: false, preventRemoveAndMakeDir: true}),
-      buildWebWorker({minify: true, watch: false, preventRemoveAndMakeDir: true}),
-      buildExtensions({minify: true, preventRemoveAndMakeDir: true}),
-      buildExperiments({minify: true, watch: false, preventRemoveAndMakeDir: true}),
-      buildLoginDone({minify: true, watch: false, preventRemoveAndMakeDir: true}),
-      buildWebPushPublisherFiles({minify: true, watch: false, preventRemoveAndMakeDir: true}),
-      copyCss(),
-    ]);
-  }).then(() => {
+  return Promise.all([
+    compile(false, true, true),
+    // NOTE:
+    // When adding a line here, consider whether you need to include polyfills
+    // and whether you need to init logging (initLogConstructor).
+    buildAlp({minify: true, watch: false, preventRemoveAndMakeDir: true}),
+    buildExaminer({minify: true, watch: false, preventRemoveAndMakeDir: true}),
+    buildSw({minify: true, watch: false, preventRemoveAndMakeDir: true}),
+    buildWebWorker({minify: true, watch: false, preventRemoveAndMakeDir: true}),
+    buildExtensions({minify: true, preventRemoveAndMakeDir: true}),
+    buildExperiments({minify: true, watch: false, preventRemoveAndMakeDir: true}),
+    buildLoginDone({minify: true, watch: false, preventRemoveAndMakeDir: true}),
+    copyCss(),
+  ]).then(() => {
     copyAliasExtensions();
   });
 }

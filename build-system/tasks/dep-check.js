@@ -200,13 +200,11 @@ function getGraph(entryModule) {
  * @return {!Array<!ModuleDef>}
  */
 function getEntryModule(extensionFolder) {
-  var extension = path.basename(extensionFolder);
-  return fs.readdirSync(extensionFolder)
-      .map(x => `${extensionFolder}/${x}`)
-      .filter(x => fs.statSync(x).isDirectory())
-      .map(x => `${x}/${extension}.js`)
-      .filter(x => fs.existsSync(x))
-      .filter(x => fs.statSync(x).isFile());
+  // TODO (@zhouyx, #9642): Remove the special check and handle more than just 0.1
+  if (extensionFolder == 'extensions/amp-sticky-ad') {
+    return `${extensionFolder}/1.0/${path.basename(extensionFolder)}.js`;
+  }
+  return `${extensionFolder}/0.1/${path.basename(extensionFolder)}.js`;
 }
 
 /**

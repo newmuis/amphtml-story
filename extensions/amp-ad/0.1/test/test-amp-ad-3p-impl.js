@@ -21,7 +21,6 @@ import {adConfig} from '../../../../ads/_config';
 import * as adCid from '../../../../src/ad-cid';
 import '../../../amp-ad/0.1/amp-ad';
 import '../../../amp-sticky-ad/1.0/amp-sticky-ad';
-import {macroTask} from '../../../../testing/yield';
 import * as lolex from 'lolex';
 
 function createAmpAd(win) {
