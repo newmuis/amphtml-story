@@ -28,9 +28,13 @@ import {AmpStoryGridLayer} from './amp-story-grid-layer';
 import {AmpStoryPage} from './amp-story-page';
 import {CSS} from '../../../build/amp-story-0.1.css';
 import {Layout} from '../../../src/layout';
+import {dev} from '../../../src/log';
 
 /** @private @const {number} */
 const NEXT_SCREEN_AREA_RATIO = 0.75;
+
+/** @private @const {string} */
+const ACTIVE_PAGE_ATTRIBUTE_NAME = 'active';
 
 export class AmpStory extends AMP.BaseElement {
   /** @param {!AmpElement} element */
@@ -40,14 +44,14 @@ export class AmpStory extends AMP.BaseElement {
 
   /** @override */
   buildCallback() {
-    this.systemLayer_ = this.win.document.createElement('aside');
-    this.systemLayer_.classList.add('i-amp-story-system-layer');
-    this.element.appendChild(this.systemLayer_);
-
     this.bookend_ = this.win.document.createElement('section');
     this.bookend_.classList.add('i-amp-story-bookend');
     this.bookend_.textContent = 'bookend goes here';
     this.element.appendChild(this.bookend_);
+
+    this.systemLayer_ = this.win.document.createElement('aside');
+    this.systemLayer_.classList.add('i-amp-story-system-layer');
+    this.element.appendChild(this.systemLayer_);
 
     this.element.addEventListener('click',
         this.maybePerformSystemNavigation_.bind(this), true);
@@ -60,12 +64,30 @@ export class AmpStory extends AMP.BaseElement {
 
 
   /**
+   * Gets the amp-story-page that is currently being shown.
+   * @return {!Element} The element representing the page currently being shown.
+   * @private
+   */
+  getActivePage_() {
+    const activePage = document.querySelectorAll('amp-story-page[active]')[0];
+    return dev().assert(activePage, 'There is no active page.');
+  }
+
+
+  /**
    * Advance to the next screen in the story, if there is one.
    * @private
    */
   next_() {
-    // TODO(newmuis): Navigate to the next page.
-    console.log('next page');
+    const activePage = this.getActivePage_();
+    if (!activePage.nextElementSibling ||
+        activePage.nextElementSibling == this.bookend_) {
+      return;
+    }
+
+    const nextPage = activePage.nextElementSibling;
+    nextPage.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
+    activePage.removeAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME);
   }
 
 
@@ -74,8 +96,14 @@ export class AmpStory extends AMP.BaseElement {
    * @private
    */
   previous_() {
-    // TODO(newmuis): Navigate to the previous page.
-    console.log('previous page');
+    const activePage = this.getActivePage_();
+    if (!activePage.previousElementSibling) {
+      return;
+    }
+
+    const nextPage = activePage.previousElementSibling;
+    nextPage.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
+    activePage.removeAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME);
   }
 
 
