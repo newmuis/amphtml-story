@@ -29,14 +29,24 @@ amp-story-grid-layer {
   position: relative !important;
 }
 
+amp-story-grid-layer * {
+  box-sizing: border-box !important;
+  margin: 0 !important;
+}
+
 amp-story-grid-layer[preset="fill"] > :not(:first-child) {
   display: none !important;
 }
 
 amp-story-grid-layer[preset="fill"] > :first-child {
+  bottom: 0 !important;
   display: block !important;
-  height: 100% !important;
-  width: 100% !important;
+  height: auto !important;
+  left: 0 !important;
+  position: absolute !important;
+  right: 0 !important;
+  top: 0 !important;
+  width: auto !important;
 }
 
 amp-story-grid-layer[preset="fill"] > amp-anim img,
