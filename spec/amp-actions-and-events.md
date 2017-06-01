@@ -94,7 +94,11 @@ For example, the following is possible in AMP.
   </tr>
 </table>
 
-### Input Elements
+
+### Input Elements (any that fires `change` and `input` event)
+
+Including: `input[type=radio]`, `input[type=checkbox]`, `input[type=range]`, and `select`.
+
 <table>
   <tr>
     <th>Event</th>
@@ -104,13 +108,25 @@ For example, the following is possible in AMP.
   </tr>
   <!-- change -->
   <tr>
-    <td rowspan=2><code>change</code></td>
-    <td rowspan=2>
-      Fired when the value of the element is changed and committed.
-      <br><br>
-      Data properties mirror those in <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement#Properties">HTMLInputElement</a> and <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLSelectElement#Properties">HTMLSelectElement</a>.
-    </td>
-    <td><code>input</code>, <code>select</code></td>
+    <td>change</td>
+    <td>Fired when the value of the element is changed and committed.</td>
+    <td>Various, see below.</td>
+  </tr>
+  <tr>
+    <td>input-debounced</td>
+    <td>Fired when the value of the element is changed. This is similar to the standard input event, but it only fires when 300ms have passed after the value of the input has stopped changing. This is currently experimental, so [the "input-debounced" experiment must be enabled](https://www.ampproject.org/docs/reference/experimental) before using.</td>
+    <td>Various, see below.</td>
+  </tr>
+</table>
+
+#### `change` event data
+<table>
+  <tr>
+    <th>Input Type</th>
+    <th>Data</th>
+  </tr>
+  <tr>
+    <td>Range</td>
     <td>
       <pre>event.min
 event.max
@@ -130,6 +146,10 @@ event.valueAsNumber</pre>
     <td>Fired when the value of the element is changed. This is similar to the standard <code>input</code> event, but it only fires when 300ms have passed after the value of the input has stopped changing.</td>
     <td>Elements that fire <code>input</code> event.</td>
     <td>Same as <code>change</code> event data.</td>
+  </tr>
+  <tr>
+    <td>Text</td>
+    <td><code>event.value</code> : The text currently in the text box
   </tr>
 </table>
 
