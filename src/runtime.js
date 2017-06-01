@@ -26,6 +26,7 @@ import {VisibilityState} from './visibility-state';
 import {
   addElementToExtension,
   addServiceToExtension,
+  addShadowRootFactoryToExtension,
   installBuiltinElements,
   installExtensionsInDoc,
   installExtensionsService,
@@ -405,8 +406,88 @@ export function adoptShadowMode(global) {
     global.AMP.attachShadowDocAsStream =
         manager.attachShadowDocAsStream.bind(manager);
 
-    return waitForBodyPromise(global.document);
-  });
+
+/**
+ * Registers an extended element and installs its styles in a single-doc mode.
+ * @param {!Window} global
+ * @param {!./service/extensions-impl.Extensions} extensions
+ * @param {string} name
+ * @param {function(new:BaseElement)} implementationClass
+ * @param {string=} opt_css
+ */
+function prepareAndRegisterElement(global, extensions,
+    name, implementationClass, opt_css) {
+  addElementToExtension(extensions, name, implementationClass, opt_css);
+  if (opt_css) {
+    installStyles(global.document, opt_css, () => {
+      registerElementClass(global, name, implementationClass, opt_css);
+    }, false, name);
+  } else {
+    registerElementClass(global, name, implementationClass, opt_css);
+  }
+}
+
+
+/**
+ * Registers an extended element and installs its styles in a shodow-doc mode.
+ * @param {!Window} global
+ * @param {!./service/extensions-impl.Extensions} extensions
+ * @param {string} name
+ * @param {function(new:BaseElement)} implementationClass
+ * @param {string=} opt_css
+ */
+function prepareAndRegisterElementShadowMode(global, extensions,
+    name, implementationClass, opt_css) {
+  addElementToExtension(extensions, name, implementationClass, opt_css);
+  registerElementClass(global, name, implementationClass, opt_css);
+  if (opt_css) {
+    addShadowRootFactoryToExtension(extensions, shadowRoot => {
+      installStylesForShadowRoot(shadowRoot, dev().assertString(opt_css),
+          /* isRuntimeCss */ false, name);
+    });
+  }
+}
+
+
+/**
+ * Registration steps for an extension element in both single- and shadow-doc
+ * modes.
+ * @param {!Window} global
+ * @param {string} name
+ * @param {function(new:BaseElement)} implementationClass
+ * @param {string=} opt_css
+ */
+function registerElementClass(global, name, implementationClass, opt_css) {
+  registerExtendedElement(global, name, implementationClass);
+  if (getMode().test) {
+    elementsForTesting[name] = {
+      name,
+      implementationClass,
+      css: opt_css,
+    };
+  }
+  // Register this extension to resolve its Service Promise.
+  registerServiceBuilder(global, name, emptyService);
+}
+
+
+/**
+ * Registers an ampdoc service in a single-doc mode.
+ * @param {!Window} global
+ * @param {!./service/extensions-impl.Extensions} extensions
+ * @param {string} name
+ * @param {function(new:Object, !./service/ampdoc-impl.AmpDoc)=} opt_ctor
+ * @param {function(!./service/ampdoc-impl.AmpDoc):!Object=} opt_factory
+ */
+function prepareAndRegisterServiceForDoc(global, extensions,
+    name, opt_ctor, opt_factory) {
+  // TODO(kmh287, #9292): Refactor to remove opt_factory param and require ctor
+  // once #9212 has been in prod for two releases.
+  const ampdocService = ampdocServiceFor(global);
+  const ampdoc = ampdocService.getAmpDoc();
+  registerServiceForDoc(ampdoc, name, opt_ctor, opt_factory);
+
+  addServiceToExtension(extensions, name);
 }
 
 
@@ -414,6 +495,25 @@ export function adoptShadowMode(global) {
  * Certain extensions can be auto-loaded by runtime based on experiments or
  * other configurations.
  * @param {!./service/extensions-impl.Extensions} extensions
+ * @param {string} name
+ * @param {function(new:Object, !./service/ampdoc-impl.AmpDoc)=} opt_ctor
+ * @param {function(!./service/ampdoc-impl.AmpDoc):!Object=} opt_factory
+ */
+function prepareAndRegisterServiceForDocShadowMode(global, extensions,
+    name, opt_ctor, opt_factory) {
+  // TODO(kmh287, #9292): Refactor to remove opt_factory param and require ctor
+  // once #9212 has been in prod for two releases.
+  addDocFactoryToExtension(extensions, ampdoc => {
+    registerServiceForDoc(ampdoc, name, opt_ctor, opt_factory);
+  }, name);
+
+  addServiceToExtension(extensions, name);
+}
+
+
+/**
+ * Registration steps for an ampdoc service in both single- and shadow-doc
+ * modes.
  * @param {!./service/ampdoc-impl.AmpDoc} ampdoc
  */
 function installAutoLoadExtensions(extensions, ampdoc) {

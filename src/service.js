@@ -617,8 +617,8 @@ export function isEmbeddable(service) {
  */
 export function adoptServiceForEmbed(embedWin, serviceId) {
   const adopted = adoptServiceForEmbedIfEmbeddable(embedWin, serviceId);
-  dev().assert(adopted, `Service ${serviceId} not found on parent ` +
-      'or doesn\'t implement EmbeddableService.');
+  dev().assert(adopted,
+      `${serviceId} required to implement EmbeddableService.`);
 }
 
 
@@ -639,11 +639,11 @@ export function adoptServiceForEmbedIfEmbeddable(embedWin, serviceId) {
     return false;
   }
   const service = getServiceForDoc(frameElement, serviceId);
-  if (!isEmbeddable(service)) {
-    return false;
+  if (isEmbeddable(service)) {
+    service.adoptEmbedWindow(embedWin);
+    return true;
   }
-  service.adoptEmbedWindow(embedWin);
-  return true;
+  return false;
 }
 
 

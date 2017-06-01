@@ -30,8 +30,9 @@ import {
   installExtensionsService,
   registerExtension,
 } from '../../src/service/extensions-impl';
-import {Services} from '../../src/services';
-import {getServiceForDoc} from '../../src/service';
+import {extensionsFor} from '../../src/services';
+import {registerServiceBuilder} from '../../src/service';
+import {resetScheduledElementForTesting} from '../../src/custom-element';
 import {loadPromise} from '../../src/event-helper';
 import {registerServiceBuilder} from '../../src/service';
 import {
@@ -879,9 +880,21 @@ describes.sandboxed('Extensions', {}, () => {
       standardActionsMock.verify();
     });
 
-    it('should install extensions in child window', () => {
-      const extHolder = extensions.getExtensionHolder_('amp-test');
-      extHolder.scriptPresent = true;
+    it('should install extensions', () => {
+      setLoadingCheckForTests('amp-test');
+      const stub = sandbox.stub(extensions, 'loadExtension', extensionId => {
+        return Promise.resolve().then(() => {
+          registerExtension(extensions, extensionId, AMP => {
+            AMP.registerElement(extensionId, AmpTest);
+          }, parentWin.AMP);
+          const elements = {};
+          elements[extensionId] = {css: 'a{}'};
+          return {
+            elements,
+            services: [],
+          };
+        });
+      });
       const promise = extensions.installExtensionsInChildWindow(
           iframeWin, ['amp-test']);
       // Must be stubbed already.
@@ -929,17 +942,39 @@ describes.sandboxed('Extensions', {}, () => {
       registerServiceBuilder(parentWin, 'fake-service-bar',
           () => fakeServiceBar, /* opt_instantiate */ true);
 
-      const extHolder = extensions.getExtensionHolder_('amp-test');
-      extHolder.scriptPresent = true;
+      sandbox.stub(extensions, 'loadExtension', extensionId => {
+        return Promise.resolve().then(() => {
+          registerExtension(extensions, extensionId, AMP => {
+            AMP.registerElement(extensionId, AmpTest);
+          }, parentWin.AMP);
+          const elements = {};
+          elements[extensionId] = {};
+          return /* ExtensionDef */ {
+            elements,
+            services: ['fake-service-foo'], // fake-service-bar NOT included.
+          };
+        });
+      });
+
       const promise =
           extensions.installExtensionsInChildWindow(iframeWin, ['amp-test']);
-      // Resolve the promise.
-      registerExtension(extensions, 'amp-test', AMP => {
-        AMP.registerServiceForDoc('fake-service-foo', () => fakeServiceFoo);
-      }, parentWin.AMP);
       return promise.then(() => {
         expect(fooSpy).calledOnce;
         expect(barSpy).notCalled;
+      });
+    });
+
+    it('should call pre-install callback before other installs', () => {
+      const stub = sandbox.stub(extensions, 'loadExtension', extensionId => {
+        registerExtension(extensions, extensionId, AMP => {
+          AMP.registerElement(extensionId, AmpTest);
+        }, parentWin.AMP);
+        const elements = {};
+        elements[extensionId] = {css: 'a{}'};
+        return Promise.resolve({
+          elements,
+          services: [],
+        });
       });
     });
 

@@ -150,6 +150,18 @@ export function addElementToExtension(
  * extension registration.
  * @param {!Extensions} extensions
  * @param {string} name
+ * @restricted
+ */
+export function addServiceToExtension(extensions, name) {
+  extensions.addService_(name);
+}
+
+/**
+ * Add a service to the extension currently being registered. This is a
+ * restricted method and it's allowed to be called only during the overall
+ * extension registration.
+ * @param {!Extensions} extensions
+ * @param {string} name
  * @param {function(new:Object, !./ampdoc-impl.AmpDoc)} implementationClass
  * @restricted
  */
@@ -327,11 +339,18 @@ export class Extensions {
   }
 
   /**
-   * Installs the specified element implementation in the ampdoc.
-   * @param {!./ampdoc-impl.AmpDoc} ampdoc
+   * Adds `name` to the list of services registered by the current extension.
    * @param {string} name
-   * @param {!Function} implementationClass
-   * @param {?string|undefined} css
+   */
+  addService_(name) {
+    const holder = this.getCurrentExtensionHolder_();
+    holder.extension.services.push(name);
+  }
+
+  /**
+   * Registers an ampdoc factory.
+   * @param {function(!./ampdoc-impl.AmpDoc)} factory
+   * @param {string=} opt_forName
    * @private
    */
   installElement_(ampdoc, name, implementationClass, css) {
@@ -480,43 +499,31 @@ export class Extensions {
       }
 
       // Install CSS.
-      const promise = this.preloadExtension(extensionId).then(extension => {
+      const promise = this.loadExtension(extensionId).then(extension => {
         // Adopt embeddable extension services.
         extension.services.forEach(service => {
           adoptServiceForEmbedIfEmbeddable(childWin, service);
         });
 
-        // Adopt the custom elements.
-        let elementPromises = null;
-        for (const elementName in extension.elements) {
-          const elementDef = extension.elements[elementName];
-          const elementPromise = new Promise(resolve => {
-            if (elementDef.css) {
-              installStylesLegacy(
-                  childWin.document,
-                  elementDef.css,
-                  /* completeCallback */ resolve,
-                  /* isRuntime */ false,
-                  extensionId);
-            } else {
-              resolve();
-            }
-          }).then(() => {
-            upgradeOrRegisterElement(
-                childWin,
-                elementName,
-                elementDef.implementationClass);
-          });
-          if (elementPromises) {
-            elementPromises.push(elementPromise);
-          } else {
-            elementPromises = [elementPromise];
-          }
-        }
-        if (elementPromises) {
-          return Promise.all(elementPromises).then(() => extension);
+        // Adopt the custom element.
+        const elementDef = extension.elements[extensionId];
+        if (elementDef && elementDef.css) {
+          return new Promise(resolve => {
+            installStyles(
+                childWin.document,
+                /** @type {string} */ (elementDef.css),
+                /* completeCallback */ resolve,
+                /* isRuntime */ false,
+                extensionId);
+          }).then(() => extension); // Forward `extension` to chained Promise.
         }
         return extension;
+      }).then(extension => {
+        // Notice that stubbing happens much sooner above
+        // (see stubElementInChildWindow).
+        Object.keys(extension.elements).forEach(element => {
+          upgradeElementInChildWindow(topWin, childWin, element);
+        });
       });
       promises.push(promise);
     });

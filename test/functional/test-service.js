@@ -593,18 +593,11 @@ describe('service', () => {
         expect(isEmbeddable(nonEmbeddable)).to.be.false;
       });
 
-      describe('adoptServiceForEmbed()', () => {
-        it('should adopt embeddable', () => {
-          adoptServiceForEmbed(embedWin, 'embeddable');
-          expect(embeddable.adoptEmbedWindow).to.be.calledOnce;
-          expect(embeddable.adoptEmbedWindow.args[0][0]).to.equal(embedWin);
-        });
-
-        it('should refuse adopt of non-embeddable', () => {
-          expect(() => {
-            adoptServiceForEmbed(embedWin, 'nonEmbeddable');
-          }).to.throw(/implement EmbeddableService/);
-        });
+      it('should adopt embeddable', () => {
+        adoptServiceForEmbed(embedWin, 'embeddable');
+        expect(embeddable.adoptEmbedWindow).to.be.calledOnce;
+        expect(embeddable.adoptEmbedWindow.args[0][0]).to.equal(embedWin);
+      });
 
         it('should refuse adopt of unknown service', () => {
           expect(() => {
@@ -613,22 +606,18 @@ describe('service', () => {
         });
       });
 
-      describe('adoptServiceForServiceIfEmbeddable()', () => {
-        it('should adopt embeddable if embeddable', () => {
-          adoptServiceForEmbedIfEmbeddable(embedWin, 'embeddable');
-          expect(embeddable.adoptEmbedWindow).to.be.calledOnce;
-          expect(embeddable.adoptEmbedWindow.args[0][0]).to.equal(embedWin);
+      it('should adopt embeddable if embeddable', () => {
+        adoptServiceForEmbedIfEmbeddable(embedWin, 'embeddable');
+        expect(embeddable.adoptEmbedWindow).to.be.calledOnce;
+        expect(embeddable.adoptEmbedWindow.args[0][0]).to.equal(embedWin);
 
-          // Should not throw 'required to implement EmbeddableService' error.
-          adoptServiceForEmbedIfEmbeddable(embedWin, 'nonEmbeddable');
-        });
+        adoptServiceForEmbedIfEmbeddable(embedWin, 'nonEmbeddable'); // No-op.
+      });
 
-        it('should soft fail adopt of unknown service', () => {
-          // If the embed has an extension service that the parent doesn't,
-          // e.g. AmpFormService if parent lacks amp-form extension.
-          const adopted = adoptServiceForEmbedIfEmbeddable(embedWin, 'unknown');
-          expect(adopted).to.be.false;
-        });
+      it('should refuse adopt of unknown service', () => {
+        expect(() => {
+          adoptServiceForEmbed(embedWin, 'unknown');
+        }).to.throw(/unknown/);
       });
     });
   });
