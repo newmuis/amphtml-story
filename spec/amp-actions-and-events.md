@@ -365,9 +365,19 @@ event.response</pre></td>
   </tr>
 </table>
 
-## Special targets
+### form
+<table>
+  <tr>
+    <th>Action</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>submit</td>
+    <td>Submits the form.</td>
+  </tr>
+</table>
 
-The following are targets provided by the AMP system that have special requirements:
+## `AMP` target
 
 ### `AMP`
 
