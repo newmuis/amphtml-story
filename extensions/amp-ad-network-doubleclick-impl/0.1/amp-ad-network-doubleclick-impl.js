@@ -20,18 +20,7 @@
 // Most other ad networks will want to put their A4A code entirely in the
 // extensions/amp-ad-network-${NETWORK_NAME}-impl directory.
 
-import {
-  AmpA4A,
-  RENDERING_TYPE_HEADER,
-  XORIGIN_MODE,
-  DEFAULT_SAFEFRAME_VERSION,
-  assignAdUrlToError,
-} from '../../amp-a4a/0.1/amp-a4a';
-import {VERIFIER_EXP_NAME} from '../../amp-a4a/0.1/legacy-signature-verifier';
-import {
-  experimentFeatureEnabled,
-  DOUBLECLICK_EXPERIMENT_FEATURE,
-} from './doubleclick-a4a-config';
+import {AmpA4A, DEFAULT_SAFEFRAME_VERSION} from '../../amp-a4a/0.1/amp-a4a';
 import {
   isInManualExperiment,
 } from '../../../ads/google/a4a/traffic-experiments';
@@ -437,7 +426,7 @@ export class AmpAdNetworkDoubleclickImpl extends AmpA4A {
       {name: 'adk', value: this.adKey_(sizeStr)},
       {name: 'gdfp_req', value: '1'},
       {name: 'impl', value: 'ifr'},
-      {name: 'sfv', value: 'A'},
+      {name: 'sfv', value: DEFAULT_SAFEFRAME_VERSION},
       {name: 'sz', value: sizeStr},
       {name: 'tfcd', value: tfcd == undefined ? null : tfcd},
       {name: 'u_sd', value: global.devicePixelRatio},
