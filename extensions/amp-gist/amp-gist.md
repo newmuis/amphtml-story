@@ -35,8 +35,6 @@ limitations under the License.
   </tr>
 </table>
 
-[TOC]
-
 ## Behavior
 
 This extension creates an iframe and displays a [gist from GitHub](https://help.github.com/articles/about-gists/). 
@@ -72,7 +70,7 @@ The ID of the gist to embed.
 
 Currently only supports `fixed-height`.
 
-##### height (required)
+##### height(required)
 
 The height of the gist or gist file in pixels.
 

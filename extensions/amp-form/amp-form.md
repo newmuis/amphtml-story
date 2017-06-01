@@ -23,7 +23,7 @@ limitations under the License.
   </tr>
   <tr>
     <td width="40%"><strong>Availability</strong></td>
-    <td>Stable</td>
+    <td>Stable with the following Experimental feature: <a href="#verification-(experimental)">Verification</a></td>
   </tr>
   <tr>
     <td width="40%"><strong>Required Script</strong></td>

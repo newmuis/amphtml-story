@@ -69,7 +69,7 @@ adding a unique value to the `GET` url like a timestamp as a query string field)
 
 When multiple `amp-user-notification` elements are on a page, only one is shown
 at a single time (Once one is dismissed the next one is shown).
-The order of the notifications being shown is currently not deterministic.
+The order of the notifications being shown is currently not deterministic. 
 
 Example:
 
