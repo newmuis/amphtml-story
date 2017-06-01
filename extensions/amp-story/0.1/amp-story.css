@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-amp-story {
+amp-story, amp-story-page, amp-story-grid-layer {
+  contain: strict !important;
   height: 100% !important;
+  overflow: hidden !important;
   width: 100% !important;
 }
 
@@ -23,23 +25,22 @@ body > amp-story {
   height: 100vh !important;
 }
 
-amp-story > amp-carousel .amp-carousel-button {
-  display: none;
+amp-story-grid-layer {
+  position: relative !important;
 }
 
-amp-story-background-layer {
-  z-index: 1 !important;
+amp-story-grid-layer[preset="fill"] > :not(:first-child) {
+  display: none !important;
 }
 
-amp-story-background-layer > amp-img img,
-amp-story-background-layer > amp-video video {
+amp-story-grid-layer[preset="fill"] > :first-child {
+  display: block !important;
+  height: 100% !important;
+  width: 100% !important;
+}
+
+amp-story-grid-layer[preset="fill"] > amp-anim img,
+amp-story-grid-layer[preset="fill"] > amp-img img,
+amp-story-grid-layer[preset="fill"] > amp-video video {
   object-fit: cover !important;
-}
-
-amp-story-foreground-layer {
-  z-index: 2 !important;
-}
-
-amp-story strong {
-  display: block;
 }

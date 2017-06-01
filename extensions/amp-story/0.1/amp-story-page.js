@@ -19,7 +19,7 @@
  *
  * Example:
  * <code>
- * <amp-story-page layout="fill">
+ * <amp-story-page>
  * </amp-story>
  * </code>
  */
@@ -29,7 +29,7 @@ import {Layout} from '../../../src/layout';
 export class AmpStoryPage extends AMP.BaseElement {
   /** @override */
   isLayoutSupported(layout) {
-    return layout == Layout.FILL;
+    return !layout || layout == Layout.CONTAINER;
   }
 }
 
