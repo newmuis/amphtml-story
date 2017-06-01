@@ -19,13 +19,12 @@
  *
  * Example:
  * <code>
- * <amp-story
- *   layout="fill"
- *   logo="my-logo.png">
+ * <amp-story related-articles="related.json">
+ *   [...]
  * </amp-story>
  * </code>
  */
-import {AmpStoryLayer} from './amp-story-layer';
+import {AmpStoryGridLayer} from './amp-story-grid-layer';
 import {AmpStoryPage} from './amp-story-page';
 import {CSS} from '../../../build/amp-story-0.1.css';
 import {Layout} from '../../../src/layout';
@@ -39,24 +38,14 @@ export class AmpStory extends AMP.BaseElement {
 
   /** @override */
   buildCallback() {
-    const carousel = this.win.document.createElement('amp-carousel');
-    carousel.setAttribute('type', 'slides');
-    carousel.setAttribute('layout', 'fill');
-
     const bookend = this.win.document.createElement('section');
     bookend.textContent = 'bookend goes here';
-
-    extensionsFor(this.win).loadExtension('amp-carousel');
-    this.getRealChildren().forEach(child => {
-      carousel.appendChild(child);
-    });
-    carousel.appendChild(bookend);
-    this.element.appendChild(carousel);
+    this.element.appendChild(bookend);
   }
 
   /** @override */
   isLayoutSupported(layout) {
-    return layout == Layout.FILL;
+    return layout == Layout.CONTAINER;
   }
 }
 

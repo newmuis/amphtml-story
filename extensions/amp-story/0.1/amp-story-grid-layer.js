@@ -19,18 +19,18 @@
  *
  * Example:
  * <code>
- * <amp-story-layer>
- * </amp-story-layer>
+ * <amp-story-grid-layer>
+ * </amp-story-grid-layer>
  * </code>
  */
 
 import {Layout} from '../../../src/layout';
 
-export class AmpStoryLayer extends AMP.BaseElement {
+export class AmpStoryGridLayer extends AMP.BaseElement {
   /** @override */
   isLayoutSupported(layout) {
-    return layout == Layout.FILL;
+    return layout == Layout.CONTAINER;
   }
 }
 
-AMP.registerElement('amp-story-layer', AmpStoryLayer);
+AMP.registerElement('amp-story-grid-layer', AmpStoryGridLayer);
