@@ -45,7 +45,7 @@ export class AmpStory extends AMP.BaseElement {
 
   /** @override */
   isLayoutSupported(layout) {
-    return !layout || layout == Layout.CONTAINER;
+    return layout == Layout.CONTAINER;
   }
 }
 

@@ -29,7 +29,7 @@ import {Layout} from '../../../src/layout';
 export class AmpStoryGridLayer extends AMP.BaseElement {
   /** @override */
   isLayoutSupported(layout) {
-    return !layout || layout == Layout.CONTAINER;
+    return layout == Layout.CONTAINER;
   }
 }
 
