@@ -381,8 +381,8 @@ export function imaVideo(global, data) {
       'webkitfullscreenchange'];
     fullScreenEvents.forEach(fsEvent => {
       global.document.addEventListener(fsEvent,
-          onFullscreenChange.bind(null, global),
-          false);
+        onFullscreenChange.bind(null, global),
+        false);
     });
 
     // Handle settings that need to be set before the AdDisplayContainer is
