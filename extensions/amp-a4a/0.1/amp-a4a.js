@@ -142,8 +142,8 @@ export const LIFECYCLE_STAGES = {
   visLoadAndOneSec: '25',
   iniLoad: '26',
   resumeCallback: '27',
+  sraBuildRequestDelay: '28',
   visIniLoad: '29',
-  upgradeDelay: '30',
 };
 
 /**
