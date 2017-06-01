@@ -21,6 +21,7 @@
  *   "lib" JS files and loaded at runtime via `importScripts()`.
  */
 
+import '../../third_party/babel/custom-babel-helpers';
 import './web-worker-polyfills';
 import {BindEvaluator} from '../../extensions/amp-bind/0.1/bind-evaluator';
 import {FromWorkerMessageDef, ToWorkerMessageDef} from './web-worker-defines';

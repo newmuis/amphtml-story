@@ -154,7 +154,7 @@ function generateFunctionWhitelist() {
   // This makes function lookups faster (compared to Array.indexOf).
   const out = map();
   Object.keys(whitelist).forEach(type => {
-    out[type] = map();
+    out[type] = Object.create(null);
 
     whitelist[type].forEach((fn, i) => {
       if (fn) {
@@ -168,12 +168,7 @@ function generateFunctionWhitelist() {
 
   // Custom functions (non-js-built-ins) must be added manually as their names
   // will be minified at compile time.
-  out[BUILT_IN_FUNCTIONS]['copyAndSplice'] = splice; // Legacy name.
-  out[BUILT_IN_FUNCTIONS]['sort'] = sort;
-  out[BUILT_IN_FUNCTIONS]['splice'] = splice;
-  out[BUILT_IN_FUNCTIONS]['values'] =
-      (typeof Object.values == 'function') ? Object.values : values;
-
+  out[BUILT_IN_FUNCTIONS]['copyAndSplice'] = copyAndSplice;
   return out;
 }
 

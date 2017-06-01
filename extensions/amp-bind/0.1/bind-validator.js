@@ -34,11 +34,10 @@ let PropertyRulesDef;
  * @private {Object<string, ?PropertyRulesDef>}
  */
 const GLOBAL_PROPERTY_RULES = {
+  'text': null,
   'class': {
     blacklistedValueRegex: '(^|\\W)i-amphtml-',
   },
-  'hidden': null,
-  'text': null,
 };
 
 /**
@@ -186,13 +185,13 @@ export class BindValidator {
     if (globalRules !== undefined) {
       return /** @type {PropertyRulesDef} */ (globalRules);
     }
-    const ampPropertyRules = ownProperty(AMP_PROPERTY_RULES, property);
-    if (startsWith(tag, 'AMP-') && ampPropertyRules !== undefined) {
-      return /** @type {PropertyRulesDef} */ (ampPropertyRules);
-    }
     const tagRules = ownProperty(ELEMENT_RULES, tag);
     if (tagRules) {
       return tagRules[property];
+    }
+    const ampPropertyRules = ownProperty(AMP_PROPERTY_RULES, property);
+    if (startsWith(tag, 'AMP-') && ampPropertyRules !== undefined) {
+      return /** @type {PropertyRulesDef} */ (ampPropertyRules);
     }
     return undefined;
   }
