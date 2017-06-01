@@ -32,7 +32,6 @@ import {isExperimentOn} from '../../../src/experiments';
 import {isObject} from '../../../src/types';
 import {listenOnce} from '../../../src/event-helper';
 import {dev, user} from '../../../src/log';
-import {dict} from '../../../src/utils/object';
 import {getLoginUrl, openLoginDialog} from './login-dialog';
 import {parseQueryString} from '../../../src/url';
 import {startsWith} from '../../../src/string';
@@ -782,6 +781,15 @@ export class AccessService {
       this.loginWithType_(invocation.method.substring('login-'.length));
     }
     return null;
+  }
+
+  /**
+   * Expose the getLoginUrl method with the current ampdoc context
+   * @param {string|!Promise<string>} urlOrPromise
+   * @return {!Promise<string>}
+   */
+  getLoginUrl(urlOrPromise) {
+    return getLoginUrl(this.ampdoc, urlOrPromise);
   }
 
   /**

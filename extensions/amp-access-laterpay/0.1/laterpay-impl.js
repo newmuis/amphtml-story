@@ -223,7 +223,7 @@ export class LaterpayVendor {
           AUTHORIZATION_TIMEOUT,
           this.xhr_.fetchJson(url, {
             credentials: 'include',
-          })).then(res => res.json());
+          }));
     });
   }
 
@@ -510,7 +510,7 @@ export class LaterpayVendor {
   handlePurchase_(ev, purchaseUrl, purchaseType) {
     ev.preventDefault();
     const urlPromise = this.accessService_.buildUrl(
-        purchaseUrl, /* useAuthData */ false);
+      purchaseUrl, /* useAuthData */ false);
     return urlPromise.then(url => {
       dev().fine(TAG, 'Authorization URL: ', url);
       this.accessService_.loginWithUrl(url, purchaseType);

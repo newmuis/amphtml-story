@@ -72,22 +72,18 @@ describes.fakeWin('LaterpayVendor', {
     it('successful authorization', () => {
       vendor.purchaseConfigBaseUrl_ = 'https://baseurl?param';
       accessServiceMock.expects('buildUrl')
-          .withExactArgs('https://baseurl?param&article_title=test%20title', false)
-          .returns(Promise.resolve('https://builturl'))
-          .once();
+        .withExactArgs('https://baseurl?param&article_title=test%20title', false)
+        .returns(Promise.resolve('https://builturl'))
+        .once();
       accessServiceMock.expects('getLoginUrl')
-          .returns(Promise.resolve('https://builturl'))
-          .once();
+        .returns(Promise.resolve('https://builturl'))
+        .once();
       xhrMock.expects('fetchJson')
-          .withExactArgs('https://builturl', {
-            credentials: 'include',
-          })
-          .returns(Promise.resolve({
-            json() {
-              return Promise.resolve({access: true});
-            },
-          }))
-          .once();
+        .withExactArgs('https://builturl', {
+          credentials: 'include',
+        })
+        .returns(Promise.resolve({access: true}))
+        .once();
       return vendor.authorize().then(resp => {
         expect(resp.access).to.be.true;
         expect(emptyContainerStub.called).to.be.true;
@@ -96,17 +92,17 @@ describes.fakeWin('LaterpayVendor', {
 
     it('authorization fails due to lack of server config', () => {
       accessServiceMock.expects('buildUrl')
-          .returns(Promise.resolve('https://builturl'))
-          .once();
+        .returns(Promise.resolve('https://builturl'))
+        .once();
       accessServiceMock.expects('getLoginUrl')
-          .returns(Promise.resolve('https://builturl'))
-          .once();
+        .returns(Promise.resolve('https://builturl'))
+        .once();
       xhrMock.expects('fetchJson')
-          .withExactArgs('https://builturl', {
-            credentials: 'include',
-          })
-          .returns(Promise.resolve({status: 204}))
-          .once();
+        .withExactArgs('https://builturl', {
+          credentials: 'include',
+        })
+        .returns(Promise.resolve({status: 204}))
+        .once();
       return vendor.authorize().catch(err => {
         expect(err.message).to.exist;
       });
@@ -114,24 +110,20 @@ describes.fakeWin('LaterpayVendor', {
 
     it('authorization response from server fails', () => {
       accessServiceMock.expects('buildUrl')
-          .returns(Promise.resolve('https://builturl'))
-          .once();
+        .returns(Promise.resolve('https://builturl'))
+        .once();
       accessServiceMock.expects('getLoginUrl')
-          .returns(Promise.resolve('https://builturl'))
-          .once();
+        .returns(Promise.resolve('https://builturl'))
+        .once();
       xhrMock.expects('fetchJson')
-          .withExactArgs('https://builturl', {
-            credentials: 'include',
-          })
-          .returns(Promise.reject({
-            response: {
-              status: 402,
-              json() {
-                return Promise.resolve({access: false});
-              },
-            },
-          }))
-          .once();
+        .withExactArgs('https://builturl', {
+          credentials: 'include',
+        })
+        .returns(Promise.reject({
+          response: {status: 402},
+          responseJson: {access: false},
+        }))
+        .once();
       emptyContainerStub.returns(Promise.resolve());
       return vendor.authorize().then(err => {
         expect(err.access).to.be.false;
