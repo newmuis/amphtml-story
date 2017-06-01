@@ -15,14 +15,18 @@
  */
 
 import {adConfig} from '../../ads/_config';
-import {Services} from '../../src/services';
+import {ampdocServiceFor} from '../../src/ampdoc';
 import {
   cidServiceForDocForTesting,
-} from '../../src/service/cid-impl';
+} from '../../extensions/amp-analytics/0.1/cid-impl';
+import {installDocService} from '../../src/service/ampdoc-impl';
+import {installTimerService} from '../../src/service/timer-impl';
 import {getAdCid} from '../../src/ad-cid';
+import {timerFor} from '../../src/services';
+import {resetServiceForTesting} from '../../src/service';
 import * as lolex from 'lolex';
 
-describes.realWin('ad-cid', {amp: true}, env => {
+describes.realWin('ad-cid', {}, env => {
   const cidScope = 'cid-in-ads-test';
   const config = adConfig['_ping_'];
   let sandbox;
@@ -39,7 +43,9 @@ describes.realWin('ad-cid', {amp: true}, env => {
     clock = lolex.install(win, 0, ['Date', 'setTimeout', 'clearTimeout']);
     element = env.win.document.createElement('amp-ad');
     element.setAttribute('type', '_ping_');
-    const ampdoc = env.ampdoc;
+    installDocService(win, /* isSingleDoc */ true);
+    installTimerService(win);
+    const ampdoc = ampdocServiceFor(win).getAmpDoc();
     cidService = cidServiceForDocForTesting(ampdoc);
     adElement = {
       getAmpDoc: () => ampdoc,
@@ -88,7 +94,7 @@ describes.realWin('ad-cid', {amp: true}, env => {
   it('should return on timeout', () => {
     config.clientIdScope = cidScope;
     sandbox.stub(cidService, 'get', () => {
-      return Services.timerFor(win).promise(2000);
+      return timerFor(win).promise(2000);
     });
     const p = getAdCid(adElement).then(cid => {
       expect(cid).to.be.undefined;
@@ -107,6 +113,12 @@ describes.realWin('ad-cid', {amp: true}, env => {
     sandbox.stub(cidService, 'get', () => {
       return Promise.reject(new Error('nope'));
     });
+    return expect(getAdCid(adElement)).to.eventually.be.undefined;
+  });
+
+  it('should return null if cid service not available', () => {
+    resetServiceForTesting(win, 'cid');
+    config.clientIdScope = cidScope;
     return expect(getAdCid(adElement)).to.eventually.be.undefined;
   });
 });
