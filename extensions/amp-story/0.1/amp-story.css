@@ -51,17 +51,18 @@ amp-story-page[active] {
 }
 
 /** Grid level */
-amp-story-grid-layer * {
-  box-sizing: border-box !important;
-  margin: 0 !important;
-}
-
-amp-story-grid-layer[preset="fill"] {
+amp-story-grid-layer {
   bottom: 0 !important;
+  display: grid !important;
   left: 0 !important;
   position: absolute !important;
   right: 0 !important;
   top: 0 !important;
+}
+
+amp-story-grid-layer * {
+  box-sizing: border-box !important;
+  margin: 0 !important;
 }
 
 amp-story-grid-layer[preset="fill"] > :not(:first-child) {
@@ -83,6 +84,23 @@ amp-story-grid-layer[preset="fill"] > amp-anim img,
 amp-story-grid-layer[preset="fill"] > amp-img img,
 amp-story-grid-layer[preset="fill"] > amp-video video {
   object-fit: cover !important;
+}
+
+amp-story-grid-layer[preset="vertical"] {
+  grid-auto-flow: row !important;
+  grid-template-columns: auto !important;
+}
+
+amp-story-grid-layer[preset="horizontal"] {
+  grid-auto-flow: column !important;
+  grid-template-rows: auto !important;
+}
+
+amp-story-grid-layer[preset="thirds"] {
+  grid-template-rows: repeat(3, auto) !important;
+  grid-template-areas: "upper-third"
+                       "middle-third"
+                       "lower-third" !important;
 }
 
 /** Bookend */
