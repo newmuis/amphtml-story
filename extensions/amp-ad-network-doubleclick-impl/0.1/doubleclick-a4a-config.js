@@ -105,98 +105,15 @@ export class DoubleclickA4aEligibility {
     return supportsNativeCrypto(win);
   }
 
-  /**
-   * Returns whether we are running on the AMP CDN.
-   * @param {!Window} win
-   * @return {boolean}
-   */
-  isCdnProxy(win) {
-    const googleCdnProxyRegex =
-        /^https:\/\/([a-zA-Z0-9_-]+\.)?cdn\.ampproject\.org((\/.*)|($))+/;
-    return googleCdnProxyRegex.test(win.location.origin);
-  }
+/**
+ * @const {!../../../ads/google/a4a/traffic-experiments.A4aExperimentBranches}
+ */
+export const DOUBLECLICK_SFG_INTERNAL_EXPERIMENT_BRANCHES = {
+  control: '21060540',
+  experiment: '21060541',
+};
 
-  /** Whether Fast Fetch is enabled
-   * @param {!Window} win
-   * @param {!Element} element
-   * @return {boolean}
-   */
-  isA4aEnabled(win, element) {
-    let experimentId;
-    if ('useSameDomainRenderingUntilDeprecated' in element.dataset ||
-        element.hasAttribute('useSameDomainRenderingUntilDeprecated') ||
-        !this.supportsCrypto(win)) {
-      return false;
-    }
-    const urlExperimentId = extractUrlExperimentId(win, element);
-    let experimentName = DFP_CANONICAL_FF_EXPERIMENT_NAME;
-    if (!this.isCdnProxy(win)) {
-      // Ensure that forcing FF via url is applied if test/localDev.
-      experimentId = (urlExperimentId == -1 &&
-          (getMode(win).localDev ||	getMode(win).test)) ?
-          MANUAL_EXPERIMENT_ID :
-          this.maybeSelectExperiment(win, element, [
-            DOUBLECLICK_EXPERIMENT_FEATURE.CANONICAL_CONTROL,
-            DOUBLECLICK_EXPERIMENT_FEATURE.CANONICAL_EXPERIMENT,
-          ], DFP_CANONICAL_FF_EXPERIMENT_NAME);
-      // If no experiment selected, return false.
-      if (!experimentId) {
-        return false;
-      }
-    } else {
-      if (element.hasAttribute(BETA_ATTRIBUTE)) {
-        addExperimentIdToElement(BETA_EXPERIMENT_ID, element);
-        dev().info(TAG, `beta forced a4a selection ${element}`);
-        return true;
-      }
-      experimentName = DOUBLECLICK_A4A_EXPERIMENT_NAME;
-      // See if in holdback control/experiment.
-      if (urlExperimentId != undefined) {
-        experimentId = URL_EXPERIMENT_MAPPING[urlExperimentId];
-        dev().info(
-            TAG,
-            `url experiment selection ${urlExperimentId}: ${experimentId}.`);
-      } else {
-        experimentId = this.maybeSelectExperiment(win, element, [
-          DOUBLECLICK_EXPERIMENT_FEATURE.HOLDBACK_INTERNAL_CONTROL,
-          DOUBLECLICK_EXPERIMENT_FEATURE.HOLDBACK_INTERNAL],
-            DOUBLECLICK_A4A_EXPERIMENT_NAME);
-      }
-    }
-    if (experimentId) {
-      addExperimentIdToElement(experimentId, element);
-      forceExperimentBranch(win, DOUBLECLICK_A4A_EXPERIMENT_NAME, experimentId);
-    }
-    return ![DOUBLECLICK_EXPERIMENT_FEATURE.HOLDBACK_EXTERNAL,
-      DOUBLECLICK_EXPERIMENT_FEATURE.HOLDBACK_INTERNAL,
-      DOUBLECLICK_EXPERIMENT_FEATURE.SFG_CONTROL_ID,
-      DOUBLECLICK_EXPERIMENT_FEATURE.SFG_EXP_ID,
-      DOUBLECLICK_EXPERIMENT_FEATURE.CANONICAL_CONTROL,
-    ].includes(experimentId);
-  }
-
-  /**
-   * @param {!Window} win
-   * @param {!Element} element
-   * @param {!Array<string>} selectionBranches
-   * @param {!string} experimentName}
-   * @return {?string} Experiment branch ID or null if not selected.
-   * @visibileForTesting
-   */
-  maybeSelectExperiment(win, element, selectionBranches, experimentName) {
-    const experimentInfoMap =
-        /** @type {!Object<string, !ExperimentInfo>} */ ({});
-    experimentInfoMap[experimentName] = {
-      isTrafficEligible: () => true,
-      branches: selectionBranches,
-    };
-    randomlySelectUnsetExperiments(win, experimentInfoMap);
-    return getExperimentBranch(win, experimentName);
-  }
-}
-
-/** @const {!DoubleclickA4aEligibility} */
-const singleton = new DoubleclickA4aEligibility();
+export const BETA_ATTRIBUTE = 'data-use-beta-a4a-implementation';
 
 /**
  * @param {!Window} win
@@ -204,14 +121,34 @@ const singleton = new DoubleclickA4aEligibility();
  * @returns {boolean}
  */
 export function doubleclickIsA4AEnabled(win, element) {
-  return singleton.isA4aEnabled(win, element);
-}
-
-/**
- * @param {!Window} win
- * @param {!DOUBLECLICK_EXPERIMENT_FEATURE} feature
- * @return {boolean} whether feature is enabled
- */
-export function experimentFeatureEnabled(win, feature) {
-  return getExperimentBranch(win, DOUBLECLICK_A4A_EXPERIMENT_NAME) == feature;
+  if (element.hasAttribute('useSameDomainRenderingUntilDeprecated')) {
+    return false;
+  }
+  const a4aRequested = element.hasAttribute(BETA_ATTRIBUTE);
+  // Note: Under this logic, a4aRequested shortcuts googleAdsIsA4AEnabled and,
+  // therefore, carves out of the experiment branches.  Any publisher using this
+  // attribute will be excluded from the experiment altogether.
+  // TODO(tdrl): The "is this site eligible" logic has gotten scattered around
+  // and is now duplicated.  It should be cleaned up and factored into a single,
+  // shared location.
+  let externalBranches, internalBranches;
+  if (isExperimentOn(win, 'a4aFastFetchDoubleclickLaunched')) {
+    externalBranches = DOUBLECLICK_A4A_EXTERNAL_EXPERIMENT_BRANCHES_POST_LAUNCH;
+    internalBranches = DOUBLECLICK_A4A_INTERNAL_EXPERIMENT_BRANCHES_POST_LAUNCH;
+  } else {
+    externalBranches = DOUBLECLICK_A4A_EXTERNAL_EXPERIMENT_BRANCHES_PRE_LAUNCH;
+    internalBranches = DOUBLECLICK_A4A_INTERNAL_EXPERIMENT_BRANCHES_PRE_LAUNCH;
+  }
+  const enableA4A = googleAdsIsA4AEnabled(
+          win, element, DOUBLECLICK_A4A_EXPERIMENT_NAME,
+          externalBranches, internalBranches,
+          DOUBLECLICK_A4A_EXTERNAL_DELAYED_EXPERIMENT_BRANCHES_PRE_LAUNCH,
+          DOUBLECLICK_SFG_INTERNAL_EXPERIMENT_BRANCHES) ||
+      (a4aRequested && (isProxyOrigin(win.location) ||
+       getMode(win).localDev || getMode(win).test));
+  if (enableA4A && a4aRequested && !isInManualExperiment(element)) {
+    element.setAttribute(EXPERIMENT_ATTRIBUTE,
+        DOUBLECLICK_A4A_BETA_BRANCHES.experiment);
+  }
+  return enableA4A;
 }

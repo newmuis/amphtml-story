@@ -201,8 +201,21 @@ export function extractUrlExperimentId(win, element) {
  *   parameter or not.
  */
 function maybeSetExperimentFromUrl(win, element, experimentName,
-     controlBranchId, treatmentBranchId, delayedControlId,
-     delayedTreatmentBrandId, sfgControlId, sfgTreatmentId, manualId) {
+    controlBranchId, treatmentBranchId, delayedControlId,
+    delayedTreatmentBrandId, sfgControlId, sfgTreatmentId, manualId) {
+  const expParam = viewerForDoc(element).getParam('exp') ||
+      parseQueryString(win.location.search)['exp'];
+  if (!expParam) {
+    return false;
+  }
+  const match = /(^|,)(a4a:[^,]*)/.exec(expParam);
+  const a4aParam = match && match[2];
+  if (!a4aParam) {
+    return false;
+  }
+  // In the future, we may want to specify multiple experiments in the a4a
+  // arg.  For the moment, however, assume that it's just a single flag.
+  const arg = a4aParam.split(':', 2)[1];
   const argMapping = {
     '-1': manualId,
     '0': null,
