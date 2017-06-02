@@ -28,6 +28,7 @@ import {AmpStoryGridLayer} from './amp-story-grid-layer';
 import {AmpStoryPage} from './amp-story-page';
 import {CSS} from '../../../build/amp-story-0.1.css';
 import {Layout} from '../../../src/layout';
+import {closest} from '../../../src/dom';
 import {dev} from '../../../src/log';
 
 /** @private @const {number} */
@@ -40,6 +41,15 @@ export class AmpStory extends AMP.BaseElement {
   /** @param {!AmpElement} element */
   constructor(element) {
     super(element);
+
+    /** @const @private {!../../../src/service/vsync-impl.Vsync} */
+    this.vsync_ = this.getVsync();
+
+    /** @private {?Element} */
+    this.bookend_;
+
+    /** @private {?Element} */
+    this.systemLayer_;
   }
 
   /** @override */
@@ -69,7 +79,7 @@ export class AmpStory extends AMP.BaseElement {
    * @private
    */
   getActivePage_() {
-    const activePage = document.querySelectorAll('amp-story-page[active]')[0];
+    const activePage = this.element.querySelector('amp-story-page[active]');
     return dev().assert(activePage, 'There is no active page.');
   }
 
@@ -122,12 +132,16 @@ export class AmpStory extends AMP.BaseElement {
 
     // TODO(newmuis): This will need to be flipped for RTL.
     const nextScreenAreaThreshold =
-        (1 - NEXT_SCREEN_AREA_RATIO) * this.win.screen.width;
+        (1 - NEXT_SCREEN_AREA_RATIO) * this.getViewport().getWidth();
 
     if (event.pageX >= nextScreenAreaThreshold) {
-      this.next_();
+      this.vsync_.mutate(() => {
+        this.next_();
+      });
     } else {
-      this.previous_();
+      this.vsync_.mutate(() => {
+        this.previous_();
+      });
     }
 
     event.stopPropagation();
@@ -143,21 +157,10 @@ export class AmpStory extends AMP.BaseElement {
    * @private
    */
   isNavigationalClick_(e) {
-    let currentElement = e.target || e.srcElement;
-
-    while (currentElement) {
-      if (currentElement === this.systemLayer_) {
-        return false;
-      } else if (currentElement === this.bookend_) {
-        return false;
-      }
-
+    return !closest(e.target, el => {
       // TODO(newmuis): Check to see if currentElement listens for `tap` event.
-
-      currentElement = currentElement.parentElement;
-    }
-
-    return true;
+      return el === this.systemLayer || el === this.bookend_;
+    }, /* opt_stopAt */ this.element);
   }
 }
 
