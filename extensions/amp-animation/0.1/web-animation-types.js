@@ -25,7 +25,7 @@ export let WebAnimationDef;
  * @mixes WebAnimationSelectorDef
  * @mixes WebAnimationTimingDef
  * @mixes WebAnimationVarsDef
- * @mixes WebAnimationMediaDef
+ * @mixes WebAnimationConditionalDef
  * @typedef {{
  *   animations: !Array<!WebAnimationDef>,
  * }}
@@ -37,7 +37,7 @@ export let WebMultiAnimationDef;
  * @mixes WebAnimationSelectorDef
  * @mixes WebAnimationTimingDef
  * @mixes WebAnimationVarsDef
- * @mixes WebAnimationMediaDef
+ * @mixes WebAnimationConditionalDef
  * @typedef {{
  *   animation: string,
  * }}
@@ -49,7 +49,7 @@ export let WebCompAnimationDef;
  * @mixes WebAnimationSelectorDef
  * @mixes WebAnimationTimingDef
  * @mixes WebAnimationVarsDef
- * @mixes WebAnimationMediaDef
+ * @mixes WebAnimationConditionalDef
  * @typedef {{
  *   keyframes: (string|!WebKeyframesDef),
  * }}
@@ -101,28 +101,6 @@ export let WebAnimationVarsDef;
  * }}
  */
 export let WebAnimationConditionalDef;
-
-
-/**
- * @typedef {{
- *   target: (!Element|undefined),
- *   selector: (string|undefined),
- *   subtargets: (!Array<!WebAnimationSubtargetDef>|undefined),
- * }}
- */
-export let WebAnimationSelectorDef;
-
-
-/**
- * @mixes WebAnimationTimingDef
- * @mixes WebAnimationVarsDef
- * @typedef {{
- *   matcher: (function(!Element, number):boolean|undefined),
- *   index: (number|undefined),
- *   selector: (string|undefined),
- * }}
- */
-export let WebAnimationSubtargetDef;
 
 
 /**
