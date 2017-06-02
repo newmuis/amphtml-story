@@ -83,6 +83,17 @@ export function whenCalled(spy, opt_callCount = 1) {
 }
 
 /**
+ * Resolves a promise when a spy has been called a configurable number of times.
+ * @param {!Object} spy
+ * @param {number=} opt_callCount
+ * @return {!Promise}
+ */
+export function whenCalled(spy, opt_callCount = 1) {
+  return poll(`Spy was called ${opt_callCount} times`,
+      () => spy.callCount === opt_callCount);
+}
+
+/**
  * Asserts that the given element is only visible to screen readers.
  * @param {!Element} node
  */
