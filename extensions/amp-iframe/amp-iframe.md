@@ -185,8 +185,6 @@ window.parent.postMessage({
 
 Iframes can send a `send-intersections` message to their parents to start receiving IntersectionObserver style [change records](https://wicg.github.io/IntersectionObserver/#intersectionobserverentry) of the iframe's intersection with the parent viewport.
 
-*Note: In the following examples, we assume the script is in the created iframe, where `window.parent` is the top window. If the script lives in a nested iframe, change `window.parent` to the top AMP window.*
-
 *Example: iframe `send-intersections` request*
 
 ```javascript
@@ -236,4 +234,4 @@ The `amp-iframe` component should be considered a fallback if the required user 
 
 ## Validation
 
-See [amp-iframe rules](https://github.com/ampproject/amphtml/blob/master/extensions/amp-iframe/validator-amp-iframe.protoascii) in the AMP validator specification.
+See [amp-iframe rules](https://github.com/ampproject/amphtml/blob/master/extensions/amp-iframe/0.1/validator-amp-iframe.protoascii) in the AMP validator specification.
