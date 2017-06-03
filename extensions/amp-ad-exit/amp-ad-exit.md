@@ -16,16 +16,14 @@ limitations under the License.
 
 # <a name="amp-ad-exit"></a> `amp-ad-exit`
 
-[TOC]
-
 <table>
   <tr>
     <td width="40%"><strong>Description</strong></td>
-    <td>Provides configurable behavior for ad exits for A4A (AMP for Ads).</td>
+    <td>Extension for configuring the behavior of ad exits.</td>
   </tr>
   <tr>
     <td width="40%"><strong>Availability</strong></td>
-    <td>Stable</td>
+    <td>FILL THIS IN</td>
   </tr>
   <tr>
     <td width="40%"><strong>Required Script</strong></td>
@@ -37,19 +35,21 @@ limitations under the License.
   </tr>
 </table>
 
-## Overview
+## <a name="overview"></a> Overview
 
-The `amp-ad-exit` element is configured with a JSON child script element and 
-exposes an "exit" action to other elements in the [A4A (AMP for Ads)](../amp-a4a/amp-a4a-format.md) creative. Elements can be annotated to exit when tapped, passing a target name and extra URL parameter values to insert. The exit action performs these steps:
+The amp-ad-exit element is configured with a JSON child script element and will
+expose an "exit" action to other elements in the creative. Elements can be
+annotated to exit when tapped, passing a target name and extra URL parameter
+values to insert. The exit action will perform these steps:
 
-1. Parse the JSON config (if it hasn't yet been parsed).
-2. Find the requested exit target.
-3. Determine whether the exit should be allowed by processing the click event through declared filters.
-4. Rewrite URL variables (see [Variable Substitution](#variable-substitution))
-5. Ping any click tracking URLs.
-6. Perform the navigation by opening the target URL in a new tab.
+1. parse the JSON config (if it hasn't yet been parsed)
+2. find the requested exit target
+3. determine whether the exit should be allowed by processing the click event through declared filters
+4. rewrite URL variables (see [Variable Substitution](#variable-substitution))
+5. ping any click tracking URLs
+6. perform the navigation by opening the target URL in a new tab
 
-## Example
+## <a name="example"></a> Example
 
 ```html
 <amp-ad-exit id="exit-api">
@@ -94,7 +94,7 @@ exposes an "exit" action to other elements in the [A4A (AMP for Ads)](../amp-a4a
 </script>
 </amp-ad-exit>
 
-<h1 on="tap:exit-api.exit(target='landingPage')">Artisan Baking Supplies</h1>
+<h1 on="tap:exit-api.exit(target='landing')">Artisan Baking Supplies</h1>
 <div id="product0" on="tap:exit-api.exit(target='flour')">
   <p>Rye flour</p>
   <amp-img src="..." width="..." height="..."></amp-img>
@@ -103,41 +103,37 @@ exposes an "exit" action to other elements in the [A4A (AMP for Ads)](../amp-a4a
   <p>Bannetons</p>
   <amp-img src="..." width="..." height="..."></amp-img>
 </div>
-<div id="footer" on="tap:exit-api.exit(target='landingPage', _clickArea='footer')">
+<div id="footer" on="tap:exit-api.exit(target='landing', _clickArea='footer')">
   example.com/artisan-baking
 </div>
 ```
 
-## Filters
-
+## <a name="filters"></a> Filters
 Filters are specified in the `filters` section of the config. Targets reference
 filters by their property name in the `filters` section.
 
 There are two types of filters: location-based and time-based. Other filters (such as a confirmation prompt) could be added as needed. 
 
-### clickLocation filter
+`ClickLocationFilter` specifies the minimum distance a click must be from the edges of the creative or viewport (whichever is smaller).
 
-The `clickLocation` filter type specifies the minimum distance a click must be from the edges of the creative or the edges of a specific element in the creative. The clickLocation filter may have the following properties:
+| Property | Value | Meaning
+| --- | --- | ---
+| `type` | `"clickLocation"` |
+| `top` | `number` | Distance in px from the top edge
+| `right` | `number` | Distance in px from the right edge
+| `bottom` | `number` | Distance in px from the bottom edge
+| `left` | `number` | Distance in px from the left edge
 
-| Property     | Value | Meaning |
-| ------------ | ----- | ------- |
-| `top`        | `number` | Distance in px from the top edge. Default: 0 |
-| `right`      | `number` | Distance in px from the right edge. Default: 0  |
-| `bottom`     | `number` | Distance in px from the bottom edge. Default: 0  |
-| `left`       | `number` | Distance in px from the left edge. Default: 0 |
-| `relativeTo` | `string` | Selects the element to use for edge boundaries. The full creative `body` is used if this is not specified. The selected element does not need to be the element that triggers the exit. The selected element must be in a fixed position for the life of the creative (no resizing, repositioning, etc.). Selector must use CSS selector syntax. |
+`ClickDelayFilter` specifies the time to wait before responding to clicks. amp-ad-exit imposes a minimum delay of 1 second on all exits.
 
-### clickDelay filter
+| Property | Value | Meaning
+| --- | --- | ---
+| `type` | `"clickDelay"` |
+| `delay` | `number` | Time in ms to reject any clicks after entering the viewport.
 
-The `clickDelay` filter type specifies the time to wait before responding to clicks. The `amp-ad-exit` element imposes a minimum delay of 1 second on all exits. The `clickDelay` filter requires the following properties:
+Example:
 
-| Property | Value | Meaning |
-| ---------| ----- | ------- |
-| `delay`  | `number` | Time in ms to reject any clicks after entering the viewport. | 
-
-*Example: Using filters*
-
-```json
+``` javascript
 {
   "targets": {
     "ad": {
@@ -156,37 +152,28 @@ The `clickDelay` filter type specifies the time to wait before responding to cli
       "right": 5,
       "bottom": 5,
       "left": 5
-    },
+    }
     "huge-border": {
       "type": "clickLocation",
       "top": 100,
       "right": 100,
       "bottom": 100,
       "left": 100
-    },
-    "border-with-relative-to-element": {
-      "type": "clickLocation",
-      "top": 10,
-      "right": 10,
-      "bottom": 10,
-      "left": 10,
-      "relativeTo": "#headline"
     }
   }
 }
 ```
 
-## Click tracking URLs
-
+## <a name="click-tracking-urls"></a> Click tracking URLs
 Navigation targets can be associated with click tracking URLs in the config.
-Before navigation, amp-ad-exit attempts to ping the tracking URLs by using:
+Before navigation, amp-ad-exit will attempt to ping the tracking URLs by using
 
-1. `navigator.sendBeacon`, if available
+1. navigator.sendBeacon, if available
 2. image request
 
 You can override this behavior with a "transport" object on the config:
 
-```json
+``` javascript
 {
   "targets": { ... },
   "filters": { ... },
@@ -196,9 +183,9 @@ You can override this behavior with a "transport" object on the config:
 }
 ```
 
-## Variable Substitution
+## <a name="variable-substitution"></a> Variable Substitution
 
-URL variable substitution works like standard [AMP variable substitution](../../spec/amp-var-substitutions.md) with
+URL variable substitution works like standard [AMP variable substitution](https://github.com/ampproject/amphtml/blob/master/spec/amp-var-substitutions.md) with
 custom variables and a limited set of platform variables. Variable substitution
 applies to navigation URLs and click tracking URLs.
 
@@ -206,7 +193,7 @@ applies to navigation URLs and click tracking URLs.
 
 | Name | Value |
 | ---- | ----- |
-| RANDOM | A random float. See [RANDOM](../../spec/amp-var-substitutions.md#random). |
+| RANDOM | A random float. See [RANDOM](https://github.com/ampproject/amphtml/blob/master/spec/amp-var-substitutions.md#random). |
 | CLICK_X | The `x` coordinate of the click in the viewport. |
 | CLICK_Y | The `y` coordinate of the click in the viewport. |
 
@@ -237,31 +224,27 @@ in the `exit` action invocation:
 By convention, user-defined variables should be in `_camelCase`. System
 variables are in `ALL_CAPS`.
 
-{% call callout('Warning', type='caution') %}
-Be careful with your variable names. Substitution works by simple
-string replacement. *Any* occurrence of the variable in the URL will be
+WARNING: Be careful with your variable names. Substitution works by simple
+string replacement. *Any* occurence of the variable in the URL will be
 replaced. For example, if you define a custom variable named "_b" with value
 "foo", `/?a_b_c=_b` will become `/?afoo_c=foo`.
-{% endcall %}
 
-## `exit` action
+## <a name="exit-action"></a> `exit` action
 
-The `amp-ad-exit` element exposes an `exit` action that other elements reference in `on="tap:..."` attributes. The action accepts a "target" string parameter that must match a named `NavigationTarget` in the `ExitConfig`. Custom variables beginning with an underscore can also be passed in.
+amp-ad-exit exposes an `exit` action that other elements will reference in `on="tap:..."` attributes. The action accepts a "target" string parameter that must match a named `NavigationTarget` in the `ExitConfig`. Custom variables beggining with an underscore can also be passed in.
 
 | Parameter name      | Parameter value type      | Meaning                    |
 | ------------------- | ------------------------- | -------------------------- |
 | `target`            | `string`                  | The name of a  `NavigationTarget` in the `ExitConfig` |
 | `_[a-zA-Z0-9_-]+` | `string\|boolean\|number` | Replace the URL parameter with this name and value into the final and tracking URLs. |
 
-## Configuration spec
-See the `AmpAdExitConfig` typedef in [config.js](https://github.com/ampproject/amphtml/blob/master/extensions/amp-ad-exit/0.1/config.js).
+## <a name="config"></a> Configuration spec
+See the `AmpAdExitConfig` typedef in config.js.
 
 ## Attributes
 
-##### id
-
-An `id` is required so that `amp-exit` can be referenced by tappable elements. 
+amp-ad-exit needs an `id` to be referenced by tappable elements.
 
 ## Validation
-The `amp-ad-exit` element is only available for [A4A (AMP for Ads)](../amp-a4a/amp-a4a-format.md) documents. 
-See [amp-ad-exit rules](https://github.com/ampproject/amphtml/blob/master/extensions/amp-ad-exit/validator-amp-ad-exit.protoascii) for the AMP validator specification.
+`amp-ad-exit` is only available for AMP4ADS documents. 
+See [amp-ad-exit rules](https://github.com/ampproject/amphtml/blob/master/extensions/amp-ad-exit/0.1/validator-amp-ad-exit.protoascii) for the AMP validator specification.

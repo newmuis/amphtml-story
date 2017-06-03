@@ -49,19 +49,7 @@ export let Variables;
  */
 export let ClickDelayConfig;
 
-/**
- * @typedef {{
- *   type: !FilterType,
- *   top: (number|undefined),
- *   right: (number|undefined),
- *   bottom: (number|undefined),
- *   left: (number|undefined),
- *   relativeTo: (string|undefined)
- * }}
- */
-export let ClickLocationConfig;
-
-/** @typedef {!ClickDelayConfig|!ClickLocationConfig} */
+/** @typedef {!ClickDelayConfig} */
 export let FilterConfig;
 
 /** @enum {string} */
@@ -95,7 +83,7 @@ export function assertConfig(config) {
 function assertTransport(transport) {
   for (const t in transport) {
     user().assert(t == TransportMode.BEACON || t == TransportMode.IMAGE,
-        `Unknown transport option: '${t}'`);
+                  `Unknown transport option: '${t}'`);
     user().assert(typeof transport[t] == 'boolean');
   }
 }
@@ -103,17 +91,15 @@ function assertTransport(transport) {
 function assertFilters(filters) {
   for (const name in filters) {
     user().assert(typeof filters[name] == 'object',
-        'Filter specification \'%s\' is malformed', name);
+                  `Filter specification '%s' is malformed`, name);
     user().assert(
-        filters[name].type == FilterType.CLICK_DELAY ||
-        filters[name].type == FilterType.CLICK_LOCATION,
-        'Only ClickDelayFilter and ClickLocationDelay are currently ' +
-        'supported.');
+        filters[name].type == FilterType.CLICK_DELAY,
+        'Only ClickDelayFilter is currently supported.');
   }
 }
 
 function assertTargets(targets, config) {
-  user().assert(typeof targets == 'object', '\'targets\' must be an object');
+  user().assert(typeof targets == 'object', `'targets' must be an object`);
   for (const target in targets) {
     assertTarget(target, targets[target], config);
   }
@@ -122,19 +108,18 @@ function assertTargets(targets, config) {
 function assertTarget(name, target, config) {
   user().assert(
       typeof target.finalUrl == 'string',
-      'finalUrl of target \'%s\' must be a string', name);
+      `finalUrl of target '%s' must be a string`, name);
   if (target.filters) {
     target.filters.forEach(filter => {
-      user().assert(
-          config.filters[filter], 'filter \'%s\' not defined', filter);
+      user().assert(config.filters[filter], `filter '%s' not defined`, filter);
     });
   }
   if (target.vars) {
     const pattern = /^_[a-zA-Z0-9_-]+$/;
     for (const variable in target.vars) {
       user().assert(
-          pattern.test(variable), '\'%s\' must match the pattern \'%s\'',
-          variable, pattern);
+          pattern.test(variable), `'%s' must match the pattern '%s'`, variable,
+          pattern);
     }
   }
 }

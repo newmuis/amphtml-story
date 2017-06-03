@@ -552,6 +552,7 @@ describe('ValidatorRulesMakeSense', () => {
       // AMP4ADS Creative Format document is the source of this whitelist.
       // https://github.com/ampproject/amphtml/blob/master/extensions/amp-a4a/amp-a4a-format.md#amp-extensions-and-builtins
       const whitelistedAmp4AdsExtensions = {
+        'AMP-AD-EXIT': 0,
         'AMP-ACCORDION': 0,
         'AMP-AD-EXIT': 0,
         'AMP-ANALYTICS': 0,

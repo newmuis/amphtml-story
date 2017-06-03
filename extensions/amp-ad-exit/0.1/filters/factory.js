@@ -15,15 +15,14 @@
  */
 
 import {ClickDelayFilter} from './click-delay';
-import {ClickLocationFilter} from './click-location';
 import {FilterType} from './filter';
 
-export function createFilter(name, spec, adExitElement) {
+export function createFilter(name, spec) {
   switch (spec.type) {
     case FilterType.CLICK_DELAY:
       return new ClickDelayFilter(name, spec);
     case FilterType.CLICK_LOCATION:
-      return new ClickLocationFilter(name, spec, adExitElement);
+      // TODO(clawr): Implement this.
     default:
       return undefined;
   }

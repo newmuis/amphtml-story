@@ -277,6 +277,12 @@ const EXPERIMENTS = [
     name: 'Position API for foreign iframe',
     spec: 'https://github.com/ampproject/amphtml/issues/10995',
   },
+  {
+    id: 'amp-ad-exit',
+    name: 'Enable amp-ad-exit component',
+    cleanupIssue: 'https://github.com/ampproject/amphtml/issues/9502',
+    spec: 'https://github.com/ampproject/amphtml/blob/master/extensions/amp-ad-exit/amp-ad-exit.md',
+  },
 ];
 
 if (getMode().localDev) {
