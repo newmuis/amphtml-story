@@ -43,7 +43,7 @@ describes.realWin('AmpState', {
   }
 
   beforeEach(() => {
-    viewer = Services.viewerForDoc(env.win.document);
+    viewer = viewerForDoc(env.win.document);
     whenFirstVisiblePromise = new Promise(resolve => {
       whenFirstVisiblePromiseResolve = resolve;
     });
