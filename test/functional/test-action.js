@@ -1129,22 +1129,6 @@ describes.fakeWin('Core events', {amp: true}, env => {
         }));
   });
 
-  it('should trigger change event with details for <textarea> elements', () => {
-    const handler = window.document.addEventListener.getCall(3).args[1];
-    const element = document.createElement('textarea');
-    element.value = 'foo';
-    const event = {target: element};
-    handler(event);
-
-    expect(action.trigger).to.have.been.calledWith(
-        element,
-        'change',
-        sinon.match(object => {
-          const detail = object.detail;
-          return detail.value == 'foo';
-        }));
-  });
-
   it('should trigger input-debounced event on input', () => {
     sandbox.stub(action, 'invoke_');
     const handler = window.document.addEventListener.getCall(4).args[1];
@@ -1153,7 +1137,6 @@ describes.fakeWin('Core events', {amp: true}, env => {
     element.setAttribute('on', 'input-debounced:test.hide');
     element.value = 'foo bar baz';
     const event = {target: element};
-    document.body.appendChild(element);
     handler(event);
 
     return triggerPromise.then(() => {

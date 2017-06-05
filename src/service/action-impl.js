@@ -28,6 +28,11 @@ import {
   registerServiceBuilderForDoc,
   installServiceInEmbedScope,
 } from '../service';
+import {getMode} from '../mode';
+import {isArray} from '../types';
+import {map} from '../utils/object';
+import {timerFor} from '../services';
+import {vsyncFor} from '../services';
 
 /**
  * ActionInfoDef args key that maps to the an unparsed object literal string.
@@ -383,11 +388,9 @@ export class ActionService {
       return;
     }
 
-    // Invoke actions serially, where each action waits for its predecessor
-    // to complete. `currentPromise` is the i'th promise in the chain.
-    let currentPromise = null;
+    for (let i = 0; i < action.actionInfos.length; i++) {
+      const actionInfo = action.actionInfos[i];
 
-    action.actionInfos.forEach((actionInfo, i) => {
       // Replace any variables in args with data in `event`.
       const args = dereferenceExprsInArgs(actionInfo.args, event);
 
