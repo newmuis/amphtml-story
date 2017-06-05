@@ -3245,7 +3245,7 @@ function validateAncestorTags(parsedTagSpec, context, validationResult) {
               context.getDocLocator(),
               /* params */
               [getTagSpecName(spec), mandatoryAncestor.toLowerCase()],
-              getTagSpecUrl(spec), validationResult);
+              spec.specUrl, validationResult);
         }
       }
       return;
@@ -3262,7 +3262,7 @@ function validateAncestorTags(parsedTagSpec, context, validationResult) {
             context.getDocLocator(),
             /* params */
             [getTagSpecName(spec), disallowedAncestor.toLowerCase()],
-            getTagSpecUrl(spec), validationResult);
+            spec.specUrl, validationResult);
       }
       return;
     }
