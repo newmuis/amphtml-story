@@ -90,6 +90,7 @@ amp-story-grid-layer[preset="vertical"] {
   align-content: start;
   grid-auto-flow: row !important;
   grid-template-columns: auto !important;
+  justify-content: start;
 }
 
 amp-story-grid-layer[preset="horizontal"] {
