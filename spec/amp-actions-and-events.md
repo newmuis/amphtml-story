@@ -94,7 +94,6 @@ For example, the following is possible in AMP.
   </tr>
 </table>
 
-
 ### Input Elements (any that fires `change` and `input` event)
 
 Including: `input[type=radio]`, `input[type=checkbox]`, `input[type=range]`, and `select`.
@@ -377,7 +376,9 @@ event.response</pre></td>
   </tr>
 </table>
 
-## `AMP` target
+## Special targets
+
+The following are targets provided by the AMP system that have special requirements:
 
 ### `AMP`
 
@@ -416,8 +417,6 @@ actions that apply to the whole document.
       <p>Merges an object literal into the bindable state and pushes a new entry onto browser history stack. Popping the entry will restore the previous values of variables (in this example, <code>foo</code>).    </td>
   </tr>
 </table>
-
-<sup>1</sup>When used with <a href="#multiple-actions-for-one-event">multiple actions</a>, subsequent actions will wait for <code>setState()</code> or <code>pushState()</code> to complete before invocation. Only a single <code>setState()</code> or <code>pushState()</code> is allowed per event.
 
 ### `amp-access`
 
