@@ -30,6 +30,12 @@ import {CSS} from '../../../build/amp-story-0.1.css';
 import {Layout} from '../../../src/layout';
 import {closest} from '../../../src/dom';
 import {dev} from '../../../src/log';
+import {
+  exitFullScreen,
+  isFullScreenSupported,
+  requestFullScreen,
+} from './fullscreen';
+
 
 /** @private @const {number} */
 const NEXT_SCREEN_AREA_RATIO = 0.75;
@@ -46,7 +52,7 @@ export class AmpStory extends AMP.BaseElement {
     this.vsync_ = this.getVsync();
 
     /** @private {?Element} */
-    this.bookend_;
+    this.bookend_ = null;
 
     /** @private {?Element} */
     this.systemLayer_;
@@ -95,9 +101,7 @@ export class AmpStory extends AMP.BaseElement {
       return;
     }
 
-    const nextPage = activePage.nextElementSibling;
-    nextPage.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
-    activePage.removeAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME);
+    this.switchTo_(dev().assertElement(activePage.nextElementSibling));
   }
 
 
@@ -111,9 +115,29 @@ export class AmpStory extends AMP.BaseElement {
       return;
     }
 
-    const nextPage = activePage.previousElementSibling;
-    nextPage.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
-    activePage.removeAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME);
+    this.switchTo_(dev().assertElement(activePage.previousElementSibling));
+  }
+
+
+  /**
+   * Switches to a particular page.
+   * @param {!Element} page
+   */
+  switchTo_(page) {
+    const activePage = this.getActivePage_();
+
+    if (isFullScreenSupported(this.element)) {
+      if (page === this.bookend_) {
+        exitFullScreen(this.element);
+      } else {
+        requestFullScreen(this.element);
+      }
+    }
+
+    this.vsync_.mutate(() => {
+      page.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
+      activePage.removeAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME);
+    });
   }
 
 
@@ -135,13 +159,9 @@ export class AmpStory extends AMP.BaseElement {
         (1 - NEXT_SCREEN_AREA_RATIO) * this.getViewport().getWidth();
 
     if (event.pageX >= nextScreenAreaThreshold) {
-      this.vsync_.mutate(() => {
-        this.next_();
-      });
+      this.next_();
     } else {
-      this.vsync_.mutate(() => {
-        this.previous_();
-      });
+      this.previous_();
     }
 
     event.stopPropagation();
