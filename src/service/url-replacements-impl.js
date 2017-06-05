@@ -846,21 +846,27 @@ export class UrlReplacements {
     }
     if (additionalUrlParameters) {
       href = addParamsToUrl(
-          href,
-          parseQueryString(additionalUrlParameters));
+        href,
+        parseQueryString(additionalUrlParameters));
     }
     if (whitelist) {
       const isAllowedOrigin = this.isAllowedOrigin_(url);
+      const isSecure = isSecureUrl(href);
       if (!isAllowedOrigin) {
         user().warn('URL', 'Ignoring link replacement', href,
             ' because the link does not go to the document\'s' +
             ' source, canonical, or whitelisted origin.');
-      } else {
+      }
+      if (!isSecure) {
+        user().warn('URL', 'Ignoring link replacement', href,
+            ' because it is only supported for secure links.');
+      }
+      if (isAllowedOrigin && isSecure) {
         href = this.expandSync(
-            href,
-            /* opt_bindings */ undefined,
-            /* opt_collectVars */ undefined,
-            /* opt_whitelist */ whitelist);
+          href,
+          /* opt_bindings */ undefined,
+          /* opt_collectVars */ undefined,
+          /* opt_whitelist */ whitelist);
       }
     }
     return element.href = href;
