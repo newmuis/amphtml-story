@@ -650,13 +650,6 @@ function checkTypes() {
           includePolyfills: true,
           checkTypes: true,
         }),
-      closureCompile(['./3p/iframe-transport-client-lib.js'], './dist',
-        'iframe-transport-client-check-types.js', {
-          externs: ['ads/ads.extern.js'],
-          include3pDirectories: true,
-          includePolyfills: true,
-          checkTypes: true,
-        }),
     ]);
   });
 }
