@@ -73,6 +73,14 @@ export class AmpStory extends AMP.BaseElement {
         this.maybePerformSystemNavigation_.bind(this), true);
   }
 
+
+  /** @override */
+  layoutCallback() {
+    this.preloadNext_();
+    return Promise.resolve();
+  }
+
+
   /** @override */
   isLayoutSupported(layout) {
     return layout == Layout.CONTAINER;
@@ -101,7 +109,8 @@ export class AmpStory extends AMP.BaseElement {
       return;
     }
 
-    this.switchTo_(dev().assertElement(activePage.nextElementSibling));
+    this.switchTo_(dev().assertElement(activePage.nextElementSibling))
+        .then(() => this.preloadNext_());
   }
 
 
@@ -122,6 +131,7 @@ export class AmpStory extends AMP.BaseElement {
   /**
    * Switches to a particular page.
    * @param {!Element} page
+   * @return {!Promise}
    */
   switchTo_(page) {
     const activePage = this.getActivePage_();
@@ -134,9 +144,12 @@ export class AmpStory extends AMP.BaseElement {
       }
     }
 
-    this.vsync_.mutate(() => {
+    return this.mutateElement(() => {
       page.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
       activePage.removeAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME);
+    }, page).then(() => {
+      this.schedulePause(activePage);
+      this.scheduleResume(page);
     });
   }
 
@@ -165,6 +178,17 @@ export class AmpStory extends AMP.BaseElement {
     }
 
     event.stopPropagation();
+  }
+
+  /**
+   * @private
+   */
+  preloadNext_() {
+    const next = this.getActivePage_().nextElementSibling;
+    if (!next) {
+      return;
+    }
+    this.schedulePreload(next);
   }
 
 
