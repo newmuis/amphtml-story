@@ -369,11 +369,7 @@ function compileCss() {
             mkdirSync('build/css');
             fs.writeFileSync('build/css/v0.css', css);
           }));
-  })
-  .then(() => {
-    endBuildStep('Recompiled CSS in', 'amp.css', startTime);
-  })
-  .then(() => {
+  }).then(() => {
     return buildExtensions({
       bundleOnlyIfListedInFiles: true,
       compileOnlyCss: true
@@ -435,6 +431,9 @@ function watch() {
 function buildExtension(name, version, hasCss, options, opt_extraGlobs) {
   options = options || {};
   options.extraGlobs = opt_extraGlobs;
+  if (options.compileOnlyCss && !hasCss) {
+    return Promise.resolve();
+  }
   var path = 'extensions/' + name + '/' + version;
   var jsPath = path + '/' + name + '.js';
   var jsTestPath = path + '/test/' + 'test-' + name + '.js';
@@ -545,12 +544,7 @@ function writeAmpConfig() {
  */
 function build() {
   process.env.NODE_ENV = 'development';
-  if (cssOnly) {
-    return Promise.all([
-      compileCss(),
-      buildExtensions({bundleOnlyIfListedInFiles: true}),  // Only ones with CSS
-    ]);
-  }
+  writeAmpConfig();
   return compileCss().then(() => {
     return Promise.all([
       polyfillsForTests(),
@@ -572,20 +566,22 @@ function dist() {
   process.env.NODE_ENV = 'production';
   writeAmpConfig();
   cleanupBuildDir();
-  return Promise.all([
-    compile(false, true, true),
-    // NOTE:
-    // When adding a line here, consider whether you need to include polyfills
-    // and whether you need to init logging (initLogConstructor).
-    buildAlp({minify: true, watch: false, preventRemoveAndMakeDir: true}),
-    buildExaminer({minify: true, watch: false, preventRemoveAndMakeDir: true}),
-    buildSw({minify: true, watch: false, preventRemoveAndMakeDir: true}),
-    buildWebWorker({minify: true, watch: false, preventRemoveAndMakeDir: true}),
-    buildExtensions({minify: true, preventRemoveAndMakeDir: true}),
-    buildExperiments({minify: true, watch: false, preventRemoveAndMakeDir: true}),
-    buildLoginDone({minify: true, watch: false, preventRemoveAndMakeDir: true}),
-    copyCss(),
-  ]).then(() => {
+  return compileCss().then(() => {
+    return Promise.all([
+      compile(false, true, true),
+      // NOTE:
+      // When adding a line here, consider whether you need to include polyfills
+      // and whether you need to init logging (initLogConstructor).
+      buildAlp({minify: true, watch: false, preventRemoveAndMakeDir: true}),
+      buildExaminer({minify: true, watch: false, preventRemoveAndMakeDir: true}),
+      buildSw({minify: true, watch: false, preventRemoveAndMakeDir: true}),
+      buildWebWorker({minify: true, watch: false, preventRemoveAndMakeDir: true}),
+      buildExtensions({minify: true, preventRemoveAndMakeDir: true}),
+      buildExperiments({minify: true, watch: false, preventRemoveAndMakeDir: true}),
+      buildLoginDone({minify: true, watch: false, preventRemoveAndMakeDir: true}),
+      copyCss(),
+    ]);
+  }).then(() => {
     copyAliasExtensions();
   });
 }
