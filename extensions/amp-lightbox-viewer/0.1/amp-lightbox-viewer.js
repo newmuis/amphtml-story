@@ -466,10 +466,7 @@ export class AmpLightboxViewer extends AMP.BaseElement {
     this.scheduleLayout(dev().assertElement(this.container_));
 
     this.currentElementId_ = element.lightboxItemId;
-    // Hack to access private property. Better than not getting
-    // type checking to work.
-    /**@type {?}*/ (this.carousel_).implementation_.showSlideWhenReady(
-        this.currentElementId_);
+    this.carousel_.implementation_.showSlideWhenReady(this.currentElementId_);
 
     this.win.document.documentElement.addEventListener(
         'keydown', this.boundHandleKeyboardEvents_);
@@ -597,10 +594,7 @@ export class AmpLightboxViewer extends AMP.BaseElement {
       this.closeGallery_();
       this.currentElementId_ = thumbnailObj.element.lightboxItemId;
       this.updateDescriptionBox_();
-      // Hack to access private property. Better than not getting
-      // type checking to work.
-      /**@type {?}*/ (this.carousel_).implementation_.showSlideWhenReady(
-          this.currentElementId_);
+      this.carousel_.implementation_.showSlideWhenReady(this.currentElementId_);
       event.stopPropagation();
     };
     element.addEventListener('click', closeGallaryAndShowTargetSlide);
