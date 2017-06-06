@@ -58,7 +58,7 @@ describes.realWin('amp-call-tracking', {
   function mockXhrResponse(url, response) {
     xhrMock
         .expects('fetchJson')
-        .withArgs(url, sandbox.match(init => init.credentials == 'include'))
+        .withArgs(url)
         .returns(Promise.resolve({
           json() {
             return Promise.resolve(response);

@@ -78,6 +78,18 @@ describe('amp-a4a', () => {
     onCreativeRenderSpy =
         sandbox.spy(AmpA4A.prototype, 'onCreativeRender');
     getSigningServiceNamesMock.returns(['google']);
+    xhrMockJson.withArgs(
+      'https://cdn.ampproject.org/amp-ad-verifying-keyset.json',
+      {
+        mode: 'cors',
+        method: 'GET',
+        ampCors: false,
+        credentials: 'omit',
+      }).returns(Promise.resolve({
+        json() {
+          return Promise.resolve({keys: [JSON.parse(validCSSAmp.publicKey)]});
+        },
+      }));
     viewerWhenVisibleMock = sandbox.stub(Viewer.prototype, 'whenFirstVisible');
     viewerWhenVisibleMock.returns(Promise.resolve());
     getResourceStub = sandbox.stub(AmpA4A.prototype, 'getResource');
@@ -1959,62 +1971,202 @@ describe('amp-a4a', () => {
     });
   });
 
-  describe('refresh', () => {
-    let sandbox;
-
-    beforeEach(() => {
-      sandbox = sinon.sandbox.create();
+    it('should not wait for first visible if exp disabled', () => {
+      toggleExperiment(win, 'a4a-disable-cryptokey-viewer-check', true, true);
+      expect(isExperimentOn(win, 'a4a-disable-cryptokey-viewer-check'))
+        .to.be.true;
+      expect(win.ampA4aValidationKeys).not.to.exist;
+      // Key fetch happens on A4A class construction.
+      const a4a = new MockA4AImpl(a4aElement);  // eslint-disable-line no-unused-vars
+      a4a.buildCallback();
+      const result = win.ampA4aValidationKeys;
+      expect(result).to.be.instanceof(Array);
+      expect(result).to.have.lengthOf(1);  // Only one service.
+      return Promise.all(result).then(() => {
+        expect(viewerWhenVisibleMock).to.not.be.called;
+        expect(xhrMockJson).to.be.calledOnce;
+      });
     });
 
-    afterEach(() => {
-      sandbox.restore();
+    it('should fetch multiple keys', () => {
+      // For our purposes, re-using the same key is fine.
+      const testKey = JSON.parse(validCSSAmp.publicKey);
+      xhrMockJson.withArgs(
+          'https://cdn.ampproject.org/amp-ad-verifying-keyset.json', {
+            mode: 'cors',
+            method: 'GET',
+            ampCors: false,
+            credentials: 'omit',
+          }).returns(Promise.resolve({
+            json() {
+              return Promise.resolve({keys: [testKey, testKey, testKey]});
+            },
+          }));
+      expect(win.ampA4aValidationKeys).not.to.exist;
+      // Key fetch happens on A4A class construction.
+      const a4a = new MockA4AImpl(a4aElement);  // eslint-disable-line no-unused-vars
+      a4a.buildCallback();
+      const result = win.ampA4aValidationKeys;
+      expect(result).to.be.instanceof(Array);
+      expect(result).to.have.lengthOf(1);  // Only one service.
+      return Promise.all(result).then(serviceInfos => {
+        expect(xhrMockJson).to.be.calledOnce;
+        expect(xhrMockJson).to.be.calledWith(
+          'https://cdn.ampproject.org/amp-ad-verifying-keyset.json', {
+            mode: 'cors',
+            method: 'GET',
+            ampCors: false,
+            credentials: 'omit',
+          });
+        expect(serviceInfos).to.have.lengthOf(1);  // Only one service.
+        const serviceInfo = serviceInfos[0];
+        expect(serviceInfo).to.have.all.keys(['serviceName', 'keys']);
+        expect(serviceInfo['serviceName']).to.equal('google');
+        expect(serviceInfo['keys']).to.be.an.instanceof(Array);
+        expect(serviceInfo['keys']).to.have.lengthOf(3);
+        return Promise.all(serviceInfo['keys'].map(keyInfoPromise =>
+          keyInfoPromise.then(keyInfo => verifyIsKeyInfo(keyInfo))));
+      });
     });
 
-    it('should effectively reset the slot and invoke given callback', () => {
-      return createIframePromise().then(f => {
-        const fixture = f;
-        setupForAdTesting(fixture);
-        const a4aElement = createA4aElement(fixture.doc);
-        const a4a = new MockA4AImpl(a4aElement);
-        a4a.adPromise_ = Promise.resolve();
-        a4a.getAmpDoc = () => a4a.win.document;
-        a4a.getResource = () => {
-          return {
-            layoutCanceled: () => {},
-          };
-        };
-        a4a.mutateElement = func => func();
-        a4a.togglePlaceholder = sandbox.spy();
-
-        // We don't really care about the behavior of the following methods, so
-        // long as they're called the appropriate number of times. We stub them
-        // out here because they would otherwise throw errors unrelated to the
-        // behavior actually being tested.
-        const initiateAdRequestMock =
-            sandbox.stub(AmpA4A.prototype, 'initiateAdRequest');
-        initiateAdRequestMock.returns(undefined);
-        const tearDownSlotMock = sandbox.stub(AmpA4A.prototype, 'tearDownSlot');
-        tearDownSlotMock.returns(undefined);
-        const destroyFrameMock = sandbox.stub(AmpA4A.prototype, 'destroyFrame');
-        destroyFrameMock.returns(undefined);
-
-        expect(a4a.isRefreshing).to.be.false;
-        return a4a.refresh(() => {}).then(() => {
-          expect(initiateAdRequestMock).to.be.calledOnce;
-          expect(tearDownSlotMock).to.be.calledOnce;
-          expect(a4a.togglePlaceholder).to.be.calledOnce;
-          expect(a4a.isRefreshing).to.be.true;
-          expect(a4a.isRelayoutNeededFlag).to.be.true;
+    it('should fetch from multiple services', () => {
+      getSigningServiceNamesMock.returns(['google', 'google-dev']);
+      // For our purposes, we don't care what the key is, so long as it's valid.
+      xhrMockJson.withArgs(
+          'https://cdn.ampproject.org/amp-ad-verifying-keyset-dev.json', {
+            mode: 'cors',
+            method: 'GET',
+            ampCors: false,
+            credentials: 'omit',
+          }).returns(Promise.resolve({
+            json() {
+              return Promise.resolve({keys: [
+                JSON.parse(validCSSAmp.publicKey),
+              ]});
+            },
+          }));
+      expect(win.ampA4aValidationKeys).not.to.exist;
+      // Key fetch happens on A4A class construction.
+      const a4a = new MockA4AImpl(a4aElement);  // eslint-disable-line no-unused-vars
+      a4a.buildCallback();
+      const result = win.ampA4aValidationKeys;
+      expect(result).to.be.instanceof(Array);
+      expect(result).to.have.lengthOf(2);  // Two services.
+      return Promise.all(result).then(serviceInfos => {
+        expect(xhrMockJson).to.be.calledTwice;
+        serviceInfos.map(serviceInfo => {
+          expect(serviceInfo).to.have.all.keys(['serviceName', 'keys']);
+          expect(serviceInfo['serviceName']).to.have.string('google');
+          expect(serviceInfo['keys']).to.be.an.instanceof(Array);
+          expect(serviceInfo['keys']).to.have.lengthOf(1);
+          const keyInfoPromise = serviceInfo['keys'][0];
+          expect(keyInfoPromise).to.be.an.instanceof(Promise);
+          return keyInfoPromise.then(keyInfo => {
+            verifyIsKeyInfo(keyInfo);
+          });
         });
       });
     });
   });
 
-  describe('buildCallback', () => {
-    let sandbox;
+    it('Should gracefully handle malformed key responses', () => {
+      xhrMockJson.withArgs(
+          'https://cdn.ampproject.org/amp-ad-verifying-keyset.json', {
+            mode: 'cors',
+            method: 'GET',
+            ampCors: false,
+            credentials: 'omit',
+          }).returns(Promise.resolve({
+            json() {
+              return Promise.resolve({keys: ['invalid key data']});
+            },
+          }));
+      expect(win.ampA4aValidationKeys).not.to.exist;
+      // Key fetch happens on A4A class construction.
+      const a4a = new MockA4AImpl(a4aElement);  // eslint-disable-line no-unused-vars
+      a4a.buildCallback();
+      const result = win.ampA4aValidationKeys;
+      expect(result).to.be.instanceof(Array);
+      expect(result).to.have.lengthOf(1);  // Only one service.
+      return Promise.all(result).then(serviceInfos => {
+        expect(xhrMockJson).to.be.calledOnce;
+        expect(xhrMockJson).to.be.calledWith(
+            'https://cdn.ampproject.org/amp-ad-verifying-keyset.json', {
+              mode: 'cors',
+              method: 'GET',
+              ampCors: false,
+              credentials: 'omit',
+            });
+        expect(serviceInfos[0]).to.have.all.keys(['serviceName', 'keys']);
+        expect(serviceInfos[0]['serviceName']).to.equal('google');
+        expect(serviceInfos[0]['keys']).to.be.an.instanceof(Array);
+        expect(serviceInfos[0]['keys']).to.be.empty;
+      });
+    });
 
-    beforeEach(() => {
-      sandbox = sinon.sandbox.create();
+    it('should gracefully handle network errors in a single service', () => {
+      xhrMockJson.withArgs(
+          'https://cdn.ampproject.org/amp-ad-verifying-keyset.json', {
+            mode: 'cors',
+            method: 'GET',
+            ampCors: false,
+            credentials: 'omit',
+          }).returns(Promise.reject(
+              new TypeError('some random network error')));
+      expect(win.ampA4aValidationKeys).not.to.exist;
+      // Key fetch happens on A4A class construction.
+      const a4a = new MockA4AImpl(a4aElement);  // eslint-disable-line no-unused-vars
+      a4a.buildCallback();
+      const result = win.ampA4aValidationKeys;
+      expect(result).to.be.instanceof(Array);
+      expect(result).to.have.lengthOf(1);  // Only one service.
+      return result[0].then(serviceInfo => {
+        expect(serviceInfo).to.have.all.keys(['serviceName', 'keys']);
+        expect(serviceInfo['serviceName']).to.equal('google');
+        expect(serviceInfo['keys']).to.be.an.instanceof(Array);
+        expect(serviceInfo['keys']).to.be.empty;
+      });
+    });
+
+    it('should handle success in one service and net error in another', () => {
+      getSigningServiceNamesMock.returns(['google', 'google-dev']);
+      xhrMockJson.withArgs(
+          'https://cdn.ampproject.org/amp-ad-verifying-keyset-dev.json', {
+            mode: 'cors',
+            method: 'GET',
+            ampCors: false,
+            credentials: 'omit',
+          }).returns(Promise.reject(
+              new TypeError('some random network error')));
+      expect(win.ampA4aValidationKeys).not.to.exist;
+      // Key fetch happens on A4A class construction.
+      const a4a = new MockA4AImpl(a4aElement);  // eslint-disable-line no-unused-vars
+      a4a.buildCallback();
+      const result = win.ampA4aValidationKeys;
+      expect(result).to.be.instanceof(Array);
+      expect(result).to.have.lengthOf(2);  // Two services.
+      return Promise.all(result.map(  // For each service...
+          serviceInfoPromise => serviceInfoPromise.then(serviceInfo => {
+            expect(serviceInfo).to.have.all.keys(['serviceName', 'keys']);
+            const serviceName = serviceInfo.serviceName;
+            expect(serviceInfo['keys']).to.be.an.instanceof(Array);
+            if (serviceName == 'google') {
+              expect(serviceInfo['keys']).to.have.lengthOf(1);
+              const keyInfoPromise = serviceInfo['keys'][0];
+              expect(keyInfoPromise).to.be.an.instanceof(Promise);
+              return keyInfoPromise.then(keyInfo => {
+                verifyIsKeyInfo(keyInfo);
+              });
+            } else if (serviceName == 'google-dev') {
+              expect(serviceInfo['keys']).to.be.empty;
+            } else {
+              throw new Error(
+                  `Unexpected service name: ${serviceName} is neither ` +
+                  'google nor google-dev');
+            }
+          }))).then(() => {
+            expect(xhrMockJson).to.be.calledTwice;
+          });
     });
 
     afterEach(() => {

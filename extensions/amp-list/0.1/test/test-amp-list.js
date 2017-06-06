@@ -67,7 +67,11 @@ describes.realWin('amp-list component', {
     const newHeight = 127;
     const itemElement = doc.createElement('div');
     itemElement.style.height = newHeight + 'px';
-    const fetchPromise = Promise.resolve(items);
+    const xhrPromise = Promise.resolve({
+      json() {
+        return Promise.resolve({items});
+      },
+    });
     const renderPromise = Promise.resolve([itemElement]);
     listMock.expects('fetch_').withExactArgs('items')
         .returns(fetchPromise).once();
@@ -204,10 +208,14 @@ describes.realWin('amp-list component', {
     const newItems = [
       {title: 'Title2'}, {title: 'Title3'},
     ];
-    const itemElement = doc.createElement('div');
-    const itemElement2 = doc.createElement('div');
-    const itemElement3 = doc.createElement('div');
-    const fetchPromise = Promise.resolve(initialItems);
+    const itemElement = document.createElement('div');
+    const itemElement2 = document.createElement('div');
+    const itemElement3 = document.createElement('div');
+    const xhrPromise = Promise.resolve({
+      json() {
+        return Promise.resolve({items: initialItems});
+      },
+    });
     const renderPromise = Promise.resolve([itemElement]);
     listMock.expects('fetch_').withExactArgs('items')
         .returns(fetchPromise).once();
@@ -221,7 +229,11 @@ describes.realWin('amp-list component', {
       return Promise.all([fetchPromise, renderPromise]);
     }).then(() => {
       expect(list.container_.contains(itemElement)).to.be.true;
-      const newFetchPromise = Promise.resolve(newItems);
+      const newXhrPromise = Promise.resolve({
+        json() {
+          return Promise.resolve({items: newItems});
+        },
+      });
       const newRenderPromise = Promise.resolve([itemElement2, itemElement3]);
       listMock.expects('fetch_').withExactArgs('items')
           .returns(newFetchPromise).once();
@@ -235,9 +247,13 @@ describes.realWin('amp-list component', {
     });
   });
 
-  it('should fail to load b/c data array is absent', () => {
-    listMock.expects('fetch_')
-        .returns(Promise.resolve({})).once();
+  it('should fail to load b/c data is absent', () => {
+    xhrMock.expects('fetchJson')
+      .returns(Promise.resolve({
+        json() {
+          return Promise.resolve({});
+        },
+      })).once();
     templatesMock.expects('findAndRenderTemplateArray').never();
     return expect(list.layoutCallback()).to.eventually.be
         .rejectedWith(/Response must contain an array/);
@@ -257,9 +273,13 @@ describes.realWin('amp-list component', {
       {title: 'Title1'},
     ];
     element.setAttribute('items', 'different');
-    const itemElement = doc.createElement('div');
-    listMock.expects('fetch_')
-        .returns(Promise.resolve(different)).once();
+    const itemElement = document.createElement('div');
+    xhrMock.expects('fetchJson')
+      .returns(Promise.resolve({
+        json() {
+          return Promise.resolve({different});
+        },
+      })).once();
     templatesMock.expects('findAndRenderTemplateArray')
         .withExactArgs(element, different)
         .returns(Promise.resolve([itemElement])).once();
@@ -272,8 +292,12 @@ describes.realWin('amp-list component', {
     const items = [
       {title: 'Title1'},
     ];
-    const itemElement = doc.createElement('div');
-    const fetchPromise = Promise.resolve(items);
+    const itemElement = document.createElement('div');
+    const xhrPromise = Promise.resolve({
+      json() {
+        return Promise.resolve({items});
+      },
+    });
     const renderPromise = Promise.resolve([itemElement]);
     listMock.expects('fetch_').withExactArgs('items')
         .returns(fetchPromise).once();
@@ -295,7 +319,11 @@ describes.realWin('amp-list component', {
     element.setAttribute('role', 'list1');
     const itemElement = doc.createElement('div');
     itemElement.setAttribute('role', 'listitem1');
-    const fetchPromise = Promise.resolve(items);
+    const xhrPromise = Promise.resolve({
+      json() {
+        return Promise.resolve({items});
+      },
+    });
     const renderPromise = Promise.resolve([itemElement]);
     listMock.expects('fetch_').withExactArgs('items')
         .returns(fetchPromise).once();
@@ -310,44 +338,22 @@ describes.realWin('amp-list component', {
     });
   });
 
-  it('should show placeholder on fetch failure (w/o fallback)', () => {
-    // Stub fetch_() to fail.
-    listMock.expects('fetch_').returns(Promise.reject()).once();
-    listMock.expects('togglePlaceholder').never();
-    return list.layoutCallback().catch(() => {});
-  });
-
-  describe('with fallback', () => {
-    beforeEach(() => {
-      // Stub getFallback() with fake truthy value.
-      listMock.expects('getFallback').returns(true);
-      // Stub getVsync().mutate() to execute immediately.
-      listMock.expects('getVsync').returns({
-        measure: () => {},
-        mutate: block => block(),
-      }).atLeast(1);
+  it('should request credentials', () => {
+    const items = [];
+    const xhrPromise = Promise.resolve({
+      json() {
+        return Promise.resolve({items});
+      },
     });
-
-    it('should hide fallback element on fetch success', () => {
-      // Stub fetch and render to succeed.
-      listMock.expects('fetch_').returns(Promise.resolve([])).once();
-      templatesMock.expects('findAndRenderTemplateArray')
-          .returns(Promise.resolve([]));
-      // Act as if a fallback is already displayed.
-      sandbox.stub(list, 'fallbackDisplayed_', true);
-
-      listMock.expects('togglePlaceholder').never();
-      listMock.expects('toggleFallback').withExactArgs(false).once();
-      return list.layoutCallback().catch(() => {});
-    });
-
-    it('should hide placeholder and display fallback on fetch failure', () => {
-      // Stub fetch_() to fail.
-      listMock.expects('fetch_').returns(Promise.reject()).once();
-
-      listMock.expects('togglePlaceholder').withExactArgs(false).once();
-      listMock.expects('toggleFallback').withExactArgs(true).once();
-      return list.layoutCallback().catch(() => {});
-    });
+    element.setAttribute('credentials', 'include');
+    xhrMock.expects('fetchJson').withExactArgs('https://data.com/list.json',
+        sinon.match(opts => {
+          return opts.credentials == 'include';
+        }))
+        .returns(xhrPromise).once();
+    templatesMock.expects('findAndRenderTemplateArray').withExactArgs(
+        element, items)
+        .returns(Promise.resolve([])).once();
+    return list.layoutCallback();
   });
 });

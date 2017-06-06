@@ -75,7 +75,7 @@ export class PinWidget {
       requireAmpResponseSourceOrigin: false,
     }).then(res => res.json()).then(json => {
       try {
-        return /** @type {JsonObject} */(json)['data'][0];
+        return json.data[0];
       } catch (e) { return null; }
     });
   }

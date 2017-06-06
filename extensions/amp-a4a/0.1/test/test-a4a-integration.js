@@ -91,7 +91,39 @@ describe('integration test: a4a', () => {
   let a4aRegistry;
   beforeEach(() => {
     sandbox = sinon.sandbox.create();
-    a4aRegistry = getA4ARegistry();
+    xhrMock = sandbox.stub(Xhr.prototype, 'fetch');
+    // Expect key set fetches for signing services.
+    const fetchJsonMock = sandbox.stub(Xhr.prototype, 'fetchJson');
+    for (const serviceName in signingServerURLs) {
+      fetchJsonMock.withArgs(signingServerURLs[serviceName],
+        {
+          mode: 'cors',
+          method: 'GET',
+          ampCors: false,
+          credentials: 'omit',
+        }).returns(Promise.resolve({
+          json() {
+            return Promise.resolve({keys: [JSON.parse(validCSSAmp.publicKey)]});
+          },
+        }));
+    }
+    // Expect ad request.
+    headers = {};
+    headers[SIGNATURE_HEADER] = validCSSAmp.signature;
+    mockResponse = {
+      arrayBuffer: () => utf8Encode(validCSSAmp.reserialized),
+      bodyUsed: false,
+      headers: new FetchResponseHeaders({
+        getResponseHeader(name) {
+          return headers[name];
+        },
+      }),
+    };
+    xhrMock.withArgs(TEST_URL, {
+      mode: 'cors',
+      method: 'GET',
+      credentials: 'include',
+    }).onFirstCall().returns(Promise.resolve(mockResponse));
     adConfig['mock'] = {};
     a4aRegistry['mock'] = () => {return true;};
     return createIframePromise().then(f => {

@@ -48,41 +48,29 @@ describes.realWin('amp-apester-media', {
         'data': {
           'size': {'width': '600', 'height': '404'},
         },
-        'layout': {
-          'id': '557d52c059081084b94845c3',
-          'name': 'multi poll two',
-          'directive': 'multi-poll-two',
-        },
-        'language': 'en',
-      },
-    };
-    changeSizeSpy = sandbox.spy(
-        media.implementation_, 'changeHeight');
-    attemptChangeSizeSpy = sandbox.spy(
-        media.implementation_, 'attemptChangeHeight');
-    xhrMock = sandbox.mock(Services.xhrFor(win));
-    if (attributes) {
+      };
+      changeSizeSpy = sandbox.spy(
+          media.implementation_, 'changeHeight');
+      attemptChangeSizeSpy = sandbox.spy(
+          media.implementation_, 'attemptChangeHeight');
+      xhrMock = sandbox.mock(xhrFor(iframe.win));
       xhrMock.expects('fetchJson').returns(Promise.resolve({
         json() {
           return Promise.resolve(response);
         },
       }));
-    } else {
-      xhrMock.expects('fetchJson').never();
-    }
-    for (const key in attributes) {
-      media.setAttribute(key, attributes[key]);
-    }
-    media.setAttribute('width', '600');
-    media.setAttribute('height', '390');
-    //todo test width?
-    if (opt_responsive) {
-      media.setAttribute('layout', 'responsive');
-    }
-    doc.body.appendChild(media);
-    return media.build().then(() => {
-      return media.layoutCallback();
-    }).then(() => media);
+      for (const key in attributes) {
+        media.setAttribute(key, attributes[key]);
+
+      }
+      media.setAttribute('width', '600');
+      media.setAttribute('height', '390');
+      //todo test width?
+      if (opt_responsive) {
+        media.setAttribute('layout', 'responsive');
+      }
+      return iframe.addElement(media);
+    });
   }
 
   it('renders', () => {

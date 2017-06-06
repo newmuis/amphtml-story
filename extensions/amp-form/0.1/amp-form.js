@@ -407,9 +407,9 @@ export class AmpForm {
         })
         .then(() => this.doActionXhr_())
         .then(response => this.handleXhrSubmitSuccess_(response),
-        error => {
-          return this.handleXhrSubmitFailure_(/** @type {!Error} */(error));
-        });
+            error => {
+              return this.handleXhrSubmitFailure_(/** @type {!Error} */(error));
+            });
 
     if (getMode().test) {
       this.xhrSubmitPromise_ = p;
@@ -519,6 +519,7 @@ export class AmpForm {
     return promise.then(responseJson => {
       this.triggerAction_(/* success */ false, responseJson);
       this.analyticsEvent_('amp-form-submit-error');
+      this.cleanupRenderedTemplate_();
       this.setState_(FormState_.SUBMIT_ERROR);
       this.renderTemplate_(responseJson || {});
       this.maybeHandleRedirect_(error.response);

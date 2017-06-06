@@ -30,8 +30,12 @@ import * as sinon from 'sinon';
 import '../../../amp-mustache/0.1/amp-mustache';
 import {
   cidServiceForDocForTesting,
-} from '../../../../src/service/cid-impl';
-import {Services} from '../../../../src/services';
+} from '../../../../extensions/amp-analytics/0.1/cid-impl';
+import {
+  actionServiceForDoc,
+  documentInfoForDoc,
+  timerFor,
+} from '../../../../src/services';
 import '../../../amp-selector/0.1/amp-selector';
 import {user} from '../../../../src/log';
 import {whenCalled} from '../../../../testing/test-helper.js';
@@ -443,7 +447,19 @@ describes.repeated('', {
       });
 
       return formPromise.then(ampForm => {
-        sandbox.stub(ampForm.xhr_, 'fetch').returns(fetchRejectPromise);
+        sandbox.stub(ampForm.xhr_, 'fetch').returns(Promise.reject({
+          response: {
+            status: 400,
+            json() {
+              return Promise.resolve({
+                verifyErrors: [{
+                  name: 'name',
+                  message: 'This name is just wrong.',
+                }],
+              });
+            },
+          },
+        }));
 
         const form = ampForm.form_;
         const input = form.name;

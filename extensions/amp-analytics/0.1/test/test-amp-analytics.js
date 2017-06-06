@@ -70,36 +70,44 @@ describes.realWin('amp-analytics', {
     doc = win.document;
     ampdoc = env.ampdoc;
     configWithCredentials = false;
-    doc.title = 'Test Title';
-    resetServiceForTesting(win, 'xhr');
-    registerServiceBuilder(win, 'xhr', function() {
-      return {fetchJson: (url, init) => {
-        expect(init.requireAmpResponseSourceOrigin).to.be.undefined;
-        if (configWithCredentials) {
-          expect(init.credentials).to.equal('include');
-        } else {
-          expect(init.credentials).to.undefined;
-        }
-        return Promise.resolve({
-          json() {
-            return Promise.resolve(JSON.parse(jsonMockResponses[url]));
-          },
-        });
-      }};
-    });
-    resetServiceForTesting(win, 'crypto');
-    installCryptoService(win, 'crypto');
-    crypto = getService(win, 'crypto');
-    const link = doc.createElement('link');
-    link.setAttribute('rel', 'canonical');
-    link.setAttribute('href', './test-canonical.html');
-    doc.head.appendChild(link);
-    cidServiceForDocForTesting(ampdoc);
-    viewer = win.services.viewer.obj;
-    ins = instrumentationServiceForDocForTesting(ampdoc);
-    installUserNotificationManagerForTesting(ampdoc);
-    return Services.userNotificationManagerForDoc(ampdoc).then(manager => {
-      uidService = manager;
+    return createIframePromise().then(iframe => {
+      iframe.doc.title = 'Test Title';
+      markElementScheduledForTesting(iframe.win, 'amp-analytics');
+      markElementScheduledForTesting(iframe.win, 'amp-user-notification');
+      resetServiceForTesting(iframe.win, 'xhr');
+      registerServiceBuilder(iframe.win, 'xhr', function() {
+        return {fetchJson: (url, init) => {
+          expect(init.requireAmpResponseSourceOrigin).to.be.undefined;
+          if (configWithCredentials) {
+            expect(init.credentials).to.equal('include');
+          } else {
+            expect(init.credentials).to.undefined;
+          }
+          return Promise.resolve({
+            json() {
+              return Promise.resolve(JSON.parse(jsonMockResponses[url]));
+            },
+          });
+        }};
+      });
+
+      resetServiceForTesting(iframe.win, 'crypto');
+      installCryptoService(iframe.win, 'crypto');
+      crypto = getService(iframe.win, 'crypto');
+      const link = document.createElement('link');
+      link.setAttribute('rel', 'canonical');
+      link.setAttribute('href', './test-canonical.html');
+      iframe.win.document.head.appendChild(link);
+      windowApi = iframe.win;
+      ampdoc = new AmpDocSingle(windowApi);
+      cidServiceForDocForTesting(ampdoc);
+      viewer = windowApi.services.viewer.obj;
+      ins = instrumentationServiceForDocForTesting(ampdoc);
+      installVariableService(iframe.win);
+      installUserNotificationManager(iframe.win);
+      return userNotificationManagerFor(iframe.win).then(manager => {
+        uidService = manager;
+      });
     });
   });
 

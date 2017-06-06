@@ -142,19 +142,17 @@ export class AmpShareTracking extends AMP.BaseElement {
       credentials: 'include',
       body: dict(),
     };
-    return Services.xhrFor(this.win).fetchJson(vendorUrl, postReq)
+    return xhrFor(this.win).fetchJson(vendorUrl, postReq)
         .then(res => res.json())
         .then(json => {
           if (json.fragment) {
             return json.fragment;
           }
-          this.user().error(
-              TAG, 'The response from [' + vendorUrl + '] does not ' +
+          user().error(TAG, 'The response from [' + vendorUrl + '] does not ' +
             'have a fragment value.');
           return '';
         }, err => {
-          this.user().error(
-              TAG, 'The request to share-tracking endpoint failed:',
+          user().error(TAG, 'The request to share-tracking endpoint failed:',
               err);
           return '';
         });

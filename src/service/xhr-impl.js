@@ -46,19 +46,6 @@ import {getMode} from '../mode';
  */
 export let FetchInitDef;
 
-/**
- * Special case for fetchJson
- * @typedef {{
- *   body: (!JsonObject|!FormData|undefined),
- *   credentials: (string|undefined),
- *   headers: (!Object|undefined),
- *   method: (string|undefined),
- *   requireAmpResponseSourceOrigin: (boolean|undefined),
- *   ampCors: (boolean|undefined)
- * }}
- */
-export let FetchInitJsonDef;
-
 /** @private @const {!Array<string>} */
 const allowedMethods_ = ['GET', 'POST'];
 
@@ -200,15 +187,14 @@ export class Xhr {
 
   /**
    * Fetches a JSON response. Note this returns the response object, not the
-   * response's JSON. #fetchJson merely sets up the request to accept JSON.
+   * response's JSON. #fetchJson merely sets up the request to accept JSOn.
    *
    * See https://developer.mozilla.org/en-US/docs/Web/API/GlobalFetch/fetch
    *
    * See `fetchAmpCors_` for more detail.
    *
    * @param {string} input
-   * @param {?FetchInitJsonDef=} opt_init
-   * @param {boolean=} opt_allowFailure Allows non-2XX status codes to fulfill.
+   * @param {?FetchInitDef=} opt_init
    * @return {!Promise<!FetchResponse>}
    */
   fetchJson(input, opt_init, opt_allowFailure) {
