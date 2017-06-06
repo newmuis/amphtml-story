@@ -20,7 +20,7 @@ import {EventType} from '../events';
 const NOOP = () => {};
 
 
-describes.fakeWin('amp-story', {}, env => {
+describes.fakeWin('amp-story system layer', {}, env => {
   let win;
   let systemLayer;
 
