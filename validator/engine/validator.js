@@ -945,6 +945,16 @@ class ChildTagMatcher {
         return;
       }
     }
+    context.addError(
+        amp.validator.ValidationError.Severity.ERROR,
+        amp.validator.ValidationError.Code.INCORRECT_NUM_CHILD_TAGS,
+        this.getLineCol(),
+        /* params */
+        [
+          getTagSpecName(this.parentSpec_), expected.toString(),
+          this.numChildTagsSeen_.toString()
+        ],
+        getTagSpecUrl(this.parentSpec_), result);
   }
 }
 
@@ -1872,11 +1882,6 @@ class ExtensionsContext {
      */
     this.extensionsLoaded_ = Object.create(null);
 
-    // AMP-AD is grandfathered in to not require the respective extension
-    // javascript file for historical reasons. We still need to mark that
-    // the extension is used if we see the tags.
-    this.extensionsLoaded_['amp-ad'] = true;
-
     /**
      * @type {!Array<string>}
      * @private
@@ -2100,20 +2105,6 @@ class Context {
      */
     this.firstUrlSeenTag_ = null;
 
-    if (!amp.validator.LIGHT) {
-      /**
-       * @type {?LineCol}
-       * @private
-       */
-      this.encounteredBodyLineCol_ = null;
-    }
-
-    /**
-     * @type {?Array<string>}
-     * @private
-     */
-    this.encounteredBodyAttrs_ = null;
-
     /**
      * Extension-specific context.
      * @type {!ExtensionsContext}
@@ -2171,6 +2162,9 @@ class Context {
     error.line = lineCol.getLine();
     error.col = lineCol.getCol();
     error.specUrl = (specUrl === null ? '' : specUrl);
+    const reportTestValue = this.tagStack_.getReportTestValue();
+    if (reportTestValue !== null)
+      error.dataAmpReportTestValue = reportTestValue;
 
     this.addBuiltError(error, validationResult);
   }
@@ -2303,62 +2297,6 @@ class Context {
   /** @return {!ExtensionsContext} */
   getExtensions() {
     return this.extensions_;
-  }
-
-  /** @param {!Array<string>} attrs */
-  recordBodyTag(attrs) {
-    // Must copy because parser reuses the attrs array.
-    this.encounteredBodyAttrs_ = attrs.slice();
-    if (!amp.validator.LIGHT) {
-      this.encounteredBodyLineCol_ =
-          new LineCol(this.docLocator_.getLine(), this.docLocator_.getCol());
-    }
-  }
-
-  /** @return {?Array<string>} */
-  getEncounteredBodyAttrs() {
-    return this.encounteredBodyAttrs_;
-  }
-
-  /** @return {?LineCol} */
-  getEncounteredBodyLineCol() {
-    return this.encounteredBodyLineCol_;
-  }
-
-  /**
-   * @param {string} tagName The tag that has constraints.
-   * @param {!Array<string>} allowedTags The tags whitelisted as descendents of
-   * tagName.
-   */
-  registerDescendantConstraintList(tagName, allowedTags) {
-    this.tagStack_.registerDescendantConstraintList(tagName, allowedTags);
-  }
-
-  /**
-   * @return {!Array<DescendantConstraints>}
-   */
-  allowedDescendantsList() {
-    return this.tagStack_.allowedDescendantsList();
-  }
-
-  /**
-   * The number of siblings that have been discovered up to now by traversing
-   * the stack.
-   * @return {number}
-   */
-  numOfSiblings() {
-    return this.tagStack_.numOfSiblings();
-  }
-
-  /**
-   * Tells the parent of the current stack entry that it can only have 1 child
-   * and that child must be me (the current stack entry).
-   * @param {string} tagName The current stack entry's tag name.
-   * @param {amp.htmlparser.DocLocator} docLocator The line and col of where the
-   *  current stack entry appears.
-   */
-  tellParentNoSiblingsAllowed(tagName, docLocator) {
-    this.tagStack_.tellParentNoSiblingsAllowed(tagName, docLocator);
   }
 }
 
@@ -3127,92 +3065,6 @@ function validateParentTag(parsedTagSpec, context, validationResult) {
 }
 
 /**
- * Validates that this tag is an allowed descendant tag type.
- * Registers new descendent constraints if they are set.
- * @param {!ParsedTagSpec} parsedTagSpec
- * @param {!Context} context
- * @param {!amp.validator.ValidationResult} validationResult
- * @param {!ParsedValidatorRules} parsedRules
- */
-function validateDescendantTags(
-    parsedTagSpec, context, validationResult, parsedRules) {
-  const spec = parsedTagSpec.getSpec();
-  const tagName = parsedTagSpec.getSpec().tagName;
-
-  for (var ii = 0; ii < context.allowedDescendantsList().length; ++ii) {
-    const allowedDescendantsList = context.allowedDescendantsList()[ii];
-    // If the tag we're validating is not whitelisted for a specific ancestor,
-    // then throw an error.
-    if (!allowedDescendantsList.allowedTags.includes(tagName)) {
-      if (amp.validator.LIGHT) {
-        validationResult.status = amp.validator.ValidationResult.Status.FAIL;
-        return;
-      } else {
-        context.addError(
-            amp.validator.ValidationError.Severity.ERROR,
-            amp.validator.ValidationError.Code.DISALLOWED_TAG_ANCESTOR,
-            context.getDocLocator(),
-            /* params */
-            [tagName.toLowerCase(),
-             allowedDescendantsList.tagName.toLowerCase()],
-            getTagSpecUrl(spec), validationResult);
-        return;
-      }
-    }
-  }
-}
-
-/**
- * Validates if the 'no siblings allowed' rule if it exists.
- * @param {!ParsedTagSpec} parsedTagSpec
- * @param {!Context} context
- * @param {!amp.validator.ValidationResult} validationResult
- */
-function validateNoSiblingsAllowedTags(
-    parsedTagSpec, context, validationResult) {
-  const spec = parsedTagSpec.getSpec();
-  const tagStack = context.getTagStack();
-
-  if (spec.siblingsDisallowed && context.numOfSiblings() > 0) {
-    if (amp.validator.LIGHT) {
-      validationResult.status = amp.validator.ValidationResult.Status.FAIL;
-      return;
-    } else {
-      context.addError(
-        amp.validator.ValidationError.Severity.ERROR,
-        amp.validator.ValidationError.Code.TAG_NOT_ALLOWED_TO_HAVE_SIBLINGS,
-        context.getDocLocator(),
-        /* params */
-        [spec.tagName.toLowerCase(), tagStack.getParent().toLowerCase()],
-        getTagSpecUrl(spec), validationResult);
-    }
-  }
-
-  if (tagStack.parentHasChildWithNoSiblingRule() &&
-      context.numOfSiblings() > 0) {
-    if (amp.validator.LIGHT) {
-      validationResult.status = amp.validator.ValidationResult.Status.FAIL;
-      return;
-    } else {
-      context.addError(
-        amp.validator.ValidationError.Severity.ERROR,
-        amp.validator.ValidationError.Code.TAG_NOT_ALLOWED_TO_HAVE_SIBLINGS,
-        tagStack.parentOnlyChildErrorLineCol(),
-        /* params */
-        [
-          tagStack.parentOnlyChildTagName().toLowerCase(),
-          tagStack.getParent().toLowerCase()
-        ],
-        getTagSpecUrl(spec), validationResult);
-    }
-  }
-
-  if (spec.siblingsDisallowed) {
-    context.tellParentNoSiblingsAllowed(spec.tagName, context.getDocLocator());
-  }
-}
-
-/**
  * Validates if the tag ancestors satisfied the spec.
  * @param {!ParsedTagSpec} parsedTagSpec
  * @param {!Context} context
@@ -3245,7 +3097,7 @@ function validateAncestorTags(parsedTagSpec, context, validationResult) {
               context.getDocLocator(),
               /* params */
               [getTagSpecName(spec), mandatoryAncestor.toLowerCase()],
-              spec.specUrl, validationResult);
+              getTagSpecUrl(spec), validationResult);
         }
       }
       return;
@@ -3262,7 +3114,7 @@ function validateAncestorTags(parsedTagSpec, context, validationResult) {
             context.getDocLocator(),
             /* params */
             [getTagSpecName(spec), disallowedAncestor.toLowerCase()],
-            spec.specUrl, validationResult);
+            getTagSpecUrl(spec), validationResult);
       }
       return;
     }
@@ -4426,14 +4278,8 @@ class ParsedValidatorRules {
       }
       // Produce a mapping from every extension to an example tag which
       // requires that extension.
-      for (let i = 0; i < tag.requiresExtension.length; ++i) {
-        const extension = tag.requiresExtension[i];
-        // Some extensions have multiple tags that require them. Some tags
-        // require multiple extensions. If we have two tags requiring an
-        // extension, we prefer to use the one that lists the extension first
-        // (i === 0) as an example of that extension.
-        if (!this.exampleUsageByExtension_.hasOwnProperty(extension) || i === 0)
-          this.exampleUsageByExtension_[extension] = getTagSpecName(tag);
+      for (var extension of tag.requiresExtension) {
+        this.exampleUsageByExtension_[extension] = getTagSpecName(tag);
       }
     }
     // The amp-ad tag doesn't require amp-ad javascript for historical
@@ -4994,10 +4840,7 @@ amp.validator.ValidationHandler =
     if (referencePointMatcher !== null) {
       referencePointMatcher.match(attrs, this.context_, this.validationResult_);
     }
-    if ('BODY' === tagName) {
-      this.context_.recordBodyTag(attrs);
-      this.emitMissingExtensionErrors();
-    }
+    if ('BODY' === tagName) this.emitMissingExtensionErrors();
     this.validateTag(tagName, attrs);
     this.context_.getTagStack().matchChildTagName(
         this.context_, this.validationResult_);

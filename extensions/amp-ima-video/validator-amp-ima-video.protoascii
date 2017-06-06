@@ -27,6 +27,7 @@ tags: {  # amp-ima-video
 tags: {  # <amp-ima-video>
   html_format: AMP
   tag_name: "AMP-IMA-VIDEO"
+  disallowed_ancestor: "AMP-SIDEBAR"
   requires_extension: "amp-ima-video"
   # data-* is generally allowed, but it's not generally mandatory.
   attrs: {
@@ -48,7 +49,10 @@ tags: {  # <amp-ima-video>
   attr_lists: "extended-amp-global"
   spec_url: "https://www.ampproject.org/docs/reference/components/amp-ima-video"
   amp_layout: {
+    supported_layouts: FILL
     supported_layouts: FIXED
+    supported_layouts: FIXED_HEIGHT
+    supported_layouts: NODISPLAY
     supported_layouts: RESPONSIVE
   }
 }
