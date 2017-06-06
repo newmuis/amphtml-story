@@ -647,7 +647,7 @@ describes.repeated('', {
         }).then(() => {
           expect(spy.calledOnce).to.be.true;
           expect(spy).calledWithMatch({
-            type: AmpEvents.DOM_UPDATE,
+            type: 'amp:template-rendered',
             bubbles: true,
           });
         });

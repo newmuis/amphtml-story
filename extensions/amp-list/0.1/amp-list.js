@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import {AmpEvents} from '../../../src/amp-events';
 import {createCustomEvent} from '../../../src/event-helper';
 import {fetchBatchedJsonFor} from '../../../src/batched-json';
 import {isArray} from '../../../src/types';
@@ -117,28 +116,6 @@ export class AmpList extends AMP.BaseElement {
   }
 
   /**
-   * Wraps `toggleFallback()` in a mutate context.
-   * @param {boolean} state
-   * @private
-   */
-  toggleFallbackInMutate_(state) {
-    if (state) {
-      this.getVsync().mutate(() => {
-        this.toggleFallback(true);
-        this.fallbackDisplayed_ = true;
-      });
-    } else {
-      // Don't queue mutate if fallback isn't already visible.
-      if (this.fallbackDisplayed_) {
-        this.getVsync().mutate(() => {
-          this.toggleFallback(false);
-          this.fallbackDisplayed_ = false;
-        });
-      }
-    }
-  }
-
-  /**
    * Request list data from `src` and return a promise that resolves when
    * the list has been populated with rendered list items.
    * @return {!Promise}
@@ -146,52 +123,15 @@ export class AmpList extends AMP.BaseElement {
    */
   fetchList_() {
     const itemsExpr = this.element.getAttribute('items') || 'items';
-    return this.fetch_(itemsExpr).then(items => {
-      if (this.element.hasAttribute('single-result')) {
-        user().assert(typeof items !== 'undefined' ,
-            'Response must contain an arrary or object at "%s". %s',
-            itemsExpr, this.element);
-        if (!isArray(items)) {
-          items = [items];
-        }
-      }
+    return this.fetchItems_(itemsExpr).then(items => {
       user().assert(isArray(items),
           'Response must contain an array at "%s". %s',
           itemsExpr, this.element);
-      const maxLen = parseInt(this.element.getAttribute('max-items'), 10);
-      if (maxLen < items.length) {
-        items = items.slice(0, maxLen);
-      }
-      return this.renderItems_(items);
+      return templatesFor(this.win).findAndRenderTemplateArray(
+          this.element, items).then(this.rendered_.bind(this));
     }, error => {
       throw user().createError('Error fetching amp-list', error);
     });
-  }
-
-  /**
-   * @param {!Array} items
-   * @return {!Promise}
-   * @private
-   */
-  renderItems_(items) {
-    return this.templates_.findAndRenderTemplateArray(this.element, items)
-        .then(this.boundScanForBindings_)
-        .then(this.boundRendered_);
-  }
-
-  /**
-   * @param {!Array<!Element>} elements
-   * @return {!Promise<!Array<!Element>>}
-   * @private
-   */
-  scanForBindings_(elements) {
-    const forwardElements = () => elements;
-    return Services.bindForDocOrNull(this.element).then(bind => {
-      if (bind) {
-        return bind.rescanAndEvaluate(elements);
-      }
-    // Forward elements to chained promise on success or failure.
-    }).then(forwardElements, forwardElements);
   }
 
   /**
@@ -207,9 +147,9 @@ export class AmpList extends AMP.BaseElement {
       this.container_.appendChild(element);
     });
 
-    const event = createCustomEvent(this.win,
-        AmpEvents.DOM_UPDATE, /* detail */ null, {bubbles: true});
-    this.container_.dispatchEvent(event);
+    const templatedEvent = createCustomEvent(this.win,
+        'amp:template-rendered', /* detail */ null, {bubbles: true});
+    this.container_.dispatchEvent(templatedEvent);
 
     // Change height if needed.
     this.getVsync().measure(() => {
@@ -224,9 +164,8 @@ export class AmpList extends AMP.BaseElement {
   /**
    * @param {string} itemsExpr
    * @visibleForTesting
-   * @private
    */
-  fetch_(itemsExpr) {
+  fetchItems_(itemsExpr) {
     return fetchBatchedJsonFor(this.getAmpDoc(), this.element, itemsExpr);
   }
 }

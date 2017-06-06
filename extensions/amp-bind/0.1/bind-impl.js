@@ -19,13 +19,15 @@ import {BindEvents} from './bind-events';
 import {BindExpressionResultDef} from './bind-expression';
 import {BindingDef} from './bind-evaluator';
 import {BindValidator} from './bind-validator';
-import {Services} from '../../../src/services';
+import {
+  resourcesForDoc,
+  viewerForDoc,
+} from '../../../src/services';
 import {chunk, ChunkPriority} from '../../../src/chunk';
 import {dev, user} from '../../../src/log';
 import {dict, deepMerge} from '../../../src/utils/object';
 import {getMode} from '../../../src/mode';
 import {filterSplice} from '../../../src/utils/array';
-import {formOrNullForElement} from '../../../src/form';
 import {installServiceInEmbedScope} from '../../../src/service';
 import {invokeWebWorker} from '../../../src/web-worker/amp-worker';
 import {isArray, isObject, toArray} from '../../../src/types';
@@ -148,6 +150,12 @@ export class Bind {
     /** @const @private {!./bind-validator.BindValidator} */
     this.validator_ = new BindValidator();
 
+    /** @const @private {!Object} */
+    this.scope_ = Object.create(null);
+
+    /** @const @private {!../../../src/service/resources-impl.Resources} */
+    this.resources_ = resourcesForDoc(ampdoc);
+
     /** @const @private {!../../../src/service/viewer-impl.Viewer} */
     this.viewer_ = Services.viewerForDoc(this.ampdoc);
 
@@ -168,7 +176,12 @@ export class Bind {
       return this.initialize_(rootNode);
     });
 
-    /** @private {Promise} */
+    /** @const @private {!Function} */
+    this.boundOnTemplateRendered_ = this.onTemplateRendered_.bind(this);
+
+    /**
+     * @private {?Promise}
+     */
     this.setStatePromise_ = null;
 
     // Expose for testing on dev.
@@ -282,7 +295,11 @@ export class Bind {
    */
   initialize_(rootNode) {
     dev().fine(TAG, 'Scanning DOM for bindings...');
-    let promise = this.addBindingsForNode_(rootNode);
+    let promise = this.addBindingsForNode_(rootNode).then(() => {
+      // Listen for template renders (e.g. amp-list) to rescan for bindings.
+      rootNode.addEventListener(
+          'amp:template-rendered', this.boundOnTemplateRendered_);
+    });
     // Check default values against initial expression results in development.
     if (getMode().development) {
       // Check default values against initial expression results.
@@ -382,7 +399,7 @@ export class Bind {
    *
    * Returns a promise that resolves after bindings have been removed.
    *
-   * @param {!Array<!Node>} nodes
+   * @param {!Node} node
    * @return {!Promise}
    * @private
    * @visibleForTesting
@@ -563,31 +580,6 @@ export class Bind {
     return null;
   }
 
-  /**
-   * Evaluates a single expression and returns its result.
-   * @param {string} expression
-   * @param {!JsonObject} scope
-   * @return {!Promise<!JsonObject>}
-   */
-  evaluateExpression_(expression, scope) {
-    return this.initializePromise_.then(() => {
-      // Allow expression to reference current state in addition to event state.
-      Object.assign(scope, this.state_);
-      return this.ww_('bind.evaluateExpression', [expression, scope]);
-    }).then(returnValue => {
-      const {result, error} = returnValue;
-      if (error) {
-        const userError = user().createError(`${TAG}: Expression eval failed `
-            + `with error: ${error.message}`);
-        userError.stack = error.stack;
-        reportError(userError);
-
-        throw userError; // Reject promise.
-      } else {
-        return result;
-      }
-    });
-  }
 
   /**
    * Reevaluates all expressions and returns a map of expressions to results.
@@ -930,12 +922,12 @@ export class Bind {
   /**
    * @param {!Event} event
    */
-  onDomUpdate_(event) {
+  onTemplateRendered_(event) {
     const templateContainer = dev().assertElement(event.target);
-    this.removeBindingsForNodes_([templateContainer]).then(() => {
-      return this.addBindingsForNodes_([templateContainer]);
+    this.removeBindingsForNode_(templateContainer).then(() => {
+      return this.addBindingsForNode_(templateContainer);
     }).then(() => {
-      this.dispatchEventForTesting_(BindEvents.RESCAN_TEMPLATE);
+      this.dispatchEventForTesting_('amp:bind:rescan-template');
     });
   }
 

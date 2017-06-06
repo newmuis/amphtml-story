@@ -365,7 +365,7 @@ describe('amp-live-list', () => {
       return liveList.updateAction_().then(() => {
         expect(spy).to.have.been.calledOnce;
         expect(spy).calledWithMatch({
-          type: AmpEvents.DOM_UPDATE,
+          type: 'amp:template-rendered',
           bubbles: true,
         });
       });
