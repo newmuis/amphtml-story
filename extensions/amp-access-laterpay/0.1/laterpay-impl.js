@@ -16,7 +16,8 @@
 
 import {CSS} from '../../../build/amp-access-laterpay-0.1.css';
 import {dev, user} from '../../../src/log';
-import {installStylesForDoc} from '../../../src/style-installer';
+import {installStyles} from '../../../src/style-installer';
+import {installStylesForShadowRoot} from '../../../src/shadow-embed';
 import {getMode} from '../../../src/mode';
 import {dict} from '../../../src/utils/object';
 import {listen} from '../../../src/event-helper';
