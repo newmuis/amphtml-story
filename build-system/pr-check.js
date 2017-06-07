@@ -63,6 +63,25 @@ function stopTimer(functionName, startTime) {
 }
 
 /**
+ * Executes the provided command, returning its stdout.
+ * This will throw an exception if something goes wrong.
+ * @param {string} cmd
+ * @return {!Array<string>}
+ */
+function getStdout(cmd) {
+  let p = child_process.spawnSync(
+      '/bin/sh',
+      ['-c', cmd],
+      {
+        'cwd': process.cwd(),
+        'env': process.env,
+        'stdio': 'pipe',
+        'encoding': 'utf-8'
+      });
+  return p.stdout;
+}
+
+/**
  * Executes the provided command and times it.
  * @param {string} cmd
  */
@@ -174,7 +193,7 @@ function isDocFile(filePath) {
  * @return {boolean}
  */
 function isIntegrationTest(filePath) {
-  if (filePath.startsWith('test/integration/')) return true;
+  return filePath.startsWith('test/integration/');
 }
 
 /**
