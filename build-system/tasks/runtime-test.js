@@ -295,12 +295,12 @@ gulp.task('test', 'Runs tests',
 
   new Karma(c, function(exitCode) {
     server.emit('kill');
-    if (exitCode && typeof exitCode !== 'Error') {
-      var error = new Error('Karma test failed (error code: ' + exitCode + ')');
-      error.showStack = false;
+    if (exitCode) {
+      var error = new Error(
+          util.colors.red('Karma test failed (error code: ' + exitCode + ')'));
       done(error);
     } else {
-      done(exitCode);
+      done();
     }
   }).start();
 }, {
