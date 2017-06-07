@@ -22,6 +22,8 @@ This guide is intended for people who don't know much about Git/GitHub and the t
 
 If you're already familiar with Git/GitHub/etc. or you just want to know what commands to type in instead of what they're doing take a look at the much shorter [Quick Start Guide](getting-started-quick.md).
 
+If you do not yet have a specific code contribution project in mind as you go through this guide, consider grabbing one of the [Great First Issues](https://github.com/ampproject/amphtml/labels/Great%20First%20Issue) we have created for new contributors.
+
 - [How to get help](#how-to-get-help)
 - [Intro to Git and GitHub](#intro-to-git-and-github)
 - [Set up your GitHub account and Git](#set-up-your-github-account-and-git)
