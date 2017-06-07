@@ -160,15 +160,6 @@ function isValidatorFile(filePath) {
 }
 
 /**
- * Determines if the given path has a OWNERS.yaml basename.
- * @param {string} filePath
- * @return {boolean}
- */
-function isOwnersFile(filePath) {
-  return path.basename(filePath) === 'OWNERS.yaml';
-}
-
-/**
  * Determines if the given file is a markdown file containing documentation.
  * @param {string} filePath
  * @return {boolean}
@@ -178,24 +169,12 @@ function isDocFile(filePath) {
 }
 
 /**
- * Determines if the given file is related to the visual diff tests.
- * @param {string} filePath
- * @return {boolean}
- */
-function isVisualDiffFile(filePath) {
-  const filename = path.basename(filePath);
-  return (filename == 'visual-diff.rb' ||
-          filename == 'visual-tests.json' ||
-          filePath.startsWith('examples/visual-tests/'));
-}
-
-/**
  * Determines if the given file is an integration test.
  * @param {string} filePath
  * @return {boolean}
  */
 function isIntegrationTest(filePath) {
-  return filePath.includes('test/integration/');
+  if (filePath.startsWith('test/integration/')) return true;
 }
 
 /**
@@ -242,8 +221,6 @@ function determineBuildTargets(filePaths) {
       targetSet.add('FLAG_CONFIG');
     } else if (isIntegrationTest(p)) {
       targetSet.add('INTEGRATION_TEST');
-    } else if (isVisualDiffFile(p)) {
-      targetSet.add('VISUAL_DIFF');
     } else {
       targetSet.add('RUNTIME');
     }
@@ -408,7 +385,7 @@ function main(argv) {
       command.testDocumentLinks(files);
     }
 
-    if (buildTargets.has('RUNTIME')) {
+    if (buildTargets.has('RUNTIME') || buildTargets.has('INTEGRATION_TEST')) {
       command.cleanBuild();
       command.buildRuntime();
       // Ideally, we'd run presubmit tests after `gulp dist`, as some checks run
@@ -418,7 +395,10 @@ function main(argv) {
       command.runPresubmitTests();
       command.runLintChecks();
       command.runDepAndTypeChecks();
-      command.runUnitTests();
+      // Skip unit tests if the PR only contains changes to integration tests.
+      if (buildTargets.has('RUNTIME')) {
+        command.runUnitTests();
+      }
     }
     if (buildTargets.has('VALIDATOR_WEBUI')) {
       command.buildValidatorWebUI();
