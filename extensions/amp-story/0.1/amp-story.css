@@ -87,13 +87,17 @@ amp-story-grid-layer[preset="fill"] > amp-video video {
 }
 
 amp-story-grid-layer[preset="vertical"] {
+  align-content: start;
   grid-auto-flow: row !important;
   grid-template-columns: auto !important;
+  justify-content: start;
 }
 
 amp-story-grid-layer[preset="horizontal"] {
+  align-content: center;
   grid-auto-flow: column !important;
   grid-template-rows: auto !important;
+  justify-content: start;
 }
 
 amp-story-grid-layer[preset="thirds"] {

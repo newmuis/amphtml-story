@@ -1,0 +1,16 @@
+{
+  "short_name": "STAMP Prototype",
+  "name": "Stories AMP Prototype",
+  "icons": [
+    {
+      "src": "amp-icon.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    }
+  ],
+  "background_color": "#FFFFFF",
+  "theme_color": "#000000",
+  "display": "standalone",
+  "orientation": "portrait",
+  "start_url": "index.html"
+}
