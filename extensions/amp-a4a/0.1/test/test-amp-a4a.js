@@ -38,6 +38,8 @@ import {utf8EncodeSync} from '../../../../src/utils/bytes';
 import {Signals} from '../../../../src/utils/signals';
 import {Extensions} from '../../../../src/service/extensions-impl';
 import {Viewer} from '../../../../src/service/viewer-impl';
+import {ampdocServiceFor} from '../../../../src/ampdoc';
+import {cryptoFor} from '../../../../src/crypto';
 import {cancellation} from '../../../../src/error';
 import {forceExperimentBranch} from '../../../../src/experiments';
 import {
@@ -1935,20 +1937,18 @@ describe('amp-a4a', () => {
     });
   });
 
-  describe('#assignAdUrlToError', () => {
-
-    it('should attach info to error correctly', () => {
-      const error = new Error('foo');
-      let queryString = '';
-      while (queryString.length < 300) {
-        queryString += 'def=abcdefg&';
-      }
-      const url = 'https://foo.com?' + queryString;
-      assignAdUrlToError(error, url);
-      expect(error.args).to.jsonEqual({au: queryString.substring(0, 250)});
-      // Calling again with different url has no effect.
-      assignAdUrlToError(error, 'https://someothersite.com?bad=true');
-      expect(error.args).to.jsonEqual({au: queryString.substring(0, 250)});
+  describe('#getKeyInfoSets_', () => {
+    let fixture;
+    let win;
+    let a4aElement;
+    beforeEach(() => {
+      return createIframePromise().then(f => {
+        setupForAdTesting(f);
+        fixture = f;
+        win = fixture.win;
+        a4aElement = createA4aElement(fixture.doc);
+        return fixture;
+      });
     });
 
     it('should not modify if no query string', () => {
@@ -1970,23 +1970,6 @@ describe('amp-a4a', () => {
       expect(AmpA4A.prototype.extractSize(new Headers())).to.be.null;
     });
   });
-
-    it('should not wait for first visible if exp disabled', () => {
-      toggleExperiment(win, 'a4a-disable-cryptokey-viewer-check', true, true);
-      expect(isExperimentOn(win, 'a4a-disable-cryptokey-viewer-check'))
-        .to.be.true;
-      expect(win.ampA4aValidationKeys).not.to.exist;
-      // Key fetch happens on A4A class construction.
-      const a4a = new MockA4AImpl(a4aElement);  // eslint-disable-line no-unused-vars
-      a4a.buildCallback();
-      const result = win.ampA4aValidationKeys;
-      expect(result).to.be.instanceof(Array);
-      expect(result).to.have.lengthOf(1);  // Only one service.
-      return Promise.all(result).then(() => {
-        expect(viewerWhenVisibleMock).to.not.be.called;
-        expect(xhrMockJson).to.be.calledOnce;
-      });
-    });
 
     it('should fetch multiple keys', () => {
       // For our purposes, re-using the same key is fine.
