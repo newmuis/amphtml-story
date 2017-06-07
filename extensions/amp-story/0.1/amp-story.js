@@ -64,6 +64,9 @@ export class AmpStory extends AMP.BaseElement {
 
     /** @private {!SystemLayer} */
     this.systemLayer_ = new SystemLayer(this.win);
+
+    /** @private {boolean} */
+    this.isBookendActive_ = false;
   }
 
   /** @override */
@@ -113,8 +116,10 @@ export class AmpStory extends AMP.BaseElement {
    */
   next_() {
     const activePage = this.getActivePage_();
-    if (!activePage.nextElementSibling ||
-        activePage.nextElementSibling == this.bookend_) {
+    if (!activePage.nextElementSibling) {
+      return;
+    } else if (activePage.nextElementSibling == this.bookend_) {
+      this.showBookend_();
       return;
     }
 
@@ -144,14 +149,15 @@ export class AmpStory extends AMP.BaseElement {
    */
   // TODO: Update history state
   switchTo_(page) {
+    if (this.isBookendActive_) {
+      // Disallow switching pages while the bookend is active.
+      return;
+    }
+
     const activePage = this.getActivePage_();
 
     if (isFullScreenSupported(this.element)) {
-      if (page === this.bookend_) {
-        this.exitFullScreen_();
-      } else if (this.isAutoFullScreenEnabled_) {
-        this.enterFullScreen_();
-      }
+      this.enterFullScreen_();
     }
 
     // first page is not counted as part of the progress
@@ -194,6 +200,27 @@ export class AmpStory extends AMP.BaseElement {
 
     this.systemLayer_.setInFullScreen(false);
     exitFullScreen(this.element);
+  }
+
+
+  /**
+   * Shows the bookend overlay.
+   * @private
+   */
+  showBookend_() {
+    exitFullScreen(this.element);
+    this.element.classList.add('i-amp-story-bookend-active');
+    this.isBookendActive_ = true;
+  }
+
+
+  /**
+   * Hides the bookend overlay.
+   * @private
+   */
+  hideBookend_() {
+    this.element.classList.remove('i-amp-story-bookend-active');
+    this.isBookendActive_ = false;
   }
 
 
