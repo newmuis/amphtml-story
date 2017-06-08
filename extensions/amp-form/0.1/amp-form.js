@@ -918,7 +918,7 @@ export class AmpFormService {
       this.whenInitialized_.then(() => {
         const win = ampdoc.win;
         const event = createCustomEvent(
-            win, FormEvents.SERVICE_INIT, null, {bubbles: true});
+            win, 'amp:form-service:initialize', null, {bubbles: true});
         win.dispatchEvent(event);
       });
     }
