@@ -102,7 +102,7 @@ amp-story-grid-layer {
   position: absolute !important;
   right: 0 !important;
   top: 0 !important;
-  padding-top: calc(44px + 24px);
+  padding-top: 68px; /* 44 + 24 */
 }
 
 amp-story-grid-layer * {
