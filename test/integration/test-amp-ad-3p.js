@@ -27,7 +27,7 @@ import {
 import {layoutRectLtwh} from '../../src/layout-rect';
 
 // TODO(@alanorozco): Inline this once 3p-use-ampcontext experiment is removed
-function createIframeWithApis(fixture) {
+function createIframeWithApis(fixture, opt_checkForNewImpl) {
   this.timeout(20000);
   let iframe;
   let lastIO = null;
@@ -103,13 +103,39 @@ function createIframeWithApis(fixture) {
       expect(context.referrer).to.contain(
           'http://localhost:' + location.port);
     }
+
+    if (opt_checkForNewImpl) {
+      expect(context._ampInternalIsNewImpl).to.be.true;
+    }
+
+    expect(context.canonicalUrl).to.equal(
+        'https://www.example.com/doubleclick.html');
+    expect(context.clientId).to.be.defined;
+    expect(context.pageViewId).to.be.greaterThan(0);
     expect(context.startTime).to.be.a('number');
-    // Edge has different opinion about window.location in srcdoc iframe.
-    // Nevertheless this only happens in test. In real world AMP will not
-    // in srcdoc iframe.
-    expect(context.sourceUrl).to.equal(platform.isEdge()
-        ? 'http://localhost:9876/context.html'
-        : 'about:srcdoc');
+    expect(context.container).to.be.defined;
+    expect(context.initialIntersection).to.be.defined;
+    // check for rootBounds as native IO doesn't support it with CORS
+    expect(context.initialLayoutRect).to.be.defined;
+    expect(context.initialLayoutRect.top).to.be.defined;
+    expect(context.initialIntersection.rootBounds).to.be.defined;
+    expect(context.isMaster).to.be.defined;
+    expect(context.computeInMasterFrame).to.be.defined;
+    expect(context.location).to.be.defined;
+    expect(context.sourceUrl).to.be.a('string');
+    expect(context.reportRenderedEntityIdentifier).to.be.defined;
+    expect(context.renderStart).to.be.defined;
+    expect(context.bootstrapLoaded).to.be.defined;
+    expect(context.updateDimensions).to.be.defined;
+    expect(context.isMaster).to.be.defined;
+    expect(context.onPageVisibilityChange).to.be.defined;
+    expect(context.observeIntersection).to.be.defined;
+    expect(context.requestResize).to.be.defined;
+    expect(context.onResizeSuccess).to.be.defined;
+    expect(context.onResizeDenied).to.be.defined;
+    expect(context.addContextToIframe).to.be.defined;
+    expect(context.noContentAvailable).to.be.defined;
+
   }).then(() => {
     // test iframe will send out render-start to amp-ad
     return poll('render-start message received', () => {
@@ -173,11 +199,30 @@ describe.configure().retryOnSaucelabs().run('amp-ad 3P ' +
     '(with AmpContext experiment)', () => {
   let fixture;
 
-  beforeEach(() => {
-    toggleExperiment(window, '3p-use-ampcontext', /* opt_on */ true);
-    return createFixture().then(f => {
-      fixture = f;
-      installPlatformService(fixture.win);
+describes.realWin('3P Ad (with AmpContext experiment)', {
+  amp: {
+    runtimeOn: true,
+  },
+}, () => {
+  describe.configure().retryOnSaucelabs().run('render an ad should', () => {
+    let fixture;
+
+    beforeEach(() => {
+      return createFixture().then(f => {
+        fixture = f;
+        toggleExperiment(fixture.win, '3p-use-ampcontext', /* opt_on */ true,
+            /* opt_transientExperiment */ false);
+        installPlatformService(fixture.win);
+      });
+    });
+
+    afterEach(() => {
+      toggleExperiment(fixture.win, '3p-use-ampcontext', /* opt_on */ false,
+            /* opt_transientExperiment */ false);
+    });
+
+    it('create an iframe with APIs', function() {
+      return createIframeWithApis.call(this, fixture, true);
     });
   });
 
