@@ -15,6 +15,7 @@
  */
 import {EventType, dispatch} from './events';
 import {dev} from '../../../src/log';
+import {scale, setStyles} from '../../../src/style';
 import {vsyncFor} from '../../../src/services';
 
 
@@ -62,6 +63,9 @@ export class SystemLayer {
 
     /** @private {?Element} */
     this.exitFullScreenBtn_ = null;
+
+    /** @private {?Element} */
+    this.progressEl_ = null;
   }
 
   /**
@@ -80,6 +84,8 @@ export class SystemLayer {
 
     this.exitFullScreenBtn_ =
         this.root_.querySelector('.i-amp-story-exit-fullscreen');
+
+    this.progressEl_ = this.root_.querySelector('.i-amp-story-progress-value');
 
     this.addEventHandlers_();
 
@@ -141,5 +147,19 @@ export class SystemLayer {
     e.stopPropagation();
 
     dispatch(this.getRoot(), EventType.EXIT_FULLSCREEN, /* opt_bubbles */ true);
+  }
+
+  /**
+   * @param {number} index
+   * @param {number} total
+   */
+  updateProgressBar(index, total) {
+    const factor = index / total;
+
+    this.getVsync_().mutate(() => {
+      setStyles(this.progressEl_, {
+        'transform': scale(`${factor},1`),
+      });
+    });
   }
 }

@@ -110,4 +110,23 @@ describes.fakeWin('amp-story system layer', {}, env => {
 
     expect(button.hasAttribute('hidden')).to.be.false;
   });
+
+  it('should scale progess bar element', () => {
+    const progressEl = win.document.createElement('div');
+
+    sandbox.stub(systemLayer, 'progressEl_', progressEl);
+
+    [
+      {args: [ 0, 10], expectedFactor: 0},
+      {args: [ 1,  2], expectedFactor: 0.5},
+      {args: [ 1, 10], expectedFactor: 0.1},
+      {args: [10, 10], expectedFactor: 1},
+      {args: [ 1,  1], expectedFactor: 1},
+      {args: [ 1,  5], expectedFactor: 0.2},
+    ].forEach(testSet => {
+      systemLayer.updateProgressBar.apply(systemLayer, testSet.args);
+      expect(progressEl.style.transform)
+          .to.equal(`scale(${testSet.expectedFactor}, 1)`);
+    });
+  });
 });
