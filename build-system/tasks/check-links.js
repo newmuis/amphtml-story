@@ -73,8 +73,8 @@ function checkLinks() {
       }
       var deadLinksFoundInFile = false;
       results.forEach(function (result) {
-        // Skip links to files that were introduced by the PR.
-        if (isLinkToFileIntroducedByPR(result.link)) {
+        // Skip links to files that were added by the PR.
+        if (isLinkToFileAddedInPR(result.link)) {
           return;
         }
         if(result.status === 'dead') {
@@ -113,6 +113,20 @@ function checkLinks() {
             util.colors.green('SUCCESS'),
             'All links in all markdown files in this PR are alive.');
     }
+  });
+}
+
+/**
+ * Determines if a link points to a file added in the PR.
+ *
+ * @param {string} link Link being tested.
+ * @return {boolean} True if the link points to a file added in the PR.
+ */
+function isLinkToFileAddedInPR(link) {
+  var filesAdded = getStdout(
+      `git diff --name-only --diff-filter=A master...HEAD`).trim().split('\n');
+  return filesAdded.some(function(file) {
+    return (file.length > 0 && link.includes(path.parse(file).base));
   });
 }
 

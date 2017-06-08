@@ -24,10 +24,10 @@
  * This script attempts to introduce some granularity for our
  * presubmit checking, via the determineBuildTargets method.
  */
-const atob = require('atob');
 const exec = require('./exec.js').exec;
 const execOrDie = require('./exec.js').execOrDie;
 const getStdout = require('./exec.js').getStdout;
+const path = require('path');
 const minimist = require('minimist');
 const path = require('path');
 const util = require('gulp-util');
@@ -60,25 +60,6 @@ function stopTimer(functionName, startTime) {
   console.log(
       fileLogPrefix, 'Done running', util.colors.cyan(functionName),
       'Total time:', util.colors.green(mins + 'm ' + secs + 's'));
-}
-
-/**
- * Executes the provided command, returning its stdout.
- * This will throw an exception if something goes wrong.
- * @param {string} cmd
- * @return {!Array<string>}
- */
-function getStdout(cmd) {
-  let p = child_process.spawnSync(
-      '/bin/sh',
-      ['-c', cmd],
-      {
-        'cwd': process.cwd(),
-        'env': process.env,
-        'stdio': 'pipe',
-        'encoding': 'utf-8'
-      });
-  return p.stdout;
 }
 
 /**
