@@ -148,100 +148,54 @@ describe.configure().retryOnSaucelabs().run('Viewer Visibility State', () => {
           });
         });
 
-        it('does not call callbacks when going to HIDDEN', () => {
-          viewer.receiveMessage('visibilitychange',
-              {state: VisibilityState.VISIBLE});
-          changeVisibility('hidden');
-          return waitForNextPass().then(() => {
-            expect(layoutCallback).not.to.have.been.called;
-            expect(unlayoutCallback).not.to.have.been.called;
-            expect(pauseCallback).not.to.have.been.called;
-            expect(resumeCallback).not.to.have.been.called;
-          });
+      // TODO(jridgewell): Need to test non-prerenderable element already
+      // laid-out, and prerenderable is not.
+      it('calls layout when going to VISIBLE', () => {
+        viewer.receiveMessage('visibilitychange',
+            {state: VisibilityState.VISIBLE});
+        return waitForNextPass().then(() => {
+          expect(layoutCallback).to.have.been.called;
+          expect(unlayoutCallback).not.to.have.been.called;
+          expect(pauseCallback).not.to.have.been.called;
+          expect(resumeCallback).not.to.have.been.called;
         });
 
-        // TODO(aghassemi): Investigate failure. #10974.
-        it.skip('does not call callbacks when going to INACTIVE', () => {
-          viewer.receiveMessage('visibilitychange',
-              {state: VisibilityState.INACTIVE});
-          return waitForNextPass().then(() => {
-            expect(layoutCallback).not.to.have.been.called;
-            expect(unlayoutCallback).not.to.have.been.called;
-            expect(pauseCallback).not.to.have.been.called;
-            expect(resumeCallback).not.to.have.been.called;
-          });
+      // TODO(jridgewell): Need to test non-prerenderable element calls
+      // unlayout, and prerenderable does not.
+      it('calls unlayout when going to HIDDEN', () => {
+        viewer.receiveMessage('visibilitychange',
+            {state: VisibilityState.VISIBLE});
+        changeVisibility('hidden');
+        return waitForNextPass().then(() => {
+          expect(layoutCallback).not.to.have.been.called;
+          expect(unlayoutCallback).to.have.been.called;
+          expect(pauseCallback).not.to.have.been.called;
+          expect(resumeCallback).not.to.have.been.called;
         });
 
-        it('does not call callbacks when going to PAUSED', () => {
-          viewer.receiveMessage('visibilitychange',
-              {state: VisibilityState.PAUSED});
-          return waitForNextPass().then(() => {
-            expect(layoutCallback).not.to.have.been.called;
-            expect(unlayoutCallback).not.to.have.been.called;
-            expect(pauseCallback).not.to.have.been.called;
-            expect(resumeCallback).not.to.have.been.called;
-          });
+      // TODO(jridgewell): Need to test non-prerenderable element calls
+      // unlayout, and prerenderable does not.
+      it('calls unlayout when going to INACTIVE', () => {
+        viewer.receiveMessage('visibilitychange',
+            {state: VisibilityState.INACTIVE});
+        return waitForNextPass().then(() => {
+          expect(layoutCallback).not.to.have.been.called;
+          expect(unlayoutCallback).to.have.been.called;
+          expect(pauseCallback).not.to.have.been.called;
+          expect(resumeCallback).not.to.have.been.called;
         });
       });
 
-      describe('for non-prerenderable element', () => {
-        beforeEach(() => {
-          setupSpys();
-        });
-
-        it('does not call callbacks when going to PRERENDER', () => {
-          return waitForNextPass().then(() => {
-            expect(layoutCallback).not.to.have.been.called;
-            expect(unlayoutCallback).not.to.have.been.called;
-            expect(pauseCallback).not.to.have.been.called;
-            expect(resumeCallback).not.to.have.been.called;
-          });
-        });
-
-        it('calls layout when going to VISIBLE', () => {
-          viewer.receiveMessage('visibilitychange',
-              {state: VisibilityState.VISIBLE});
-          return waitForNextPass().then(() => {
-            expect(layoutCallback).to.have.been.called;
-            expect(unlayoutCallback).not.to.have.been.called;
-            expect(pauseCallback).not.to.have.been.called;
-            expect(resumeCallback).not.to.have.been.called;
-          });
-        });
-
-        it('does not call callbacks when going to HIDDEN', () => {
-          viewer.receiveMessage('visibilitychange',
-              {state: VisibilityState.VISIBLE});
-          changeVisibility('hidden');
-          return waitForNextPass().then(() => {
-            expect(layoutCallback).not.to.have.been.called;
-            expect(unlayoutCallback).not.to.have.been.called;
-            expect(pauseCallback).not.to.have.been.called;
-            expect(resumeCallback).not.to.have.been.called;
-          });
-        });
-
-        // TODO(aghassemi): Investigate failure. #10974.
-        it.skip('does not call callbacks when going to INACTIVE', () => {
-          viewer.receiveMessage('visibilitychange',
-              {state: VisibilityState.INACTIVE});
-          return waitForNextPass().then(() => {
-            expect(layoutCallback).not.to.have.been.called;
-            expect(unlayoutCallback).not.to.have.been.called;
-            expect(pauseCallback).not.to.have.been.called;
-            expect(resumeCallback).not.to.have.been.called;
-          });
-        });
-
-        it('does not call callbacks when going to PAUSED', () => {
-          viewer.receiveMessage('visibilitychange',
-              {state: VisibilityState.PAUSED});
-          return waitForNextPass().then(() => {
-            expect(layoutCallback).not.to.have.been.called;
-            expect(unlayoutCallback).not.to.have.been.called;
-            expect(pauseCallback).not.to.have.been.called;
-            expect(resumeCallback).not.to.have.been.called;
-          });
+      // TODO(jridgewell): Need to test non-prerenderable element calls
+      // unlayout, and prerenderable does not.
+      it('does not call callbacks when going to PAUSED', () => {
+        viewer.receiveMessage('visibilitychange',
+            {state: VisibilityState.PAUSED});
+        return waitForNextPass().then(() => {
+          expect(layoutCallback).not.to.have.been.called;
+          expect(unlayoutCallback).not.to.have.been.called;
+          expect(pauseCallback).not.to.have.been.called;
+          expect(resumeCallback).not.to.have.been.called;
         });
       });
     });
