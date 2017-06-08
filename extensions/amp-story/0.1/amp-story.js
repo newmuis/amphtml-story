@@ -27,6 +27,8 @@
 import {AmpStoryGridLayer} from './amp-story-grid-layer';
 import {AmpStoryPage} from './amp-story-page';
 import {CSS} from '../../../build/amp-story-0.1.css';
+import {EventType} from './events';
+import {SystemLayer} from './system-layer';
 import {Layout} from '../../../src/layout';
 import {closest} from '../../../src/dom';
 import {dev} from '../../../src/log';
@@ -48,14 +50,20 @@ export class AmpStory extends AMP.BaseElement {
   constructor(element) {
     super(element);
 
+    /**
+     * Whether entering into fullscreen automatically on navigation is enabled.
+     * @private {boolean}
+     */
+    this.isAutoFullScreenEnabled_ = true;
+
     /** @const @private {!../../../src/service/vsync-impl.Vsync} */
     this.vsync_ = this.getVsync();
 
     /** @private {?Element} */
     this.bookend_ = null;
 
-    /** @private {?Element} */
-    this.systemLayer_;
+    /** @private {!SystemLayer} */
+    this.systemLayer_ = new SystemLayer(this.win);
   }
 
   /** @override */
@@ -64,13 +72,14 @@ export class AmpStory extends AMP.BaseElement {
     this.bookend_.classList.add('i-amp-story-bookend');
     this.bookend_.textContent = 'bookend goes here';
     this.element.appendChild(this.bookend_);
-
-    this.systemLayer_ = this.win.document.createElement('aside');
-    this.systemLayer_.classList.add('i-amp-story-system-layer');
-    this.element.appendChild(this.systemLayer_);
+    this.element.appendChild(this.systemLayer_.build());
 
     this.element.addEventListener('click',
         this.maybePerformSystemNavigation_.bind(this), true);
+
+    this.element.addEventListener(EventType.EXIT_FULLSCREEN, () => {
+      this.exitFullScreen_(/* opt_explicitUserAction */ true);
+    });
   }
 
 
@@ -138,9 +147,9 @@ export class AmpStory extends AMP.BaseElement {
 
     if (isFullScreenSupported(this.element)) {
       if (page === this.bookend_) {
-        exitFullScreen(this.element);
-      } else {
-        requestFullScreen(this.element);
+        this.exitFullScreen_();
+      } else if (this.isAutoFullScreenEnabled_) {
+        this.enterFullScreen_();
       }
     }
 
@@ -151,6 +160,35 @@ export class AmpStory extends AMP.BaseElement {
       this.schedulePause(activePage);
       this.scheduleResume(page);
     });
+  }
+
+
+  /**
+   * @param {boolean} isEnabled
+   */
+  setAutoFullScreen(isEnabled) {
+    this.isAutoFullScreenEnabled_ = isEnabled;
+  }
+
+
+  /** @private */
+  enterFullScreen_() {
+    this.systemLayer_.setInFullScreen(true);
+    requestFullScreen(this.element);
+  }
+
+
+  /**
+   * @param {boolean} opt_explicitUserAction
+   * @private
+   */
+  exitFullScreen_(opt_explicitUserAction) {
+    if (opt_explicitUserAction) {
+      this.setAutoFullScreen(false);
+    }
+
+    this.systemLayer_.setInFullScreen(false);
+    exitFullScreen(this.element);
   }
 
 
@@ -203,7 +241,7 @@ export class AmpStory extends AMP.BaseElement {
   isNavigationalClick_(e) {
     return !closest(e.target, el => {
       // TODO(newmuis): Check to see if currentElement listens for `tap` event.
-      return el === this.systemLayer || el === this.bookend_;
+      return el === this.systemLayer_.getRoot() || el === this.bookend_;
     }, /* opt_stopAt */ this.element);
   }
 }
