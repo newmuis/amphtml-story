@@ -14,18 +14,21 @@
  * limitations under the License.
  */
 
-import {Services} from '../../src/services';
+import {BaseElement} from '../../src/base-element';
+import {registerElement} from '../../src/custom-element';
+import {viewerForDoc} from '../../src/services';
+import {documentStateFor} from '../../src/service/document-state';
+import {resourcesForDoc} from '../../src/services';
 import {VisibilityState} from '../../src/visibility-state';
 import {getVendorJsPropertyName} from '../../src/style';
-import {whenUpgradedToCustomElement} from '../../src/dom';
 import {createCustomEvent} from '../../src/event-helper';
 
-describe.configure().ifNewChrome().run('Viewer Visibility State', () => {
+describe.configure().retryOnSaucelabs().run('Viewer Visibility State', () => {
 
   function noop() {}
 
   describes.integration('Element Transitions', {
-    body: '',
+    body: `<amp-test width=100 height=100></amp-test>`,
     hash: 'visibilityState=prerender',
   }, env => {
     let win;
@@ -59,6 +62,28 @@ describe.configure().ifNewChrome().run('Viewer Visibility State', () => {
     let doPass_;
     let notifyPass = noop;
 
+    class TestElement extends BaseElement {
+      // Basic setup
+      isLayoutSupported(unusedLayout) {
+        return true;
+      }
+      isRelayoutNeeded() {
+        return true;
+      }
+      prerenderAllowed() {
+        return true;
+      }
+      // Actual state transitions
+      layoutCallback() {
+        return Promise.resolve();
+      }
+      unlayoutCallback() {
+        return true;
+      }
+      pauseCallback() {}
+      resumeCallback() {}
+    }
+
     function doPass() {
       if (shouldPass) {
         doPass_.call(this);
@@ -76,11 +101,14 @@ describe.configure().ifNewChrome().run('Viewer Visibility State', () => {
     }
 
     function setupSpys() {
-      layoutCallback.reset();
-      unlayoutCallback.reset();
-      pauseCallback.reset();
-      resumeCallback.reset();
-      unselect.reset();
+      layoutCallback = sandbox.spy(TestElement.prototype, 'layoutCallback');
+      unlayoutCallback = sandbox.spy(TestElement.prototype, 'unlayoutCallback');
+      pauseCallback = sandbox.spy(TestElement.prototype, 'pauseCallback');
+      resumeCallback = sandbox.spy(TestElement.prototype, 'resumeCallback');
+      unselect = sandbox.spy();
+      sandbox.stub(win, 'getSelection').returns({
+        removeAllRanges: unselect,
+      });
     }
 
     beforeEach(() => {
@@ -89,46 +117,16 @@ describe.configure().ifNewChrome().run('Viewer Visibility State', () => {
       notifyPass = noop;
       shouldPass = false;
 
-      return Services.viewerPromiseForDoc(win.document).then(v => {
-        viewer = v;
-        const docState = Services.documentStateFor(win);
-        docHidden = sandbox.stub(docState, 'isHidden').returns(false);
+      viewer = viewerForDoc(win.document);
+      const docState = documentStateFor(win);
+      docHidden = sandbox.stub(docState, 'isHidden').returns(false);
 
-        resources = Services.resourcesForDoc(win.document);
-        doPass_ = resources.doPass;
-        sandbox.stub(resources, 'doPass', doPass);
-        unselect = sandbox.stub(resources, 'unselectText');
+      registerElement(win, 'amp-test', TestElement);
 
-        const img = win.document.createElement('amp-img');
-        img.setAttribute('width', 100);
-        img.setAttribute('height', 100);
-        img.setAttribute('layout', 'fixed');
-        win.document.body.appendChild(img);
-
-        return whenUpgradedToCustomElement(img);
-      }).then(img => {
-        layoutCallback = sandbox.stub(img.implementation_, 'layoutCallback');
-        unlayoutCallback = sandbox.stub(img.implementation_,
-            'unlayoutCallback');
-        pauseCallback = sandbox.stub(img.implementation_, 'pauseCallback');
-        resumeCallback = sandbox.stub(img.implementation_, 'resumeCallback');
-        prerenderAllowed = sandbox.stub(img.implementation_,
-            'prerenderAllowed');
-        sandbox.stub(img.implementation_, 'isRelayoutNeeded', () => true);
-        sandbox.stub(img.implementation_, 'isLayoutSupported', () => true);
-
-        layoutCallback.returns(Promise.resolve());
-        unlayoutCallback.returns(true);
-        prerenderAllowed.returns(false);
-      });
+      resources = resourcesForDoc(win.document);
+      doPass_ = resources.doPass;
+      sandbox.stub(resources, 'doPass', doPass);
     });
-
-    describe('from in the PRERENDER state', () => {
-      describe('for prerenderable element', () => {
-        beforeEach(() => {
-          prerenderAllowed.returns(true);
-          setupSpys();
-        });
 
         it('does layout when going to PRERENDER', () => {
           return waitForNextPass().then(() => {

@@ -466,19 +466,10 @@ class IntegrationFixture {
 
   /** @override */
   setup(env) {
-    const body = typeof this.spec.body == 'function' ?
-          this.spec.body() : this.spec.body;
-    const css = typeof this.spec.css == 'function' ?
-          this.spec.css() : this.spec.css;
-    const experiments = this.spec.experiments == undefined ?
-        undefined : this.spec.experiments.join(',');
-    const extensions = this.spec.extensions == undefined ?
-        undefined : this.spec.extensions.join(',');
-
+    const spec = this.spec;
     return new Promise((resolve, reject) => {
       env.iframe = createElementWithAttributes(document, 'iframe', {
-        src: addParamsToUrl('/amp4test/compose-doc',
-            {body, css, experiments, extensions}) + `#${this.hash}`,
+        src: addParamsToUrl('/amp4test/compose-doc', spec) + `#${this.hash}`,
       });
       env.iframe.onload = function() {
         env.win = env.iframe.contentWindow;

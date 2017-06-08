@@ -152,14 +152,8 @@ export class Resources {
     /** @private {number} */
     this.lastVelocity_ = 0;
 
-    /** @const @private {!Pass} */
+    /** @const {!Pass} */
     this.pass_ = new Pass(this.win, () => this.doPass());
-
-    /** @const @private {!Pass} */
-    this.remeasurePass_ = new Pass(this.win, () => {
-      this.relayoutAll_ = true;
-      this.schedulePass();
-    });
 
     /** @const {!TaskQueue} */
     this.exec_ = new TaskQueue();
