@@ -97,7 +97,6 @@ class AdSenseNetworkConfig {
       'client': this.autoAmpAdsElement_.getAttribute('data-ad-client'),
       'plah': canonicalHostname,
       'ama_t': 'amp',
-      'url': docInfo.canonicalUrl,
     }, 4096);
   }
 

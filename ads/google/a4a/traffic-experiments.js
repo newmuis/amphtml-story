@@ -47,6 +47,9 @@ export let A4aExperimentBranches;
 /** @type {!string} @private */
 export const MANUAL_EXPERIMENT_ID = '117152632';
 
+/** @type {!string} @private */
+const EXTERNALLY_SELECTED_ID = '2088461';
+
 
 /**
  * Check whether Google Ads supports the A4A rendering pathway for a given ad

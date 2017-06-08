@@ -39,10 +39,14 @@ import {dict} from '../../../src/utils/object';
 import {getMode} from '../../../src/mode';
 import {isArray, isObject, isEnumValue} from '../../../src/types';
 import {utf8Decode} from '../../../src/utils/bytes';
-import {getBinaryType, isExperimentOn} from '../../../src/experiments';
+import {viewerForDoc} from '../../../src/services';
+import {xhrFor} from '../../../src/services';
+import {endsWith} from '../../../src/string';
+import {platformFor} from '../../../src/services';
+import {cryptoFor} from '../../../src/crypto';
+import {isExperimentOn} from '../../../src/experiments';
 import {setStyle} from '../../../src/style';
 import {assertHttpsUrl} from '../../../src/url';
-import {parseJson} from '../../../src/json';
 import {handleClick} from '../../../ads/alp/handler';
 import {
   getDefaultBootstrapBaseUrl,
@@ -55,7 +59,10 @@ import {A4AVariableSource} from './a4a-variable-source';
 // TODO(tdrl): Temporary.  Remove when we migrate to using amp-analytics.
 import {getTimingDataAsync} from '../../../src/service/variable-source';
 import {getContextMetadata} from '../../../src/iframe-attributes';
-import {getBinaryTypeNumericalCode} from '../../../ads/google/a4a/utils';
+import {isInExperiment} from '../../../ads/google/a4a/traffic-experiments';
+
+/** @type {string} */
+const METADATA_STRING = '<script type="application/json" amp-ad-metadata>';
 
 /** @type {Array<string>} */
 const METADATA_STRINGS = [
@@ -142,7 +149,6 @@ export const LIFECYCLE_STAGES = {
   visLoadAndOneSec: '25',
   iniLoad: '26',
   resumeCallback: '27',
-  sraBuildRequestDelay: '28',
   visIniLoad: '29',
 };
 
@@ -294,8 +300,6 @@ export class AmpA4A extends AMP.BaseElement {
      */
     this.fromResumeCallback = false;
 
-    /** @private {string} */
-    this.safeframeVersion_ = DEFAULT_SAFEFRAME_VERSION;
 
     /**
      * @protected {boolean} Indicates whether the ad is currently in the
@@ -557,7 +561,10 @@ export class AmpA4A extends AMP.BaseElement {
         /** @return {!Promise<?string>} */
         .then(() => {
           checkStillCurrent();
-          return /** @type {!Promise<?string>} */(this.getAdUrl());
+          if (this.delayRequestEnabled_) {
+            dev().info(TAG, 'ad request being built');
+          }
+          return /** @type {!Promise<?string>} */ (this.getAdUrl());
         })
         // This block returns the (possibly empty) response to the XHR request.
         /** @return {!Promise<?Response>} */
@@ -621,10 +628,23 @@ export class AmpA4A extends AMP.BaseElement {
             };
           });
         })
+        // This block returns the ad creative and signature, if available; null
+        // otherwise.
+        /**
+         * @return {!Promise<?{AdResponseDef}>}
+         */
+        .then(responseParts => {
+          checkStillCurrent();
+          if (responseParts) {
+            this.protectedEmitLifecycleEvent_('extractCreativeAndSignature');
+          }
+          return responseParts && this.extractCreativeAndSignature(
+              responseParts.bytes, responseParts.headers);
+        })
         // This block returns the ad creative if it exists and validates as AMP;
         // null otherwise.
         /** @return {!Promise<?ArrayBuffer>} */
-        .then(responseParts => {
+        .then(creativeParts => {
           checkStillCurrent();
           // Keep a handle to the creative body so that we can render into
           // SafeFrame or NameFrame later, if necessary.  TODO(tdrl): Temporary,
@@ -730,8 +750,9 @@ export class AmpA4A extends AMP.BaseElement {
   }
 
   /**
-   * Refreshes ad slot by fetching a new creative and rendering it. This leaves
-   * the current creative displayed until the next one is ready.
+   * Attempts to validate the creative signature against every key currently in
+   * our possession. This should never be called before at least one key fetch
+   * attempt is made.
    *
    * @param {function()} refreshEndCallback When called, this function will
    *   restart the refresh cycle.
@@ -1014,9 +1035,14 @@ export class AmpA4A extends AMP.BaseElement {
   }
 
   /**
-   * Determine the desired size of the creative based on the HTTP response
-   * headers. Must be less than or equal to the original size of the ad slot
-   * along each dimension. May be overridden by network.
+   * Extracts creative and verification signature (if present) from
+   * XHR response body and header.  To be implemented by network.
+   *
+   * In the returned value, the `creative` field should be an `ArrayBuffer`
+   * containing the utf-8 encoded bytes of the creative itself, while the
+   * `signature` field should be a `Uint8Array` containing the raw signature
+   * bytes.  The `signature` field may be null if no signature was available
+   * for this creative / the creative is not valid AMP.
    *
    * @param {!../../../src/service/xhr-impl.FetchResponseHeaders} responseHeaders
    * @return {?SizeInfoDef}
@@ -1233,7 +1259,7 @@ export class AmpA4A extends AMP.BaseElement {
       this.creativeBody_ = null;  // Free resources.
     } else if (this.adUrl_) {
       assertHttpsUrl(this.adUrl_, this.element);
-      renderPromise = this.renderViaCachedContentIframe_(this.adUrl_);
+      return this.renderViaCachedContentIframe_(this.adUrl_);
     } else {
       // Ad URL may not exist if buildAdUrl throws error or returns empty.
       // If error occurred, it would have already been reported but let's
@@ -1407,10 +1433,7 @@ export class AmpA4A extends AMP.BaseElement {
     dev().assert(method == XORIGIN_MODE.SAFEFRAME ||
         method == XORIGIN_MODE.NAMEFRAME,
         'Unrecognized A4A cross-domain rendering mode: %s', method);
-    this.protectedEmitLifecycleEvent_('renderSafeFrameStart', {
-      'isAmpCreative': this.isVerifiedAmpCreative_,
-      'releaseType': this.releaseType_,
-    });
+    this.protectedEmitLifecycleEvent_('renderSafeFrameStart');
     const checkStillCurrent = this.verifyStillCurrent();
     return utf8Decode(creativeBody).then(creative => {
       checkStillCurrent();

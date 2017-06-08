@@ -212,30 +212,25 @@ export class AmpAdNetworkAdsenseImpl extends AmpA4A {
     this.uniqueSlotId_ = slotId + adk;
     const sharedStateParams = sharedState.addNewSlot(
         format, this.uniqueSlotId_, adClientId);
-    const viewportSize = this.getViewport().getSize();
-    this.win['ampAdGoogleIfiCounter'] = this.win['ampAdGoogleIfiCounter'] || 1;
     const parameters = {
       'client': adClientId,
       format,
       'w': this.size_.width,
       'h': this.size_.height,
-      'iu': this.element.getAttribute('data-ad-slot'),
       'adtest': adTestOn ? 'on' : null,
       adk,
+      'raru': 1,
       'bc': global.SVGElement && global.document.createElementNS ? '1' : null,
       'ctypes': this.getCtypes_(),
       'host': this.element.getAttribute('data-ad-host'),
       'to': this.element.getAttribute('data-tag-origin'),
       'pv': sharedStateParams.pv,
       'channel': this.element.getAttribute('data-ad-channel'),
+      'vis': visibilityStateCodes[visibilityState] || '0',
       'wgl': global['WebGLRenderingContext'] ? '1' : '0',
       'asnt': this.sentinel,
       'dff': computedStyle(this.win, this.element)['font-family'],
       'prev_fmts': sharedStateParams.prevFmts || null,
-      'brdim': additionalDimensions(this.win, viewportSize),
-      'ifi': this.win['ampAdGoogleIfiCounter']++,
-      'rc': this.fromResumeCallback ? 1 : null,
-      'rafmt': this.isResponsive_() ? 13 : null,
     };
 
     const experimentIds = [];
@@ -246,12 +241,6 @@ export class AmpAdNetworkAdsenseImpl extends AmpA4A {
 
     return googleAdUrl(
         this, ADSENSE_BASE_URL, startTime, parameters, experimentIds);
-  }
-
-  /** @override */
-  onNetworkFailure(error, adUrl) {
-    dev().info(TAG, 'network error, attempt adding of error parameter', error);
-    return {adUrl: maybeAppendErrorParameter(adUrl, 'n')};
   }
 
   /** @override */
