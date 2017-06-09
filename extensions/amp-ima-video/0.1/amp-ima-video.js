@@ -24,6 +24,10 @@ import {isLayoutSizeDefined} from '../../../src/layout';
 import {
   isObject,
   toArray,
+} from '../../../src/types';
+import {
+  isObject,
+  toArray,
   toWin,
 } from '../../../src/types';
 import {
@@ -70,9 +74,6 @@ class AmpImaVideo extends AMP.BaseElement {
 
     /** @private {?String} */
     this.preconnectSource_ = null;
-
-    /** @private {?String} */
-    this.preconnectTrack_ = null;
   }
 
   /** @override */
@@ -84,31 +85,17 @@ class AmpImaVideo extends AMP.BaseElement {
         'The data-tag attribute is required for <amp-video-ima> and must be ' +
             'https');
 
-    // Handle <source> and <track> children
-    const sourceElements = childElementsByTag(this.element, 'SOURCE');
-    const trackElements = childElementsByTag(this.element, 'TRACK');
-    const childElements =
-        toArray(sourceElements).concat(toArray(trackElements));
-    if (childElements.length > 0) {
-      const children = [];
-      childElements.forEach(child => {
-        // Save the first source and first track to preconnect.
-        if (child.tagName == 'SOURCE' && !this.preconnectSource_) {
-          this.preconnectSource_ = child.src;
-        } else if (child.tagName == 'TRACK' && !this.preconnectTrack_) {
-          this.preconnectTrack_ = child.src;
+    // Set data-sources attribute based on source child elements.
+    const sourceElements = this.element.getElementsByTagName('source');
+    if (sourceElements.length > 0) {
+      const sources = [];
+      toArray(sourceElements).forEach(source => {
+        if (!this.preconnectSource_) {
+          this.preconnectSource_ = source.src;
         }
-        children.push(child./*OK*/outerHTML);
+        sources.push(source./*OK*/outerHTML);
       });
-      this.element.setAttribute(
-          'data-child-elements', JSON.stringify(children));
-    }
-
-    // Handle IMASetting JSON
-    const scriptElement = childElementsByTag(this.element, 'SCRIPT')[0];
-    if (scriptElement && isJsonScriptTag(scriptElement)) {
-      this.element.setAttribute(
-          'data-ima-settings', scriptElement./*OK*/innerHTML);
+      this.element.setAttribute('data-sources', JSON.stringify(sources));
     }
   }
 
@@ -122,9 +109,6 @@ class AmpImaVideo extends AMP.BaseElement {
     }
     if (this.preconnectSource_) {
       this.preconnect.url(this.preconnectSource_);
-    }
-    if (this.preconnectTrack_) {
-      this.preconnect.url(this.preconnectTrack_);
     }
     this.preconnect.url(this.element.getAttribute('data-tag'));
     preloadBootstrap(this.win, this.preconnect);

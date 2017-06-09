@@ -321,22 +321,20 @@ export function imaVideo(global, data) {
   setStyle(videoPlayer, 'background-color', 'black');
   videoPlayer.setAttribute('poster', data.poster);
   videoPlayer.setAttribute('playsinline', true);
-  videoPlayer.setAttribute(
-      'controlsList', 'nodownload nofullscreen noremoteplayback');
+  // Set video player source, first based on data-src then on source child
+  // elements.
   if (data.src) {
     const sourceElement = document.createElement('source');
     sourceElement.setAttribute('src', data.src);
     videoPlayer.appendChild(sourceElement);
   }
-  if (data.childElements) {
-    const children = JSON.parse(data.childElements);
-    children.forEach(child => {
-      videoPlayer.appendChild(htmlToElement(child));
+  if (data.sources) {
+    const sources = JSON.parse(data.sources);
+    sources.forEach(source => {
+      videoPlayer.appendChild(htmlToElement(source));
     });
   }
-  if (data.imaSettings) {
-    imaSettings = tryParseJson(data.imaSettings);
-  }
+
 
   contentDiv.appendChild(videoPlayer);
   wrapperDiv.appendChild(contentDiv);
@@ -447,27 +445,6 @@ function htmlToElement(html) {
   template./*OK*/innerHTML = html;
   return template.content.firstChild;
 }
-
-function createIcon(global, name, fill = '#FFFFFF') {
-  const doc = global.document;
-  const icon = doc.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  icon.setAttributeNS(null, 'fill', fill);
-  icon.setAttributeNS(null, 'height', '100%');
-  icon.setAttributeNS(null, 'width', '100%');
-  icon.setAttributeNS(null, 'viewBox', '0 0 24 24');
-  setStyle(icon, 'filter', 'drop-shadow(0px 0px 14px rgba(0,0,0,0.4))');
-  setStyle(icon, '-webkit-filter', 'drop-shadow(0px 0px 14px rgba(0,0,0,0.4))');
-  icon./*OK*/innerHTML = icons[name];
-  return icon;
-}
-
-function changeIcon(element, name, fill = '#FFFFFF') {
-  element./*OK*/innerHTML = icons[name];
-  if (fill != element.getAttributeNS(null, 'fill')) {
-    element.setAttributeNS(null, 'fill', fill);
-  }
-}
-
 
 /**
  * Triggered when the user clicks on the big play button div.
