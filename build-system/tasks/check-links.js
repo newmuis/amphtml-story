@@ -103,7 +103,7 @@ function checkLinks() {
     if (deadLinksFound) {
         util.log(
             util.colors.red('ERROR'),
-            'Possible dead link(s) found.',
+            'Possible dead link(s) found in this PR.',
             'Please update',
             util.colors.magenta(filesWithDeadLinks.join(',')),
             'or whitelist in build-system/tasks/check-links.js');
