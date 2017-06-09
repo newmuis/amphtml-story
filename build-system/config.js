@@ -112,6 +112,11 @@ module.exports = {
     '!{node_modules,build,dist,dist.3p,dist.tools,' +
         'third_party,build-system}/**/*.*',
   ],
+  jsonGlobs: [
+    '**/*.json',
+    '!{node_modules,build,dist,dist.3p,dist.tools,' +
+        'third_party,build-system}/**/*.*',
+  ],
   presubmitGlobs: [
     '**/*.{css,js,go}',
     // This does match dist.3p/current, so we run presubmit checks on the
