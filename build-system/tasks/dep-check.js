@@ -30,6 +30,7 @@ var path = require('path');
 var source = require('vinyl-source-stream');
 var through = require('through2');
 var util = require('gulp-util');
+var extensionsVersions = require('../extensions-versions-config');
 
 
 var root = process.cwd();
@@ -143,9 +144,7 @@ var rules = depCheckConfig.rules.map(config => new Rule(config));
 
 /**
  * Returns a list of entryPoint modules.
- * extensions/{$extension}/{$version}/{$extension}.js
- * src/amp.js
- * 3p/integration.js
+ * extenstions/{$version}/*.js/amp.js/integration.js
  *
  * @return {!Promise<!Array<string>>}
  */
@@ -200,11 +199,10 @@ function getGraph(entryModule) {
  * @return {!Array<!ModuleDef>}
  */
 function getEntryModule(extensionFolder) {
-  // TODO (@zhouyx, #9642): Remove the special check and handle more than just 0.1
-  if (extensionFolder == 'extensions/amp-sticky-ad') {
-    return `${extensionFolder}/1.0/${path.basename(extensionFolder)}.js`;
-  }
-  return `${extensionFolder}/0.1/${path.basename(extensionFolder)}.js`;
+  var extension = path.basename(extensionFolder);
+  var versions = extensionsVersions[extension] || ['0.1'];
+  return versions.map(v =>
+      `${extensionFolder}/${v}/${extension}.js`);
 }
 
 /**

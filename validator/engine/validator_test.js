@@ -100,12 +100,12 @@ function findHtmlFilesRelativeToTestdata() {
       for (const extension of readdir(root)) {
         const extensionFolder = path.join(root, extension);
         if (!isdir(extensionFolder)) {
-          // Skip if not a folder
+          // Skip if not an extension folder
           continue;
         }
-        // Get all versions
-        for (const possibleVersion of readdir(extensionFolder)) {
-          const testPath = path.join(extension, possibleVersion, 'test');
+        // get all versions:
+        for (const version of readdir(extensionFolder)) {
+          const testPath = path.join(extension, version, 'test');
           if (isdir(path.join(root, testPath))) {
             testSubdirs.push({root: root, subdir: testPath});
           }
