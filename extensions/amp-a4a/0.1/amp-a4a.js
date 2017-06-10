@@ -1259,13 +1259,13 @@ export class AmpA4A extends AMP.BaseElement {
       this.creativeBody_ = null;  // Free resources.
     } else if (this.adUrl_) {
       assertHttpsUrl(this.adUrl_, this.element);
-      return this.renderViaCachedContentIframe_(this.adUrl_);
+      renderPromise = this.renderViaCachedContentIframe_(this.adUrl_);
     } else {
       // Ad URL may not exist if buildAdUrl throws error or returns empty.
       // If error occurred, it would have already been reported but let's
       // report to user in case of empty.
       user().warn(TAG, this.element.getAttribute('type'),
-          'No creative or URL available -- A4A can\'t render any ad');
+        'No creative or URL available -- A4A can\'t render any ad');
     }
     incrementLoadingAds(this.win, renderPromise);
     return renderPromise;
