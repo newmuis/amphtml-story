@@ -73,7 +73,7 @@ export class AmpAdNetworkFakeImpl extends AmpA4A {
                   {status, headers}));
         }
       }
-      // Normal mode: the content is a JSON structure with two fields:
+      // Normal mode: the content is a JSON structure with two fieleds:
       // `creative` and `signature`.
       return response.json().then(decoded => {
         dev().info(
