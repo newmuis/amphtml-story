@@ -4,10 +4,9 @@ The AMP HTML project strongly encourages technical [contributions](https://www.a
 
 We hope you'll become an ongoing participant in our open source community but we also welcome one-off contributions for the issues you're particularly passionate about.
 
-**If you have questions about using AMP or are encountering problems using AMP on your site please visit our [support page](SUPPORT.md) for help.**
-
 - [Reporting issues with AMP](#reporting-issues-with-amp)
   * [Bugs](#bugs)
+  * [Questions about AMP](#questions-about-amp)
   * [Suggestions and feature requests](#suggestions-and-feature-requests)
 - [Contributing code](#contributing-code)
   * [Tips for new open source contributors](#tips-for-new-open-source-contributors)
@@ -29,6 +28,12 @@ We hope you'll become an ongoing participant in our open source community but we
 If you find a bug in AMP, please [file a GitHub issue](https://github.com/ampproject/amphtml/issues/new).  Members of the community are regularly monitoring issues and will try to fix open bugs quickly according to our [prioritization guidelines](https://github.com/ampproject/amphtml/blob/master/contributing/issue-priorities.md).
 
 The best bug reports provide a detailed description of the issue (including screenshots if possible), step-by-step instructions for predictably reproducing the issue, and possibly even a working example that demonstrates the issue.
+
+### Questions about AMP
+
+Questions about how to use AMP or other general questions about AMP should be asked on [Stack Overflow under the AMP HTML tag](http://stackoverflow.com/questions/tagged/amp-html) instead of filing an issue here.
+
+Questions and issues related to Google Search should be asked on [Google's AMP forum](https://goo.gl/utQ1KZ).
 
 ### Suggestions and feature requests
 
@@ -127,10 +132,6 @@ We encourage everyone who is actively contributing to AMP to add a comment to th
 ### Weekly design reviews
 
 The community holds weekly engineering [design reviews](./contributing/design-reviews.md) via video conference.  We encourage everyone in the community to participate in these discussions and to bring their designs for new features and significant bug fixes to these reviews.
-
-### Working groups
-
-AMP Project [working groups](./contributing/working-groups.md) bring together parties with related interests to discuss ideas for how AMP can evolve and to receive updates on new features and changes in AMP that are relevant to the group.
 
 ### See Also
 
