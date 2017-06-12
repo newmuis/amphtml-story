@@ -76,8 +76,18 @@ body > amp-story {
 }
 
 .i-amp-story-progress-value {
+  /* Do not remove `translateZ(0)` or `will-change` as they prevent an iOS
+   * repaint issue. */
   background: rgba(255, 255, 255, 1);
-  width: 0; /* by default */
+  width: 100%;
+  transform: translateZ(0) scaleX(0); /* 0-width by default */
+  transition: transform 0.3s ease;
+  transform-origin: left;
+  will-change: transform;
+}
+
+[dir=rtl] .i-amp-story-progress-value {
+  transform-origin: right;
 }
 
 /** Page level */
