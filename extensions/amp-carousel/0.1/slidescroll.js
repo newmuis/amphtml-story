@@ -601,9 +601,8 @@ export class AmpSlideScroll extends BaseSlides {
       const name = 'slideChange';
       const event =
           createCustomEvent(this.win, `slidescroll.${name}`, {index: newIndex});
-      this.action_.trigger(this.element, name, event, ActionTrust.HIGH);
-
       this.element.dispatchCustomEvent(name, {index: newIndex});
+      this.action_.trigger(this.element, name, event);
     }
   }
 
