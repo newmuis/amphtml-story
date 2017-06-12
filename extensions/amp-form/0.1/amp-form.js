@@ -395,14 +395,14 @@ export class AmpForm {
    * @param {ActionTrust} trust
    * @private
    */
-  handleXhrSubmit_(varSubsFields, trust) {
+  handleXhrSubmit_(varSubsFields) {
     this.setState_(FormState_.SUBMITTING);
 
     const p = this.doVarSubs_(varSubsFields)
         .then(() => {
           this.triggerFormSubmitInAnalytics_();
-          this.actions_.trigger(
-              this.form_, 'submit', /* event */ null, trust);
+          this.actions_.trigger(this.form_, 'submit', /*event*/ null);
+
           // After variable substitution
           const values = this.getFormAsObject_();
           this.renderTemplate_(values);
@@ -521,7 +521,6 @@ export class AmpForm {
     return promise.then(responseJson => {
       this.triggerAction_(/* success */ false, responseJson);
       this.analyticsEvent_('amp-form-submit-error');
-      this.cleanupRenderedTemplate_();
       this.setState_(FormState_.SUBMIT_ERROR);
       this.renderTemplate_(responseJson || {});
       this.maybeHandleRedirect_(error.response);
@@ -634,11 +633,11 @@ export class AmpForm {
 
   /**
    * Returns form data as an object.
-   * @return {!JsonObject}
+   * @return {!JSONType}
    * @private
    */
   getFormAsObject_() {
-    const data = /** @type {!JsonObject} */ ({});
+    const data = /** @type {!JSONType} */ ({});
     const inputs = this.form_.elements;
     const submittableTagsRegex = /^(?:input|select|textarea)$/i;
     const unsubmittableTypesRegex = /^(?:button|image|file|reset)$/i;

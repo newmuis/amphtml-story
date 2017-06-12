@@ -447,19 +447,7 @@ describes.repeated('', {
       });
 
       return formPromise.then(ampForm => {
-        sandbox.stub(ampForm.xhr_, 'fetch').returns(Promise.reject({
-          response: {
-            status: 400,
-            json() {
-              return Promise.resolve({
-                verifyErrors: [{
-                  name: 'name',
-                  message: 'This name is just wrong.',
-                }],
-              });
-            },
-          },
-        }));
+        sandbox.stub(ampForm.xhr_, 'fetch').returns(fetchRejectPromise);
 
         const form = ampForm.form_;
         const input = form.name;

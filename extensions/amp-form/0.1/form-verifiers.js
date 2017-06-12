@@ -15,8 +15,11 @@
  */
 
 import {LastAddedResolver} from '../../../src/utils/promise';
+import {isExperimentOn} from '../../../src/experiments';
 import {iterateCursor} from '../../../src/dom';
 import {user} from '../../../src/log';
+
+export const FORM_VERIFY_EXPERIMENT = 'amp-form-verifiers';
 
 export const FORM_VERIFY_PARAM = '__amp_form_verify';
 
@@ -37,7 +40,10 @@ let VerificationErrorDef;
  * @param {function():Promise<!../../../src/service/xhr-impl.FetchResponse>} xhr
  */
 export function getFormVerifier(form, xhr) {
+  const win = form.ownerDocument.defaultView;
   if (form.hasAttribute('verify-xhr')) {
+    user().assert(isExperimentOn(win, FORM_VERIFY_EXPERIMENT),
+        `Enable "${FORM_VERIFY_EXPERIMENT}" experiment to use form verifiers`);
     return new AsyncVerifier(form, xhr);
   } else {
     return new DefaultVerifier(form);
@@ -88,13 +94,12 @@ export class FormVerifier {
 
   /**
    * Checks if the form has been changed from its initial state.
-   * @return {boolean}
    * @private
    */
   isDirty_() {
-    const elements = this.form_.elements;
-    for (let i = 0; i < elements.length; i++) {
-      const field = elements[i];
+    const form = this.form_;
+    for (let i = 0; i < form.elements.length; i++) {
+      const field = form.elements[i];
       if (field.disabled) {
         continue;
       }
@@ -174,34 +179,8 @@ export class AsyncVerifier extends FormVerifier {
       return getResponseErrorData_(/** @type {!Error} */(error));
     });
 
-  /** @override */
-  onCommit(input, afterVerify) {
-    if (this.isVerificationElement_(input)) {
-      this.maybeVerify_(afterVerify);
-    }
-  }
-
-  /**
-   * Sends the verify request if any group is ready to verify.
-   * @param {!function(!Array<!Element>)} afterVerify
-   * @private
-   */
-  maybeVerify_(afterVerify) {
-    if (this.shouldVerify_()) {
-      const xhrConsumeErrors = this.doXhr_().then(() => {
-        return [];
-      }, error => {
-        return getResponseErrorData_(/** @type {!Error} */(error));
-      });
-
-      const p = this.addToResolver_(xhrConsumeErrors)
-          .then(errors => this.verify_(errors))
-          .then(updatedElements => afterVerify(updatedElements));
-
-      if (getMode().test) {
-        this.xhrVerifyPromise_ = p;
-      }
-    }
+    return this.addToResolver_(xhrConsumeErrors)
+        .then(errors => this.applyErrors_(errors));
   }
 
   /**
@@ -278,66 +257,7 @@ function getResponseErrorData_(error) {
     return Promise.resolve([]);
   }
 
-  /**
-   * Get the dirty flag value.
-   * @return {boolean}
-   */
-  isDirty() {
-    return this.dirty_;
-  }
-
-  /**
-   * Check if this group contains the given element.
-   * @param {!Element} element
-   * @return {boolean}
-   */
-  contains(element) {
-    return this.elements_.includes(element);
-  }
-
-  /**
-   * Check if this group contains none of the given elements
-   * @param {!Array<!Element>} elements
-   * @return {boolean}
-   */
-  containsNone(elements) {
-    return !elements.some(element => this.contains(element));
-  }
-
-  /**
-   * Check if the group is eligible for verification.
-   */
-  shouldVerify() {
-    return this.isDirty() && this.isFilledOut();
-  }
-
-  /**
-   * Check if every required element in the group has a value,
-   * and that those values are valid.
-   */
-  isFilledOut() {
-    return this.elements_.every(element => element.checkValidity());
-  }
-
-  /**
-   * Clear the validity state of this group's elements.
-   */
-  clearErrors() {
-    this.elements_.forEach(element => element.setCustomValidity(''));
-  }
-}
-
-/**
- * @param {!Error} error
- * @return {!Promise<!Array<VerificationErrorDef>>}
- * @private
- */
-function getResponseErrorData_(error) {
-  const {response} = error;
-  if (!response) {
-    return Promise.resolve([]);
-  }
-  return response.json().then(json => {
-    return json.verifyErrors || [];
-  }, () => []);
+  return response.json().then(
+      json => json.verifyErrors || [],
+      () => []);
 }

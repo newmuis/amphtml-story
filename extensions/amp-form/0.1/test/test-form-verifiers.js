@@ -16,6 +16,7 @@
 
 import {
   AsyncVerifier,
+  FORM_VERIFY_EXPERIMENT,
   DefaultVerifier,
   getFormVerifier,
 } from '../form-verifiers';
@@ -96,6 +97,10 @@ describes.fakeWin('amp-form async verification', {}, env => {
   }
 
   describe('getFormVerifier', () => {
+    beforeEach(() => {
+      toggleExperiment(env.win, FORM_VERIFY_EXPERIMENT, true);
+    });
+
     it('returns a DefaultVerifier without the verify-xhr attribute', () => {
       const form = getForm(env.win.document, false);
       const verifier = getFormVerifier(form, () => {});
@@ -106,6 +111,13 @@ describes.fakeWin('amp-form async verification', {}, env => {
       const form = getForm(env.win.document);
       const verifier = getFormVerifier(form, () => {});
       expect(verifier instanceof AsyncVerifier).to.be.true;
+    });
+
+    it('should throw if the experiment is disabled with the verify-xhr ' +
+        'attribute present', () => {
+      toggleExperiment(env.win, FORM_VERIFY_EXPERIMENT, false);
+      const form = getForm(env.win.document);
+      expect(() => getFormVerifier(form, () => {})).to.throw(/experiment/);
     });
   });
 
@@ -177,11 +189,9 @@ describes.fakeWin('amp-form async verification', {}, env => {
           });
         },
       };
-      const xhrSpy = sandbox.spy(() => Promise.reject({
-        response: errorResponse,
-      }));
-      const form = getForm(env.win.document);
-      const verifier = getFormVerifier(form, xhrSpy);
+      const xhrStub = sandbox.stub();
+      xhrStub.onCall(0).returns(Promise.reject({response: errorResponse}));
+      xhrStub.onCall(1).returns(Promise.resolve());
 
       const form = getForm(env.win.document);
       const verifier = getFormVerifier(form, xhrStub);
