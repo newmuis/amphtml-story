@@ -375,8 +375,6 @@ export class AmpLightboxViewer extends AMP.BaseElement {
     this.buildButton_('Close', 'amp-lbv-button-close', close);
     this.buildButton_('Gallery', 'amp-lbv-button-gallery', openGallery);
     this.buildButton_('Content', 'amp-lbv-button-slide', closeGallery);
-
-    this.container_.appendChild(this.topBar_);
   }
 
   /**
