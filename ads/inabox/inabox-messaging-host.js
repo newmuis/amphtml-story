@@ -22,9 +22,8 @@ import {
   MessageType,
 } from '../../src/3p-frame-messaging';
 import {dev} from '../../src/log';
-import {getData} from '../../src/event-helper';
-import {dict} from '../../src/utils/object';
-import {layoutRectFromDomRect} from '../../src/layout-rect';
+import {expandFrame, collapseFrame} from './frame-overlay-helper';
+
 /** @const */
 const TAG = 'InaboxMessagingHost';
 
@@ -52,7 +51,7 @@ class NamedObservable {
    * @param {string} key
    * @param {*} thisArg
    * @param {!Array} args
-   * @return {boolean} True when a callback was found and successfully executed.
+   * @retun {boolean} True when a callback was found and successfully executed.
    */
   fire(key, thisArg, args) {
     if (key in this.map_) {
@@ -72,7 +71,6 @@ export class InaboxMessagingHost {
     this.registeredIframeSentinels_ = Object.create(null);
     this.positionObserver_ = new PositionObserver(win);
     this.msgObservable_ = new NamedObservable();
-    this.frameOverlayManager_ = new FrameOverlayManager(win);
 
     this.msgObservable_.listen(
         MessageType.SEND_POSITIONS, this.handleSendPositions_);
@@ -109,7 +107,7 @@ export class InaboxMessagingHost {
       return false;
     }
 
-    if (!this.msgObservable_.fire(request['type'], this,
+    if (!this.msgObservable_.fire(request.type, this,
         [iframe, request, message.source, message.origin])) {
       dev().warn(TAG, 'Unprocessed AMP message:', message);
       return false;
@@ -126,38 +124,18 @@ export class InaboxMessagingHost {
    * @return {boolean}
    */
   handleSendPositions_(iframe, request, source, origin) {
-    const viewportRect = this.positionObserver_.getViewportRect();
-    const targetRect =
-        layoutRectFromDomRect(iframe./*OK*/getBoundingClientRect());
-    this.sendPosition_(request, source, origin, dict({
-      'viewportRect': viewportRect,
-      'targetRect': targetRect,
-    }));
-
     // To prevent double tracking for the same requester.
     if (this.registeredIframeSentinels_[request.sentinel]) {
-      return true;
+      return false;
     }
-
     this.registeredIframeSentinels_[request.sentinel] = true;
     this.positionObserver_.observe(iframe, data => {
-      this.sendPosition_(request, source, origin, data);
+      dev().fine(TAG, `Sent position data to [${request.sentinel}]`, data);
+      source./*OK*/postMessage(
+          serializeMessage(MessageType.POSITION, request.sentinel, data),
+          origin);
     });
     return true;
-  }
-
-  /**
-   *
-   * @param {!Object} request
-   * @param {!Window} source
-   * @param {string} origin
-   * @param {JsonObject} data
-   */
-  sendPosition_(request, source, origin, data) {
-    dev().fine(TAG, `Sent position data to [${request.sentinel}]`, data);
-    source./*OK*/postMessage(
-        serializeMessage(MessageType.POSITION, request.sentinel, data),
-        origin);
   }
 
   /**
@@ -171,15 +149,12 @@ export class InaboxMessagingHost {
   // 1. Reject request if frame is out of focus
   // 2. Disable zoom and scroll on parent doc
   handleEnterFullOverlay_(iframe, request, source, origin) {
-    this.frameOverlayManager_.expandFrame(iframe, boxRect => {
+    expandFrame(this.win_, iframe, () => {
       source./*OK*/postMessage(
           serializeMessage(
               MessageType.FULL_OVERLAY_FRAME_RESPONSE,
               request.sentinel,
-              dict({
-                'success': true,
-                'boxRect': boxRect,
-              })),
+              {success: true}),
           origin);
     });
 
@@ -194,15 +169,12 @@ export class InaboxMessagingHost {
    * @return {boolean}
    */
   handleCancelFullOverlay_(iframe, request, source, origin) {
-    this.frameOverlayManager_.collapseFrame(iframe, boxRect => {
+    collapseFrame(this.win_, iframe, () => {
       source./*OK*/postMessage(
           serializeMessage(
               MessageType.CANCEL_FULL_OVERLAY_FRAME_RESPONSE,
               request.sentinel,
-              dict({
-                'success': true,
-                'boxRect': boxRect,
-              })),
+              {success: true}),
           origin);
     });
 

@@ -16,7 +16,10 @@
 
 import {InaboxMessagingHost} from '../../../ads/inabox/inabox-messaging-host';
 import {deserializeMessage} from '../../../src/3p-frame-messaging';
-import {layoutRectLtwh} from '../../../src/layout-rect';
+import {
+  stubCollapseFrameForTesting,
+  stubExpandFrameForTesting,
+} from '../../../ads/inabox/frame-overlay-helper';
 import * as sinon from 'sinon';
 
 describes.realWin('inabox-host:messaging', {}, env => {
@@ -205,12 +208,11 @@ describes.realWin('inabox-host:messaging', {}, env => {
 
 
     it('should accept request and expand', () => {
-      const boxRect = {a: 1, b: 2}; // we don't care
+      const expandFrame = sandbox.spy((win, iframe, onFinish) => {
+        onFinish();
+      });
 
-      const expandFrame = sandbox./*OK*/stub(
-          host.frameOverlayManager_, 'expandFrame', (iframe, callback) => {
-            callback(boxRect);
-          });
+      stubExpandFrameForTesting(expandFrame);
 
       host.processMessage({
         source: iframe1.contentWindow,
@@ -224,19 +226,17 @@ describes.realWin('inabox-host:messaging', {}, env => {
       const message = deserializeMessage(
           iframePostMessageSpy.getCall(0).args[0]);
 
-      expect(expandFrame).calledWith(iframe1, sinon.match.any);
+      expect(expandFrame).calledWith(win, iframe1, sinon.match.any);
       expect(message.type).to.equal('full-overlay-frame-response');
       expect(message.success).to.be.true;
-      expect(message.boxRect).to.deep.equal(boxRect);
     });
 
     it('should accept reset request and collapse', () => {
-      const boxRect = {c: 1, d: 2}; // we don't care
+      const collapseFrame = sandbox.spy((win, iframe, onFinish) => {
+        onFinish();
+      });
 
-      const collapseFrame = sandbox./*OK*/stub(
-          host.frameOverlayManager_, 'collapseFrame', (iframe, callback) => {
-            callback(boxRect);
-          });
+      stubCollapseFrameForTesting(collapseFrame);
 
       host.processMessage({
         source: iframe1.contentWindow,
@@ -250,10 +250,9 @@ describes.realWin('inabox-host:messaging', {}, env => {
       const message = deserializeMessage(
           iframePostMessageSpy.getCall(0).args[0]);
 
-      expect(collapseFrame).calledWith(iframe1, sinon.match.any);
+      expect(collapseFrame).calledWith(win, iframe1, sinon.match.any);
       expect(message.type).to.equal('cancel-full-overlay-frame-response');
       expect(message.success).to.be.true;
-      expect(message.boxRect).to.deep.equal(boxRect);
     });
 
   });

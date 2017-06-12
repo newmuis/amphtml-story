@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {childElementByTag} from '../../src/dom.js';
 import {iframeMessagingClientFor} from './inabox-iframe-messaging-client';
 import {Services} from '../services';
 import {Viewport} from '../service/viewport/viewport-impl';
@@ -26,35 +27,48 @@ import {
 import {Observable} from '../observable';
 import {MessageType} from '../../src/3p-frame-messaging';
 import {dev} from '../log';
-import {px, setImportantStyles, resetStyles} from '../../src/style';
-import {throttle} from '../../src/utils/rate-limit';
+import {vsyncFor} from '../../src/services';
+import {px, setStyles} from '../../src/style';
+
 
 /** @const {string} */
 const TAG = 'inabox-viewport';
 
-/** @const {number} */
-const MIN_EVENT_INTERVAL = 100;
+
+/**
+ * @param {!HTMLBodyElement} bodyElement
+ * @return {!Element}
+ * @visibleForTesting
+ */
+ // TODO(alanorozco):
+//   Move this where it makes sense
+export function getFixedContainer(bodyElement) {
+  return dev().assertElement(childElementByTag(
+      dev().assertElement(bodyElement), 'amp-ad-banner'));
+}
+
 
 /** @visibleForTesting */
-export function prepareBodyForOverlay(win, bodyElement) {
-  return Services.vsyncFor(win).runPromise({
+export function prepareFixedContainer(win, fixedContainer) {
+  return vsyncFor(win).runPromise({
     measure: state => {
-      state.width = win./*OK*/innerWidth;
-      state.height = win./*OK*/innerHeight;
+      state.boundingRect = fixedContainer./*OK*/getBoundingClientRect();
     },
     mutate: state => {
-      // We need to override runtime-level !important rules
-      setImportantStyles(bodyElement, {
+      setStyles(dev().assertElement(win.document.body), {
         'background': 'transparent',
+      });
+
+      setStyles(fixedContainer, {
+        'position': 'absolute',
         'left': '50%',
         'top': '50%',
         'right': 'auto',
         'bottom': 'auto',
-        'position': 'absolute',
-        'height': px(state.height),
-        'width': px(state.width),
-        'margin-top': px(-state.height / 2),
-        'margin-left': px(-state.width / 2),
+        'width': px(state.boundingRect.width),
+        'height': px(state.boundingRect.height),
+        'margin-left': px(-(state.boundingRect.width / 2)),
+        'margin-top': px(-(state.boundingRect.height / 2)),
       });
     },
   }, {});
@@ -62,21 +76,23 @@ export function prepareBodyForOverlay(win, bodyElement) {
 
 
 /** @visibleForTesting */
-export function resetBodyForOverlay(win, bodyElement) {
-  return Services.vsyncFor(win).mutatePromise(() => {
-    // We're not resetting background here as it's supposed to remain
-    // transparent.
-    resetStyles(bodyElement, [
-      'position',
-      'left',
-      'top',
-      'right',
-      'bottom',
-      'width',
-      'height',
-      'margin-left',
-      'margin-top',
-    ]);
+export function resetFixedContainer(win, fixedContainer) {
+  return vsyncFor(win).mutatePromise(() => {
+    setStyles(dev().assertElement(win.document.body), {
+      'background': 'transparent',
+    });
+
+    setStyles(fixedContainer, {
+      'position': null,
+      'left': null,
+      'top': null,
+      'right': null,
+      'bottom': null,
+      'width': null,
+      'height': null,
+      'margin-left': null,
+      'margin-top': null,
+    });
   });
 }
 
@@ -347,6 +363,102 @@ export class ViewportBindingInabox {
   /** @visibleForTesting */
   getBodyElement() {
     return dev().assertElement(this.win.document.body);
+  }
+
+  /** @override */
+  updateLightboxMode(lightboxMode) {
+    if (lightboxMode) {
+      return this.tryToEnterOverlayMode_();
+    }
+    return this.leaveOverlayMode_();
+  }
+
+  /**
+   * @return {!Promise}
+   * @private
+   */
+  tryToEnterOverlayMode_() {
+    // TODO(alanorozco): Update viewport measurement from host message.
+    return this.prepareFixedContainer_()
+        .then(() => this.requestFullOverlayFrame_());
+  }
+
+  /**
+   * @return {!Promise}
+   * @private
+   */
+  leaveOverlayMode_() {
+    return this.requestCancelFullOverlayFrame_()
+        .then(() => this.resetFixedContainer_());
+  }
+
+  /**
+   * Prepares the "fixed" container before expanding frame.
+   * @return {!Promise}
+   * @private
+   */
+  prepareFixedContainer_() {
+    const fixedContainer = this.getFixedContainer_();
+
+    if (!fixedContainer) {
+      dev().warn(TAG, 'No fixed container inside frame, content will shift.');
+      return Promise.resolve();
+    }
+
+    return prepareFixedContainer(this.win, dev().assertElement(fixedContainer));
+  }
+
+  /**
+   * Resets the "fixed" container to its original position after collapse.
+   * @return {!Promise}
+   * @private
+   */
+  resetFixedContainer_() {
+    const fixedContainer = this.getFixedContainer_();
+
+    if (!fixedContainer) {
+      dev().warn(TAG, 'No fixed container inside frame, content will shift.');
+      return Promise.resolve();
+    }
+
+    return resetFixedContainer(this.win, dev().assertElement(fixedContainer));
+  }
+
+  /**
+   * @return {!Promise}
+   * @private
+   */
+  requestFullOverlayFrame_() {
+    return new Promise((resolve, reject) => {
+      this.iframeClient_.makeRequest(
+          MessageType.FULL_OVERLAY_FRAME,
+          MessageType.FULL_OVERLAY_FRAME_RESPONSE,
+          response => {
+            if (response.success) {
+              resolve();
+            } else {
+              reject('Request to open lightbox rejected by host document');
+            }
+          });
+    });
+  }
+
+  /**
+   * @return {!Promise}
+   * @private
+   */
+  requestCancelFullOverlayFrame_() {
+    return new Promise(resolve => {
+      this.iframeClient_.makeRequest(
+          MessageType.CANCEL_FULL_OVERLAY_FRAME,
+          MessageType.CANCEL_FULL_OVERLAY_FRAME_RESPONSE,
+          resolve);
+    });
+  }
+
+  getFixedContainer_() {
+    return getFixedContainer(
+        /** @type {!HTMLBodyElement} */ (dev().assert(this.win.document.body)));
   }
 
   /** @override */ disconnect() {/* no-op */}
