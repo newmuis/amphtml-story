@@ -3428,6 +3428,7 @@ attr_lists: {
         "subresource"
         ")(\\s|$)"
   }
+  attrs: { name: "rev" }
   attrs: { name: "resource" }
   attrs: { name: "rev" }
   attrs: { name: "typeof" }
