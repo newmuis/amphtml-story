@@ -27,6 +27,14 @@ describes.realWin('amp-story', {
     sandbox./*OK*/stub(element.implementation_, 'bookend_', bookend);
   }
 
+  function createPages(container, count) {
+    return Array(count).fill(undefined).map(() => {
+      const page = win.document.createElement('amp-story-page');
+      container.appendChild(page);
+      return page;
+    });
+  }
+
   beforeEach(() => {
     win = env.win;
     element = win.document.createElement('amp-story');
@@ -36,6 +44,7 @@ describes.realWin('amp-story', {
   afterEach(() => {
     resetFullScreenForTesting();
     sandbox.restore();
+    element.remove();
   });
 
   it('should build', () => {
@@ -121,5 +130,56 @@ describes.realWin('amp-story', {
 
     expect(exitFullScreenStub)
         .to.have.been.calledWith(/* opt_explicitUserAction */ true);
+  });
+
+  it('should return a valid page count', () => {
+    const count = 5;
+
+    createPages(element, count);
+
+    expect(element.implementation_.getPageCount()).to.equal(count);
+  });
+
+  it('should return a valid page index', () => {
+    const count = 5;
+
+    const pages = createPages(element, count);
+
+    pages.forEach((page, i) => {
+      expect(element.implementation_.getPageIndex(page)).to.equal(i);
+    });
+  });
+
+  it('should return all pages', () => {
+    const pages = createPages(element, 5);
+
+    const result = element.implementation_.getPages();
+
+    expect(result.length).to.equal(pages.length);
+
+    pages.forEach((page, i) =>
+        expect(Array.prototype.includes.call(result, page)).to.be.true);
+  });
+
+  it('should update progress bar when switching pages', () => {
+    const impl = element.implementation_;
+
+    const count = 10;
+    const index = 2;
+
+    const page = win.document.createElement('div');
+
+    const updateProgressBarStub =
+        sandbox.stub(impl.systemLayer_, 'updateProgressBar', NOOP);
+
+    stubEmptyActivePage();
+
+    sandbox.stub(impl, 'getPageCount').returns(count);
+    sandbox.stub(impl, 'getPageIndex').withArgs(page).returns(index);
+
+    impl.switchTo_(page);
+
+    // first page is not counted as part of the progress
+    expect(updateProgressBarStub).to.have.been.calledWith(index, count - 1);
   });
 });

@@ -142,6 +142,7 @@ export class AmpStory extends AMP.BaseElement {
    * @param {!Element} page
    * @return {!Promise}
    */
+  // TODO: Update history state
   switchTo_(page) {
     const activePage = this.getActivePage_();
 
@@ -152,6 +153,10 @@ export class AmpStory extends AMP.BaseElement {
         this.enterFullScreen_();
       }
     }
+
+    // first page is not counted as part of the progress
+    this.systemLayer_.updateProgressBar(
+        this.getPageIndex(page), this.getPageCount() - 1);
 
     return this.mutateElement(() => {
       page.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
@@ -243,6 +248,30 @@ export class AmpStory extends AMP.BaseElement {
       // TODO(newmuis): Check to see if currentElement listens for `tap` event.
       return el === this.systemLayer_.getRoot() || el === this.bookend_;
     }, /* opt_stopAt */ this.element);
+  }
+
+
+  /**
+   * @return {!NodeList}
+   */
+  getPages() {
+    return this.element.querySelectorAll('amp-story-page');
+  }
+
+
+  /**
+   * @return {number}
+   */
+  getPageCount() {
+    return this.getPages().length;
+  }
+
+  /**
+   * @param {!Element} page
+   * @return {number} The index of the page.
+   */
+  getPageIndex(page) {
+    return Array.prototype.indexOf.call(this.getPages(), page);
   }
 }
 
