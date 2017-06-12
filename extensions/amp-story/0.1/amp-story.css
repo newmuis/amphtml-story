@@ -171,6 +171,7 @@ amp-story-grid-layer[preset="thirds"] {
 /** Bookend */
 .i-amp-story-bookend {
   background: rgba(0, 0, 0, 0.85) !important;
+  color: #fff;
   bottom: 0 !important;
   display: none !important;
   left: 0 !important;
