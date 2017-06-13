@@ -2650,10 +2650,6 @@ tags {
     name: "submitting"
     mandatory: true
   }
-  child_tags: {
-    mandatory_num_child_tags: 1
-    first_child_tag_name_oneof: "TEMPLATE"
-  }
 }
 tags {
   tag_name: "DIV"
@@ -2664,10 +2660,6 @@ tags {
     name: "submit-success"
     mandatory: true
   }
-  child_tags: {
-    mandatory_num_child_tags: 1
-    first_child_tag_name_oneof: "TEMPLATE"
-  }
 }
 tags {
   tag_name: "DIV"
@@ -2677,10 +2669,6 @@ tags {
   attrs: {
     name: "submit-error"
     mandatory: true
-  }
-  child_tags: {
-    mandatory_num_child_tags: 1
-    first_child_tag_name_oneof: "TEMPLATE"
   }
 }
 attr_lists: {
