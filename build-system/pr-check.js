@@ -317,7 +317,7 @@ function runAllCommands() {
     command.cleanBuild();
     command.buildRuntimeMinified();
     command.runPresubmitTests();  // Needs runtime to be built and served.
-    command.runVisualDiffTests();  // Only called during push builds.
+    // command.runVisualDiffTests();  // Only called during push builds.
     command.runIntegrationTests();
   }
 }
