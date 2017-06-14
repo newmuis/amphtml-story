@@ -24,5 +24,6 @@
  */
 export const ActionTrust = {
   LOW: 1,
-  HIGH: 100,
+  MEDIUM: 2,
+  HIGH: 3,
 };

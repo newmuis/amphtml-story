@@ -676,8 +676,8 @@ describe('installActionHandler', () => {
     const handlerSpy = sandbox.spy();
     const target = document.createElement('form');
     action.installActionHandler(target, handlerSpy);
-    action.invoke_(new ActionInvocation(target, 'submit', /* args */ null,
-        'button', 'tap', ActionTrust.HIGH));
+    action.invoke_(target, 'submit', /* args */ null,
+        'button', 'tap', ActionTrust.HIGH);
     expect(handlerSpy).to.be.calledOnce;
     const callArgs = handlerSpy.getCall(0).args[0];
     expect(callArgs.target).to.be.equal(target);
@@ -692,12 +692,16 @@ describe('installActionHandler', () => {
     const target = document.createElement('form');
     action.installActionHandler(target, handlerSpy, ActionTrust.HIGH);
 
-    action.invoke_(new ActionInvocation(target, 'submit', /* args */ null,
-        'button', 'tap', ActionTrust.LOW));
+    action.invoke_(target, 'submit', /* args */ null,
+        'button', 'tap', ActionTrust.LOW);
     expect(handlerSpy).to.not.be.called;
 
-    action.invoke_(new ActionInvocation(target, 'submit', /* args */ null,
-        'button', 'tap', ActionTrust.HIGH));
+    action.invoke_(target, 'submit', /* args */ null,
+        'button', 'tap', ActionTrust.MEDIUM);
+    expect(handlerSpy).to.not.be.called;
+
+    action.invoke_(target, 'submit', /* args */ null,
+        'button', 'tap', ActionTrust.HIGH);
     expect(handlerSpy).to.be.calledOnce;
   });
 });
@@ -843,10 +847,10 @@ describe('Action interceptor', () => {
   });
 
   it('should dequeue actions after handler set', () => {
-    action.invoke_(new ActionInvocation(target, 'method1', /* args */ null,
-        'source1', 'event1', ActionTrust.HIGH));
-    action.invoke_(new ActionInvocation(target, 'method2', /* args */ null,
-        'source2', 'event2', ActionTrust.HIGH));
+    action.invoke_(target, 'method1', /* args */ null, 'source1', 'event1',
+        ActionTrust.MEDIUM);
+    action.invoke_(target, 'method2', /* args */ null, 'source2', 'event2',
+        ActionTrust.MEDIUM);
 
     expect(Array.isArray(getQueue())).to.be.true;
     expect(getActionHandler()).to.be.undefined;
@@ -872,8 +876,8 @@ describe('Action interceptor', () => {
     expect(inv1.source).to.equal('source2');
     expect(inv1.event).to.equal('event2');
 
-    action.invoke_(new ActionInvocation(target, 'method3', /* args */ null,
-        'source3', 'event3', ActionTrust.HIGH));
+    action.invoke_(target, 'method3', /* args */ null, 'source3', 'event3',
+        ActionTrust.MEDIUM);
     expect(handler).to.have.callCount(3);
     const inv2 = handler.getCall(2).args[0];
     expect(inv2.target).to.equal(target);
@@ -908,13 +912,13 @@ describe('Action common handler', () => {
     action.addGlobalMethodHandler('action1', action1);
     action.addGlobalMethodHandler('action2', action2);
 
-    action.invoke_(new ActionInvocation(target, 'action1', /* args */ null,
-        'source1', 'event1', ActionTrust.HIGH));
+    action.invoke_(target, 'action1', /* args */ null, 'source1', 'event1',
+        ActionTrust.HIGH);
     expect(action1).to.be.calledOnce;
     expect(action2).to.have.not.been.called;
 
-    action.invoke_(new ActionInvocation(target, 'action2', /* args */ null,
-        'source2', 'event2', ActionTrust.HIGH));
+    action.invoke_(target, 'action2', /* args */ null, 'source2', 'event2',
+        ActionTrust.HIGH);
     expect(action2).to.be.calledOnce;
     expect(action1).to.be.calledOnce;
 
@@ -925,12 +929,16 @@ describe('Action common handler', () => {
     const handler = sandbox.spy();
     action.addGlobalMethodHandler('foo', handler, ActionTrust.HIGH);
 
-    action.invoke_(new ActionInvocation(target, 'foo', /* args */ null,
-        'source1', 'event1', ActionTrust.LOW));
+    action.invoke_(target, 'foo', /* args */ null, 'source1', 'event1',
+        ActionTrust.LOW);
     expect(handler).to.not.be.called;
 
-    action.invoke_(new ActionInvocation(target, 'foo', /* args */ null,
-        'source1', 'event1', ActionTrust.HIGH));
+    action.invoke_(target, 'foo', /* args */ null, 'source1', 'event1',
+        ActionTrust.MEDIUM);
+    expect(handler).to.not.be.called;
+
+    action.invoke_(target, 'foo', /* args */ null, 'source1', 'event1',
+        ActionTrust.HIGH);
     expect(handler).to.be.calledOnce;
   });
 });

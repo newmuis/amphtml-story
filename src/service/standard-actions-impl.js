@@ -104,61 +104,39 @@ export class StandardActions {
     switch (method) {
       case 'pushState':
       case 'setState':
-        bindForDoc(invocation.target).then(bind => {
-          const args = invocation.args;
-          const objectString = args[OBJECT_STRING_ARGS_KEY];
-          if (objectString) {
-            // Object string arg.
-            const scope = Object.create(null);
-            const event = invocation.event;
-            if (event && event.detail) {
-              scope['event'] = event.detail;
-            }
-            bind.setStateWithExpression(objectString, scope);
-          } else {
-            user().error('AMP-BIND', 'Please use the object-literal syntax, '
-                + 'e.g. "AMP.setState({foo: \'bar\'})" instead of '
-                + '"AMP.setState(foo=\'bar\')".');
-          }
-        }
-        return this.handleAmpBindAction_(invocation, method == 'pushState');
-
-      case 'navigateTo':
-        return this.handleAmpNavigateTo_(invocation);
-
+        this.handleAmpSetState_(invocation);
+        return;
       case 'goBack':
-        return this.handleAmpGoBack_(invocation);
-
-      case 'print':
-        return this.handleAmpPrint_(invocation);
+        this.handleAmpGoBack_(invocation);
+        return;
     }
-    throw user().createError('Unknown AMP action ', method);
+    const node = dev().assertElement(invocation.target);
+
+    // Set focus
+    tryFocus(node);
+
+    return null;
   }
 
   /**
    * @param {!./action-impl.ActionInvocation} invocation
-   * @param {boolean} isPushState
    * @private
    */
-  handleAmpBindAction_(invocation, isPushState) {
-    if (!invocation.satisfiesTrust(ActionTrust.HIGH)) {
-      return null;
+  handleAmpSetState_(invocation) {
+    if (!invocation.satisfiesTrust(ActionTrust.MEDIUM)) {
+      return;
     }
-    return Services.bindForDocOrNull(invocation.target).then(bind => {
-      user().assert(bind, 'AMP-BIND is not installed.');
-
-      const objectString = invocation.args[OBJECT_STRING_ARGS_KEY];
+    bindForDoc(invocation.target).then(bind => {
+      const args = invocation.args;
+      const objectString = args[OBJECT_STRING_ARGS_KEY];
       if (objectString) {
-        const scope = dict();
+        // Object string arg.
+        const scope = Object.create(null);
         const event = invocation.event;
         if (event && event.detail) {
           scope['event'] = event.detail;
         }
-        if (isPushState) {
-          bind.pushStateWithExpression(objectString, scope);
-        } else {
-          bind.setStateWithExpression(objectString, scope);
-        }
+        bind.setStateWithExpression(objectString, scope);
       } else {
         user().error('AMP-BIND', 'Please use the object-literal syntax, '
             + 'e.g. "AMP.setState({foo: \'bar\'})" instead of '
@@ -169,97 +147,14 @@ export class StandardActions {
 
   /**
    * @param {!./action-impl.ActionInvocation} invocation
-   * @return {?Promise}
-   * @private
-   */
-  handleAmpNavigateTo_(invocation) {
-    if (!invocation.satisfiesTrust(ActionTrust.HIGH)) {
-      return null;
-    }
-    const url = invocation.args['url'];
-    if (!isProtocolValid(url)) {
-      user().error(TAG, 'Cannot navigate to invalid protocol: ' + url);
-      return null;
-    }
-    const expandedUrl = this.urlReplacements_.expandUrlSync(url);
-    const node = invocation.target;
-    const win = (node.ownerDocument || node).defaultView;
-    win.location = expandedUrl;
-    return null;
-  }
-
-  /**
-   * @param {!./action-impl.ActionInvocation} invocation
    * @private
    */
   handleAmpGoBack_(invocation) {
-    if (!invocation.satisfiesTrust(ActionTrust.HIGH)) {
-      return null;
+    // TODO(choumx, #9699): HIGH.
+    if (!invocation.satisfiesTrust(ActionTrust.MEDIUM)) {
+      return;
     }
-    Services.historyForDoc(this.ampdoc).goBack();
-    return null;
-  }
-
-  /**
-   * @param {!./action-impl.ActionInvocation} invocation
-   * @return {?Promise}
-   * @private
-   */
-  handleAmpPrint_(invocation) {
-    if (!invocation.satisfiesTrust(ActionTrust.HIGH)) {
-      return null;
-    }
-    const node = invocation.target;
-    const win = (node.ownerDocument || node).defaultView;
-    win.print();
-    return null;
-  }
-
-  /**
-   * Handles the `scrollTo` action where given an element, we smooth scroll to
-   * it with the given animation duraiton
-   * @param {!./action-impl.ActionInvocation} invocation
-   * @return {?Promise}
-   */
-  handleScrollTo(invocation) {
-    if (!invocation.satisfiesTrust(ActionTrust.HIGH)) {
-      return null;
-    }
-    const node = dev().assertElement(invocation.target);
-
-    // Duration for scroll animation
-    const duration = invocation.args
-                     && invocation.args['duration']
-                     && invocation.args['duration'] >= 0 ?
-                        invocation.args['duration'] : 500;
-
-    // Position in the viewport at the end
-    const pos = (invocation.args
-                && invocation.args['position']
-                && PERMITTED_POSITIONS.includes(invocation.args['position'])) ?
-                invocation.args['position'] : 'top';
-
-    // Animate the scroll
-    this.viewport_.animateScrollIntoView(node, duration, 'ease-in', pos);
-
-    return null;
-  }
-
-  /**
-   * Handles the `focus` action where given an element, we give it focus
-   * @param {!./action-impl.ActionInvocation} invocation
-   * @return {?Promise}
-   */
-  handleFocus(invocation) {
-    if (!invocation.satisfiesTrust(ActionTrust.HIGH)) {
-      return null;
-    }
-    const node = dev().assertElement(invocation.target);
-
-    // Set focus
-    tryFocus(node);
-
-    return null;
+    historyForDoc(this.ampdoc).goBack();
   }
 
   /**

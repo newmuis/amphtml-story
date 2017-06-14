@@ -265,11 +265,13 @@ describes.sandboxed('StandardActions', {}, () => {
       const args = {};
       args[OBJECT_STRING_ARGS_KEY] = '{foo: 123}';
 
-      standardActions.handleAmpTarget({
+      const invocation = {
         method: 'setState',
         args,
         target: ampdoc,
-      });
+        satisfiesTrust: () => true,
+      };
+      standardActions.handleAmpTarget(invocation);
       return bindForDoc(ampdoc).then(() => {
         expect(setStateWithExpressionSpy).to.be.calledOnce;
         expect(setStateWithExpressionSpy).to.be.calledWith('{foo: 123}');

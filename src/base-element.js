@@ -140,7 +140,7 @@ export class BaseElement {
     this.inViewport_ = false;
 
     /** @public @const {!Window} */
-    this.win = toWin(element.ownerDocument.defaultView);
+    this.win = element.ownerDocument.defaultView;
 
     /**
      * Maps action name to struct containing the action handler and minimum
@@ -507,7 +507,7 @@ export class BaseElement {
    * @return {ActionTrust}
    */
   activationTrust() {
-    return ActionTrust.HIGH;
+    return ActionTrust.MEDIUM;
   }
 
   /**
@@ -533,14 +533,15 @@ export class BaseElement {
    * Registers the action handler for the method with the specified name.
    *
    * The handler is only invoked by events with trust equal to or greater than
-   * `minTrust`. Otherwise, a user error is logged.
+   * `minTrust` (or ActionTrust.MEDIUM if not provided). Otherwise, a
+   * user error is logged.
    *
    * @param {string} method
    * @param {function(!./service/action-impl.ActionInvocation)} handler
    * @param {ActionTrust} minTrust
    * @public
    */
-  registerAction(method, handler, minTrust = ActionTrust.HIGH) {
+  registerAction(method, handler, minTrust = ActionTrust.MEDIUM) {
     this.initActionMap_();
     this.actionMap_[method] = {handler, minTrust};
   }
@@ -558,7 +559,7 @@ export class BaseElement {
   executeAction(invocation, unusedDeferred) {
     if (invocation.method == 'activate') {
       if (invocation.satisfiesTrust(this.activationTrust())) {
-        return this.activate(invocation);
+        this.activate(invocation);
       }
     } else {
       this.initActionMap_();
@@ -567,7 +568,7 @@ export class BaseElement {
           this);
       const {handler, minTrust} = holder;
       if (invocation.satisfiesTrust(minTrust)) {
-        return handler(invocation);
+        handler(invocation);
       }
     }
   }

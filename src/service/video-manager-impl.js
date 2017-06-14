@@ -16,8 +16,6 @@
  */
 
 import {ActionTrust} from '../action-trust';
-import {VideoSessionManager} from './video-session-manager';
-import {removeElement, scopedQuerySelector, isRTL} from '../dom';
 import {listen, listenOncePromise} from '../event-helper';
 import {dev} from '../log';
 import {getMode} from '../mode';
@@ -216,15 +214,15 @@ export class VideoManager {
    * @private
    */
   registerCommonActions_(video) {
-    // Only require ActionTrust.LOW for video actions to defer to platform
-    // specific handling (e.g. user gesture requirement for unmuted playback).
-    video.registerAction('play',
-        video.play.bind(video, /* isAutoplay */ false), ActionTrust.LOW);
-    video.registerAction('pause', video.pause.bind(video), ActionTrust.LOW);
-    video.registerAction('mute', video.mute.bind(video), ActionTrust.LOW);
-    video.registerAction('unmute', video.unmute.bind(video), ActionTrust.LOW);
-    video.registerAction('fullscreen', video.fullscreenEnter.bind(video),
-        ActionTrust.LOW);
+    // TODO(choumx, #9699): HIGH for unmuted play, LOW for muted play.
+    video.registerAction('play', video.play.bind(video, /* isAutoplay */ false),
+        ActionTrust.MEDIUM);
+    // TODO(choumx, #9699): LOW.
+    video.registerAction('pause', video.pause.bind(video), ActionTrust.MEDIUM);
+    video.registerAction('mute', video.mute.bind(video), ActionTrust.MEDIUM);
+    // TODO(choumx, #9699): HIGH.
+    video.registerAction('unmute', video.unmute.bind(video),
+        ActionTrust.MEDIUM);
   }
 
   /**

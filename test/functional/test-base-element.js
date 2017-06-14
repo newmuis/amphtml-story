@@ -113,6 +113,18 @@ describes.realWin('BaseElement', {amp: true}, env => {
     const invocation = {method: 'activate', satisfiesTrust: () => true};
     element.executeAction(invocation, false);
     expect(handler).to.be.calledOnce;
+
+    // Unregistered action (activate).
+    element.executeAction({
+      method: 'activate',
+      satisfiesTrust: () => false,
+    }, false);
+    expect(activate).to.not.be.called;
+    element.executeAction({
+      method: 'activate',
+      satisfiesTrust: t => (t <= element.activationTrust()),
+    }, false);
+    expect(activate).to.be.calledOnce;
   });
 
   it('should check trust before invocation', () => {

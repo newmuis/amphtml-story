@@ -15,7 +15,6 @@
  */
 
 import {ActionTrust} from '../../../src/action-trust';
-import {FormEvents} from './form-events';
 import {installFormProxy} from './form-proxy';
 import {triggerAnalyticsEvent} from '../../../src/analytics';
 import {createCustomEvent} from '../../../src/event-helper';
@@ -187,8 +186,9 @@ export class AmpForm {
     this.verifier_ = getFormVerifier(
         this.form_, () => this.handleXhrVerify_());
 
+    // TODO(choumx, #9699): HIGH.
     this.actions_.installActionHandler(
-        this.form_, this.actionHandler_.bind(this), ActionTrust.HIGH);
+        this.form_, this.actionHandler_.bind(this), ActionTrust.MEDIUM);
     this.installEventHandlers_();
 
     /** @private {?Promise} */
@@ -346,7 +346,7 @@ export class AmpForm {
       event.preventDefault();
     }
     // Submits caused by user input have high trust.
-    this.submit_(ActionTrust.HIGH);
+    this.submit_(ActionTrust.MEDIUM); // TODO(choumx, #9699): HIGH.
   }
 
   /**
@@ -395,14 +395,14 @@ export class AmpForm {
    * @param {ActionTrust} trust
    * @private
    */
-  handleXhrSubmit_(varSubsFields) {
+  handleXhrSubmit_(varSubsFields, trust) {
     this.setState_(FormState_.SUBMITTING);
 
     const p = this.doVarSubs_(varSubsFields)
         .then(() => {
           this.triggerFormSubmitInAnalytics_();
-          this.actions_.trigger(this.form_, 'submit', /*event*/ null);
-
+          this.actions_.trigger(
+              this.form_, 'submit', /* event */ null, trust);
           // After variable substitution
           const values = this.getFormAsObject_();
           this.renderTemplate_(values);
@@ -607,7 +607,7 @@ export class AmpForm {
     const name = success ? FormState_.SUBMIT_SUCCESS : FormState_.SUBMIT_ERROR;
     const event =
         createCustomEvent(this.win_, `${TAG}.${name}`, {response: json});
-    this.actions_.trigger(this.form_, name, event, ActionTrust.HIGH);
+    this.actions_.trigger(this.form_, name, event, ActionTrust.MEDIUM);
   }
 
   /**

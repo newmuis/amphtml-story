@@ -167,10 +167,10 @@ export class VideoInterface {
    *
    * @param {string} unusedMethod
    * @param {function(!./service/action-impl.ActionInvocation)} unusedHandler
-   * @param {ActionTrust} unusedMinTrust
+   * @param {ActionTrust} minTrust
    * @public
    */
-  registerAction(unusedMethod, unusedHandler, unusedMinTrust) {}
+  registerAction(unusedMethod, unusedHandler, minTrust) {}
 }
 
 

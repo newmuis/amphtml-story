@@ -29,7 +29,7 @@ import {
   installServiceInEmbedScope,
 } from '../service';
 import {getMode} from '../mode';
-import {isArray} from '../types';
+import {isArray, isFiniteNumber} from '../types';
 import {map} from '../utils/object';
 import {timerFor} from '../services';
 import {vsyncFor} from '../services';
@@ -106,24 +106,9 @@ let ActionInfoArgsDef;
 export let ActionInfoDef;
 
 /**
- * Function called when an action is invoked.
- *
- * Optionally, takes this action's position within all actions triggered by
- * the same event, as well as said action array, as params.
- *
- * If the action is chainable, returns a Promise which resolves when the
- * action is complete. Otherwise, returns null.
- *
- * @typedef {function(
- *     !ActionInvocation, number=, !Array<!ActionInfoDef>=):?Promise}
- */
-let ActionHandlerDef;
-
-/**
  * @typedef {Event|DeferredEvent}
  */
 export let ActionEventDef;
-
 
 /**
  * The structure that contains all details of the action method invocation.
@@ -203,7 +188,7 @@ export class ActionService {
 
     /**
      * @const @private {!Object<string, {
-      *   handler: ActionHandlerDef,
+      *   handler: function(!ActionInvocation),
       *   minTrust: ActionTrust,
       * }>}
       */
@@ -239,7 +224,8 @@ export class ActionService {
       this.root_.addEventListener('click', event => {
         if (!event.defaultPrevented) {
           const element = dev().assertElement(event.target);
-          this.trigger(element, name, event, ActionTrust.HIGH);
+          // TODO(choumx, #9699): HIGH.
+          this.trigger(element, name, event, ActionTrust.MEDIUM);
         }
       });
       this.root_.addEventListener('keydown', event => {
@@ -249,40 +235,78 @@ export class ActionService {
           if (!event.defaultPrevented &&
               element.getAttribute('role') == 'button') {
             event.preventDefault();
-            this.trigger(element, name, event, ActionTrust.HIGH);
+            // TODO(choumx, #9699): HIGH.
+            this.trigger(element, name, event, ActionTrust.MEDIUM);
           }
         }
       });
     } else if (name == 'submit') {
       this.root_.addEventListener(name, event => {
         const element = dev().assertElement(event.target);
-        this.trigger(element, name, event, ActionTrust.HIGH);
+        // TODO(choumx, #9699): HIGH.
+        this.trigger(element, name, event, ActionTrust.MEDIUM);
       });
     } else if (name == 'change') {
       this.root_.addEventListener(name, event => {
         const element = dev().assertElement(event.target);
-        this.addTargetPropertiesAsDetail_(event);
-        this.trigger(element, name, event, ActionTrust.HIGH);
+        // Only `change` events from <select> elements have high trust.
+        const trust = element.tagName == 'SELECT'
+            ? ActionTrust.MEDIUM // TODO(choumx, #9699): HIGH.
+            : ActionTrust.MEDIUM;
+        this.addInputDetails_(event);
+        this.trigger(element, name, event, trust);
       });
     } else if (name == 'input-debounced') {
       const debouncedInput = debounce(this.ampdoc.win, event => {
         const target = dev().assertElement(event.target);
         this.trigger(target, name, /** @type {!ActionEventDef} */ (event),
-            ActionTrust.HIGH);
+            ActionTrust.MEDIUM);
       }, DEFAULT_DEBOUNCE_WAIT);
 
       this.root_.addEventListener('input', event => {
         // Create a DeferredEvent to avoid races where the browser cleans up
         // the event object before the async debounced function is called.
         const deferredEvent = new DeferredEvent(event);
-        this.addTargetPropertiesAsDetail_(deferredEvent);
+        this.addInputDetails_(deferredEvent);
         debouncedInput(deferredEvent);
       });
-    } else if (name == 'valid' || name == 'invalid') {
-      this.root_.addEventListener(name, event => {
-        const element = dev().assertElement(event.target);
-        this.trigger(element, name, event, ActionTrust.HIGH);
-      });
+    }
+  }
+
+  /**
+   * Given a browser 'change' or 'input' event, add `details` property
+   * containing the relevant information for the change that generated
+   * the initial event.
+   * @param {!ActionEventDef} event
+   */
+  addInputDetails_(event) {
+    const detail = map();
+    const target = event.target;
+    const tagName = target.tagName.toLowerCase();
+    switch (tagName) {
+      case 'input':
+        const inputType = target.getAttribute('type');
+        const fieldsToInclude = WHITELISTED_INPUT_DATA_[inputType];
+        if (fieldsToInclude) {
+          Object.keys(fieldsToInclude).forEach(field => {
+            const expectedType = fieldsToInclude[field];
+            const value = target[field];
+            if (expectedType === 'number') {
+              detail[field] = Number(value);
+            } else if (expectedType === 'boolean') {
+              detail[field] = !!value;
+            } else {
+              detail[field] = String(value);
+            }
+          });
+        }
+        break;
+      case 'select':
+        detail.value = target.value;
+        break;
+    }
+    if (Object.keys(detail).length > 0) {
+      event.detail = detail;
     }
   }
 
@@ -298,10 +322,10 @@ export class ActionService {
   /**
    * Registers the action handler for a common method.
    * @param {string} name
-   * @param {ActionHandlerDef} handler
+   * @param {function(!ActionInvocation)} handler
    * @param {ActionTrust} minTrust
    */
-  addGlobalMethodHandler(name, handler, minTrust = ActionTrust.HIGH) {
+  addGlobalMethodHandler(name, handler, minTrust = ActionTrust.MEDIUM) {
     this.globalMethodHandlers_[name] = {handler, minTrust};
   }
 
@@ -325,19 +349,19 @@ export class ActionService {
    * @param {?ActionEventDef} event
    * @param {ActionTrust} trust
    */
-  execute(target, method, args, source, event, trust) {
-    const invocation =
-        new ActionInvocation(target, method, args, source, event, trust);
-    this.invoke_(invocation, /* actionInfo */ null);
+  execute(target, method, args, source, event) {
+    // Invocation of actions by the runtime has the highest trust of all.
+    const trust = ActionTrust.MEDIUM; // TODO(choumx, #9699): HIGH.
+    this.invoke_(target, method, args, source, event, trust, null);
   }
 
   /**
    * Installs action handler for the specified element.
    * @param {!Element} target
-   * @param {ActionHandlerDef} handler
+   * @param {function(!ActionInvocation)} handler
    * @param {ActionTrust} minTrust
    */
-  installActionHandler(target, handler, minTrust = ActionTrust.HIGH) {
+  installActionHandler(target, handler, minTrust = ActionTrust.MEDIUM) {
     // TODO(dvoytenko, #7063): switch back to `target.id` with form proxy.
     const targetId = target.getAttribute('id') || '';
     const debugid = target.tagName + '#' + targetId;
@@ -392,23 +416,24 @@ export class ActionService {
       const actionInfo = action.actionInfos[i];
 
       // Replace any variables in args with data in `event`.
-      const args = dereferenceExprsInArgs(actionInfo.args, event);
+      const args = applyActionInfoArgs(actionInfo.args, event);
 
-      const invoke = () => {
-        // Global target, e.g. `AMP`.
-        const globalTarget = this.globalTargets_[actionInfo.target];
-        if (globalTarget) {
-          const invocation = new ActionInvocation(this.root_, actionInfo.method,
-              args, action.node, event, trust);
-          return globalTarget(invocation, i, action.actionInfos);
-        }
-
-        // Element target via `id` attribute.
+      // Global target, e.g. `AMP`.
+      const globalTarget = this.globalTargets_[actionInfo.target];
+      if (globalTarget) {
+        const invocation = new ActionInvocation(
+            this.root_,
+            actionInfo.method,
+            args,
+            action.node,
+            event,
+            trust);
+        globalTarget(invocation);
+      } else {
         const target = this.root_.getElementById(actionInfo.target);
         if (target) {
-          const invocation = new ActionInvocation(target, actionInfo.method,
-              args, action.node, event, trust);
-          return this.invoke_(invocation, actionInfo);
+          this.invoke_(target, actionInfo.method, args,
+              action.node, event, trust, actionInfo);
         } else {
           this.actionInfoError_('target not found', actionInfo, target);
         }
@@ -436,19 +461,24 @@ export class ActionService {
   }
 
   /**
-   * @param {!ActionInvocation} invocation
-   * @param {?ActionInfoDef} actionInfo TODO(choumx): Remove this param.
-   * @return {?Promise}
+   * @param {!Element} target
+   * @param {string} method
+   * @param {?JSONType} args
+   * @param {?Element} source
+   * @param {?ActionEventDef} event
+   * @param {ActionTrust} trust
+   * @param {?ActionInfoDef} actionInfo
    * @private visible for testing
    */
-  invoke_(invocation, actionInfo) {
-    const target = dev().assertElement(invocation.target);
-    const method = invocation.method;
+  invoke_(target, method, args, source, event, trust, actionInfo) {
+    const invocation = new ActionInvocation(target, method, args,
+        source, event, trust);
 
     // Try a global method handler first.
-    const globalMethod = this.globalMethodHandlers_[method];
+    const globalMethod = this.globalMethodHandlers_[invocation.method];
     if (globalMethod && invocation.satisfiesTrust(globalMethod.minTrust)) {
-      return globalMethod.handler(invocation);
+      globalMethod.handler(invocation);
+      return;
     }
 
     const lowerTagName = target.tagName.toLowerCase();
@@ -470,7 +500,7 @@ export class ActionService {
     // TODO(dvoytenko, #7063): switch back to `target.id` with form proxy.
     const targetId = target.getAttribute('id') || '';
     if ((targetId && targetId.substring(0, 4) == 'amp-') ||
-        (supportedActions && supportedActions.indexOf(method) > -1)) {
+        (supportedActions && supportedActions.indexOf(method) != -1)) {
       const holder = target[ACTION_HANDLER_];
       if (holder) {
         const {handler, minTrust} = holder;

@@ -998,31 +998,14 @@ describes.realWin('SlideScroll', {
 
         // Layout happens asynchronously after attaching to DOM, so we can
         // test pre-layoutCallback logic now.
-        doc.body.appendChild(ampSlideScroll);
-        return ampSlideScroll.build().then(() => {
-          const impl = ampSlideScroll.implementation_;
-          const showSlideSpy = sandbox.spy(impl, 'showSlide_');
-          const satisfiesTrust = () => true;
+        iframe.addElement(ampSlideScroll);
+        const impl = ampSlideScroll.implementation_;
+        const showSlideSpy = sandbox.spy(impl, 'showSlide_');
+        const satisfiesTrust = () => true;
 
-          const args = {'index': '3'};
-          impl.executeAction({method: 'goToSlide', args, satisfiesTrust});
-          expect(showSlideSpy).to.not.have.been.called;
-
-          impl.mutatedAttributesCallback({slide: 2});
-          expect(showSlideSpy).to.not.have.been.called;
-
-          impl.onLayoutMeasure();
-          ampSlideScroll.layoutCallback();
-
-          // Should show the last slide index requested before layout.
-          expect(showSlideSpy).to.have.been.calledWith(2);
-          expect(showSlideSpy).to.be.calledOnce;
-        });
-      });
-    });
-
-    it('should NOT call showSlide_ before re-layout', () => {
-      return getAmpSlideScroll(false, 5, false).then(ampSlideScroll => {
+        const args = {'index': '3'};
+        impl.executeAction({method: 'goToSlide', args, satisfiesTrust});
+        expect(showSlideSpy).to.not.have.been.called;
 
         doc.body.appendChild(ampSlideScroll);
         return ampSlideScroll.build().then(() => {

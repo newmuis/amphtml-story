@@ -473,10 +473,20 @@ describes.realWin('amp-user-notification', {
       expect(stub2.calledOnce).to.be.false;
       impl.executeAction({method: 'dismiss', satisfiesTrust: () => true});
       expect(el).to.not.have.class('amp-active');
-      expect(el).to.have.class('amp-hidden');
-      expect(stub2.calledOnce).to.be.true;
-      expect(removeFromFixedLayerStub).to.be.calledOnce;
-      expect(removeFromFixedLayerStub.getCall(0).args[0]).to.equal(el);
+
+      return impl.shouldShow().then(shouldShow => {
+        if (shouldShow) {
+          impl.show();
+        }
+        expect(el).to.have.class('amp-active');
+        expect(stub2.calledOnce).to.be.false;
+        impl.executeAction({method: 'dismiss', satisfiesTrust: () => true});
+        expect(el).to.not.have.class('amp-active');
+        expect(el).to.have.class('amp-hidden');
+        expect(stub2.calledOnce).to.be.true;
+        expect(removeFromFixedLayerStub).to.be.calledOnce;
+        expect(removeFromFixedLayerStub.getCall(0).args[0]).to.equal(el);
+      });
     });
   });
 
