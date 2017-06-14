@@ -426,12 +426,16 @@ Only binding to the following components and attributes are allowed:
     <td>When binding to <code>[src]</code>, make sure you also bind to <code>[srcset]</code> in order to make the binding work on cache.<br>See corresponding <a href="https://www.ampproject.org/docs/reference/components/media/amp-img#attributes">amp-img attributes</a>.</td>
   </tr>
   <tr>
-    <td><code>&lt;amp-list&gt;</code></td>
+    <td rowspan=2><code>&lt;amp-list&gt;</code></td>
     <td><code>[src]</code></td>
     <td>
       If expression is a string, fetches and renders JSON from the string URL.
       If expression is an object or array, renders the expression data.
     </td>
+  </tr>
+  <tr>
+    <td><code>[state]</code></td>
+    <td>Renders using local JSON state at the provided expression.</td>
   </tr>
   <tr>
     <td><code>&lt;amp-selector&gt;</code></td>
