@@ -126,7 +126,8 @@ describe('preconnect', () => {
           iframe.doc.querySelector('link[rel=preconnect]')
               .getAttribute('referrerpolicy')).to.equal('origin');
       return visible.then(() => {
-        expect(iframe.doc.querySelectorAll('link[rel=preload]'))
+        expect(iframe.doc.querySelectorAll(
+            'link[rel=prefetch],link[rel=preload]'))
             .to.have.length(0);
         expect(open).to.have.not.been.called;
       });

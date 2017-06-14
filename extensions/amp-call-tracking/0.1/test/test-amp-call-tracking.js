@@ -103,13 +103,14 @@ describes.realWin('amp-call-tracking', {
 
     mockXhrResponse(url, {phoneNumber, formattedPhoneNumber});
 
-    return getCallTrackingEl({
-      url,
-      defaultNumber,
-      defaultContent,
-    }).then(callTrackingEl => {
-      expectHyperlinkToBe(
-          callTrackingEl, `tel:${phoneNumber}`, formattedPhoneNumber);
+      return getCallTrackingEl(iframe, {
+        url,
+        defaultNumber,
+        defaultContent,
+      }).then(callTrackingEl => {
+        expectHyperlinkToBe(
+            callTrackingEl, `tel:${phoneNumber}`, formattedPhoneNumber);
+      });
     });
   });
 

@@ -83,7 +83,7 @@ describes.realWin('amp-nexxtv-player', {
 
       return Promise.resolve()
           .then(() => {
-            const p = listenOncePromise(nexxtv, VideoEvents.PLAYING);
+            const p = listenOncePromise(nexxtv, VideoEvents.PLAY);
             sendFakeMessage(nexxtv, iframe, {event: 'play'});
             return p;
           })

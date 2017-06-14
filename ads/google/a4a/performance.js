@@ -299,9 +299,9 @@ export class GoogleAdLifecycleReporter extends BaseLifecycleReporter {
           });
       // first visible
       vis.listenElement(element, {visiblePercentageMin: 1}, null, null,
-                        () => {
-                          this.sendPing('firstVisible');
-                        });
+          () => {
+            this.sendPing('firstVisible');
+          });
 
       // ini load
       readyPromise.then(() => {
@@ -310,10 +310,10 @@ export class GoogleAdLifecycleReporter extends BaseLifecycleReporter {
 
       // first visible + ini-load
       vis.listenElement(element, {waitFor: 'ini-load'},
-                        readyPromise, null,
-                        () => {
-                          this.sendPing('visIniLoad');
-                        });
+          readyPromise, null,
+          () => {
+            this.sendPing('visIniLoad');
+          });
 
       // 50% vis, ini-load and 1 sec
       vis.listenElement(element,

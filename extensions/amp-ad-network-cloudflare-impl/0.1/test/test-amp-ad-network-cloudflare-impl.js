@@ -62,8 +62,7 @@ describes.realWin('amp-ad-network-cloudflare-impl', {
     el.setAttribute('data-cf-network', 'cloudflare');
     el.setAttribute('src',
         'https://firebolt.cloudflaredemo.com/a4a-ad.html');
-    sandbox.stub(
-        AmpAdNetworkCloudflareImpl.prototype, 'getSigningServiceNames',
+    sandbox.stub(AmpAdNetworkCloudflareImpl.prototype, 'getSigningServiceNames',
         () => {
           return ['cloudflare','cloudflare-dev'];
         });
@@ -159,6 +158,37 @@ describes.realWin('amp-ad-network-cloudflare-impl', {
         height: '0',
         key: 'value',
         width: '0',
+      });
+    });
+  });
+
+  describe('#extractCreativeAndSignature', () => {
+    it('without signature', () => {
+      return utf8Encode('some creative').then(creative => {
+        return expect(cloudflareImpl.extractCreativeAndSignature(
+            creative,
+            {
+              get() { return undefined; },
+              has() { return false; },
+            })).to.eventually.deep.equal(
+            {creative, signature: null}
+          );
+      });
+    });
+    it('with signature', () => {
+      return utf8Encode('some creative').then(creative => {
+        return expect(cloudflareImpl.extractCreativeAndSignature(
+            creative,
+            {
+              get(name) {
+                return name == 'X-AmpAdSignature' ? 'AQAB' : undefined;
+              },
+              has(name) {
+                return name === 'X-AmpAdSignature';
+              },
+            })).to.eventually.deep.equal(
+            {creative, signature: base64UrlDecodeToBytes('AQAB')}
+          );
       });
     });
   });

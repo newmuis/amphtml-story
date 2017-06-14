@@ -872,8 +872,8 @@ export class UrlReplacements {
     }
     if (additionalUrlParameters) {
       href = addParamsToUrl(
-        href,
-        parseQueryString(additionalUrlParameters));
+          href,
+          parseQueryString(additionalUrlParameters));
     }
     if (whitelist) {
       const isAllowedOrigin = this.isAllowedOrigin_(url);
@@ -889,10 +889,10 @@ export class UrlReplacements {
       }
       if (isAllowedOrigin && isSecure) {
         href = this.expandSync(
-          href,
-          /* opt_bindings */ undefined,
-          /* opt_collectVars */ undefined,
-          /* opt_whitelist */ whitelist);
+            href,
+            /* opt_bindings */ undefined,
+            /* opt_collectVars */ undefined,
+            /* opt_whitelist */ whitelist);
       }
     }
     return element.href = href;

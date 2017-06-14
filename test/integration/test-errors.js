@@ -49,7 +49,7 @@ describe.configure().retryOnSaucelabs().run('error page', function() {
 
   it.configure().skipFirefox().skipEdge()
       .run('should show the body in error test', () => {
-        return expectBodyToBecomeVisible(fixture.win, TIMEOUT);
+        return expectBodyToBecomeVisible(fixture.win);
       });
 
   function shouldFail(id) {

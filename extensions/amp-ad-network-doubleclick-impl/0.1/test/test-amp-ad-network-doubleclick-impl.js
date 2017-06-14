@@ -139,60 +139,71 @@ describes.realWin('amp-ad-network-doubleclick-impl', realWinConfig, env => {
       preloadExtensionSpy = sandbox.spy(extensions, 'preloadExtension');
     });
 
-    it('should not load amp-analytics without an analytics header', () => {
-      expect(impl.extractSize({
-        get() {
-          return undefined;
-        },
-        has() {
-          return false;
-        },
-      })).to.deep.equal(size);
-      expect(preloadExtensionSpy.withArgs('amp-analytics')).to.not.be.called;
+    it('without signature', () => {
+      return utf8Encode('some creative').then(creative => {
+        return impl.extractCreativeAndSignature(
+            creative,
+            {
+              get() { return undefined; },
+              has() { return false; },
+            }).then(adResponse => {
+              expect(adResponse).to.deep.equal(
+                  {creative, signature: null, size});
+              expect(loadExtensionSpy.withArgs('amp-analytics')).to.not.be
+                  .called;
+            });
+      });
     });
-
-    it('should load amp-analytics with an analytics header', () => {
-      const url = ['https://foo.com?a=b', 'https://blah.com?lsk=sdk&sld=vj'];
-      expect(impl.extractSize({
-        get(name) {
-          switch (name) {
-            case 'X-AmpAnalytics':
-              return JSON.stringify({url});
-            default:
-              return undefined;
-          }
-        },
-        has(name) {
-          return !!this.get(name);
-        },
-      })).to.deep.equal(size);
-      expect(preloadExtensionSpy.withArgs('amp-analytics')).to.be.called;
-      // exact value of ampAnalyticsConfig covered in
-      // ads/google/test/test-utils.js
+    it('with signature', () => {
+      return utf8Encode('some creative').then(creative => {
+        return impl.extractCreativeAndSignature(
+            creative,
+            {
+              get(name) {
+                return name == 'X-AmpAdSignature' ? 'AQAB' : undefined;
+              },
+              has(name) {
+                return name === 'X-AmpAdSignature';
+              },
+            }).then(adResponse => {
+              expect(adResponse).to.deep.equal(
+              {creative, signature: base64UrlDecodeToBytes('AQAB'), size});
+              expect(loadExtensionSpy.withArgs('amp-analytics')).to.not.be
+                  .called;
+            });
+      });
     });
-
-    it('should load delayed impression amp-pixels', () => {
-      const fireDelayedImpressionsSpy =
-          sandbox.spy(impl, 'fireDelayedImpressions');
-      expect(impl.extractSize({
-        get(name) {
-          switch (name) {
-            case 'X-AmpImps':
-              return 'https://a.com?a=b,https://b.com?c=d';
-            case 'X-AmpRSImps':
-              return 'https://c.com?e=f,https://d.com?g=h';
-            default:
-              return undefined;
-          }
-        },
-        has(name) {
-          return !!this.get(name);
-        },
-      })).to.deep.equal(size);
-      expect(fireDelayedImpressionsSpy.withArgs(
-          'https://a.com?a=b,https://b.com?c=d')).to.be.calledOnce;
-      expect(fireDelayedImpressionsSpy.withArgs(
-          'https://c.com?e=f,https://d.com?g=h', true)).to.be.calledOnce;
+    it('with analytics', () => {
+      return utf8Encode('some creative').then(creative => {
+        const url = ['https://foo.com?a=b', 'https://blah.com?lsk=sdk&sld=vj'];
+        return impl.extractCreativeAndSignature(
+            creative,
+            {
+              get(name) {
+                switch (name) {
+                  case 'X-AmpAnalytics':
+                    return JSON.stringify({url});
+                  case 'X-AmpAdSignature':
+                    return 'AQAB';
+                  default:
+                    return undefined;
+                }
+              },
+              has(name) {
+                return !!this.get(name);
+              },
+            }).then(adResponse => {
+              expect(adResponse).to.deep.equal(
+                  {
+                    creative,
+                    signature: base64UrlDecodeToBytes('AQAB'),
+                    size,
+                  });
+              expect(loadExtensionSpy.withArgs('amp-analytics')).to.be.called;
+            // exact value of ampAnalyticsConfig covered in
+            // ads/google/test/test-utils.js
+            });
+      });
     });
   });
 
@@ -714,17 +725,17 @@ describes.realWin('amp-ad-network-doubleclick-impl', realWinConfig, env => {
       headers[RENDERING_TYPE_HEADER] = XORIGIN_MODE.NAMEFRAME;
       // Assume all implementations have same data slot.
       const iuParts = encodeURIComponent(
-        validInstances[0].element.getAttribute('data-slot').split(/\//)
+          validInstances[0].element.getAttribute('data-slot').split(/\//)
         .splice(1).join());
       const xhrWithArgs = xhrMock.withArgs(
-        sinon.match(
-          new RegExp('^https:\/\/securepubads\\.g\\.doubleclick\\.net' +
+          sinon.match(
+              new RegExp('^https:\/\/securepubads\\.g\\.doubleclick\\.net' +
             `\/gampad\/ads\\?iu_parts=${iuParts}&enc_prev_ius=`)),
-        {
-          mode: 'cors',
-          method: 'GET',
-          credentials: 'include',
-        });
+          {
+            mode: 'cors',
+            method: 'GET',
+            credentials: 'include',
+          });
       if (opt_xhrFail) {
         xhrWithArgs.returns(Promise.reject(
             new TypeError('some random network error')));
@@ -760,23 +771,23 @@ describes.realWin('amp-ad-network-doubleclick-impl', realWinConfig, env => {
         '^https:\/\/securepubads\\.g\\.doubleclick\\.net' +
         `\/gampad\/ads\\?iu=${iu}&`);
       xhrMock.withArgs(
-        sinon.match(urlRegexp),
-        {
-          mode: 'cors',
-          method: 'GET',
-          credentials: 'include',
-        }).returns(Promise.resolve({
-          arrayBuffer: () => utf8Encode(creative),
-          bodyUsed: false,
-          headers: new FetchResponseHeaders({
-            getResponseHeader(name) {
-              return headers[name];
+          sinon.match(urlRegexp),
+          {
+            mode: 'cors',
+            method: 'GET',
+            credentials: 'include',
+          }).returns(Promise.resolve({
+            arrayBuffer: () => utf8Encode(creative),
+            bodyUsed: false,
+            headers: new FetchResponseHeaders({
+              getResponseHeader(name) {
+                return headers[name];
+              },
+            }),
+            text: () => {
+              throw new Error('should not be SRA!');
             },
-          }),
-          text: () => {
-            throw new Error('should not be SRA!');
-          },
-        }));
+          }));
     }
 
     /**
@@ -828,12 +839,12 @@ describes.realWin('amp-ad-network-doubleclick-impl', realWinConfig, env => {
       doubleclickInstances.forEach(impl => {
         const networkId = getNetworkId(impl.element);
         (grouping[networkId] || (grouping[networkId] = []))
-          .push(impl);
+            .push(impl);
         (groupingPromises[networkId] || (groupingPromises[networkId] = []))
-          .push(Promise.resolve(impl));
+            .push(Promise.resolve(impl));
       });
       sandbox.stub(AmpAdNetworkDoubleclickImpl.prototype, 'groupSlotsForSra')
-        .returns(Promise.resolve(groupingPromises));
+          .returns(Promise.resolve(groupingPromises));
       let idx = 0;
       const layoutCallbacks = [];
       const getLayoutCallback = (impl, creative, isSra, noRender) => {
@@ -849,7 +860,7 @@ describes.realWin('amp-ad-network-doubleclick-impl', realWinConfig, env => {
           if (isSra) {
             // Expect safeframe.
             expect(name).to.match(
-              new RegExp(`^\\d+-\\d+-\\d+;\\d+;${creative}`));
+                new RegExp(`^\\d+-\\d+-\\d+;\\d+;${creative}`));
           } else {
             // Expect nameframe render.
             expect(JSON.parse(name).creative).to.equal(creative);
@@ -869,13 +880,13 @@ describes.realWin('amp-ad-network-doubleclick-impl', realWinConfig, env => {
             generateNonSraXhrMockCall(impl, creative);
           }
           layoutCallbacks.push(getLayoutCallback(
-            impl, creative, isSra,
-            networkXhrFailure[networkId] ||
+              impl, creative, isSra,
+              networkXhrFailure[networkId] ||
             impl.element.getAttribute('data-test-invalid') == 'true'));
         });
         if (isSra) {
           generateSraXhrMockCall(validInstances, networkId, sraResponses,
-            networkXhrFailure[networkId], networkValidity[networkId]);
+              networkXhrFailure[networkId], networkValidity[networkId]);
         }
       });
       return Promise.all(layoutCallbacks).then(() => expect(
@@ -891,13 +902,13 @@ describes.realWin('amp-ad-network-doubleclick-impl', realWinConfig, env => {
         sandbox.stub(AmpA4A.prototype,
             'getSigningServiceNames').returns(['google']);
         xhrMockJson.withArgs(
-          'https://cdn.ampproject.org/amp-ad-verifying-keyset.json',
-          {
-            mode: 'cors',
-            method: 'GET',
-            ampCors: false,
-            credentials: 'omit',
-          }).returns(
+            'https://cdn.ampproject.org/amp-ad-verifying-keyset.json',
+            {
+              mode: 'cors',
+              method: 'GET',
+              ampCors: false,
+              credentials: 'omit',
+            }).returns(
             Promise.resolve({keys: []}));
         // TODO(keithwrightbos): remove, currently necessary as amp-ad
         // attachment causes 3p impl to load causing errors to be thrown.
@@ -912,13 +923,13 @@ describes.realWin('amp-ad-network-doubleclick-impl', realWinConfig, env => {
     it('should not use SRA if single slot', () => executeTest([1234]));
 
     it('should not use SRA if single slot, multiple networks',
-      () => executeTest([1234, 4567]));
+        () => executeTest([1234, 4567]));
 
     it('should correctly use SRA for multiple slots',
-      () => executeTest([1234, 1234]));
+        () => executeTest([1234, 1234]));
 
     it('should not send SRA request if slots are invalid',
-      () => executeTest([{networkId: 1234, invalidInstances: 2}]));
+        () => executeTest([{networkId: 1234, invalidInstances: 2}]));
 
     it('should send SRA request if more than 1 slot is valid', () =>
       executeTest([{networkId: 1234, instances: 2, invalidInstances: 2}]));
@@ -927,16 +938,16 @@ describes.realWin('amp-ad-network-doubleclick-impl', realWinConfig, env => {
       executeTest([{networkId: 1234, instances: 1, invalidInstances: 2}]));
 
     it('should handle xhr failure by not sending subsequent request',
-      () => executeTest([{networkId: 1234, instances: 2, xhrFail: true}]));
+        () => executeTest([{networkId: 1234, instances: 2, xhrFail: true}]));
 
     it('should handle mixture of xhr and non xhr failures', () => executeTest(
         [{networkId: 1234, instances: 2, xhrFail: true}, 4567, 4567]));
 
     it('should correctly use SRA for multiple slots. multiple networks',
-      () => executeTest([1234, 4567, 1234, 4567]));
+        () => executeTest([1234, 4567, 1234, 4567]));
 
     it('should handle mixture of all possible scenarios', () => executeTest(
-      [1234, 1234, 101, {networkId: 4567, instances: 2, xhrFail: true}, 202,
+        [1234, 1234, 101, {networkId: 4567, instances: 2, xhrFail: true}, 202,
         {networkId: 8901, instances: 3, invalidInstances: 1}]));
   });
 });

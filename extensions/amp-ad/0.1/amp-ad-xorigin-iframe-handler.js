@@ -113,15 +113,29 @@ export class AmpAdXOriginIframeHandler {
         this.iframe, 'send-embed-state', true,
         () => this.sendEmbedInfo_(this.baseInstance_.isInViewport()));
 
-    // To provide position to inabox.
-    if (isExperimentOn(this.win_, 'inabox-position-api')) {
-      this.inaboxPositionApi_ = new SubscriptionApi(
-          this.iframe, MessageType.SEND_POSITIONS, true, () => {
-            // TODO(@zhouyx): Make sendPosition_ only send to message origin iframe
-            this.sendPosition_();
-            this.registerPosition_();
-          });
-    };
+    // High-fidelity positions for scrollbound animations.
+    // Protected by 'amp-animation' experiment for now.
+    if (isExperimentOn(this.baseInstance_.win, 'amp-animation')) {
+      let posObInstalled = false;
+      this.positionObserverHighFidelityApi_ = new SubscriptionApi(
+        this.iframe, SEND_POSITIONS_HIGH_FIDELITY, true, () => {
+          const ampdoc = this.baseInstance_.getAmpDoc();
+          // TODO (#9232) May crash PWA
+          if (!posObInstalled) {
+            installPositionObserverServiceForDoc(ampdoc);
+            posObInstalled = true;
+          }
+          this.positionObserver_ = getServiceForDoc(ampdoc,
+              'position-observer');
+          this.positionObserver_.observe(
+              dev().assertElement(this.iframe),
+              PositionObserverFidelity.HIGH, pos => {
+                this.positionObserverHighFidelityApi_.send(
+                    POSITION_HIGH_FIDELITY,
+                    pos);
+              });
+        });
+    }
 
     // Triggered by context.reportRenderedEntityIdentifier(…) inside the ad
     // iframe.
@@ -136,9 +150,7 @@ export class AmpAdXOriginIframeHandler {
             return;
           }
 
-          const selector = info['selector'];
-          const attributes = info['attributes'];
-          const messageId = info['messageId'];
+          const {selector, attributes, messageId} = info;
           let content = '';
 
           if (this.element_.hasAttribute('data-html-access-allowed')) {
@@ -147,10 +159,7 @@ export class AmpAdXOriginIframeHandler {
 
           postMessageToWindows(
               this.iframe, [{win: source, origin}],
-              'get-html-result', dict({
-                'content': content,
-                'messageId': messageId,
-              }), true
+              'get-html-result', {content, messageId}, true
           );
         }, true, false));
 

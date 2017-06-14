@@ -516,11 +516,20 @@ function prepareAndRegisterServiceForDocShadowMode(global, extensions,
  * modes.
  * @param {!./service/ampdoc-impl.AmpDoc} ampdoc
  */
-function installAutoLoadExtensions(extensions, ampdoc) {
-  if (!getMode().test &&
-      isExperimentOn(ampdoc.win, 'amp-lightbox-viewer-auto')) {
-    extensions.installExtensionForDoc(ampdoc, 'amp-lightbox-viewer');
-  }
+function registerServiceForDoc(ampdoc, name, opt_ctor, opt_factory) {
+  // TODO(kmh287, #9292): Refactor to remove opt_factory param and require ctor
+  // once #9212 has been in prod for two releases.
+  // Wrapping factory in function is necessary as opt_factory could be an
+  // arrow function, which cannot be used as constructors.
+  const ctor = opt_ctor || function(ampdoc) {
+    return opt_factory(ampdoc);
+  };
+  // TODO(kmh287): Investigate removing the opt_instantiate arg after
+  // all other services have been refactored.
+  registerServiceBuilderForDoc(ampdoc,
+      name,
+      ctor,
+      /* opt_instantiate */ true);
 }
 
 

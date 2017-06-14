@@ -589,11 +589,7 @@ class VideoEntry {
     this.metadata_ = EMPTY_METADATA;
 
     listenOncePromise(element, VideoEvents.LOAD)
-        .then(() => this.videoLoaded());
-    listen(element, VideoEvents.PAUSE, () => this.videoPaused_());
-    listen(element, VideoEvents.PLAYING, () => this.videoPlayed_());
-    listen(element, VideoEvents.MUTED, () => this.muted_ = true);
-    listen(element, VideoEvents.UNMUTED, () => this.muted_ = false);
+        .then(() => this.videoLoaded_());
 
     // Currently we only register after video player is build.
     this.videoBuilt_();

@@ -60,9 +60,9 @@ describes.realWin('amp-fresh', {
   it('should replace its subtree', () => {
     fresh.buildCallback();
     expect(fresh.element.innerHTML).to.equal('<span>hello</span>');
-    const otherDoc = {
+    const doc = {
       getElementById(id) {
-        const el = doc.createElement('amp-fresh');
+        const el = document.createElement('amp-fresh');
         el.innerHTML = '<span>hello</span><div>world</div>!';
         el.setAttribute('id', id);
         return el;

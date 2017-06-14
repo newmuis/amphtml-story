@@ -350,34 +350,27 @@ export class Bind {
    * @return {!Promise}
    * @private
    */
-  addBindingsForNodes_(nodes) {
-    // For each node, scan it for bindings and store them.
-    const scanPromises = nodes.map(node => {
-      // Limit number of total bindings (unless in local manual testing).
-      const limit = (getMode().localDev && !getMode().test)
-          ? Number.POSITIVE_INFINITY
-          : this.maxNumberOfBindings_ - this.numberOfBindings();
+  addBindingsForNode_(node) {
+    // Limit number of total bindings (unless in local manual testing).
+    const limit = (getMode().localDev && !getMode().test)
+        ? Number.POSITIVE_INFINITY
+        : this.maxNumberOfBindings_ - this.numberOfBindings_();
+    return this.scanNode_(node, limit).then(results => {
+      const {
+        boundElements, bindings, expressionToElements, limitExceeded,
+      } = results;
 
-      return this.scanNode_(node, limit).then(results => {
-        const {
-          boundElements, bindings, expressionToElements, limitExceeded,
-        } = results;
+      this.boundElements_ = this.boundElements_.concat(boundElements);
+      Object.assign(this.expressionToElements_, expressionToElements);
 
-        this.boundElements_ = this.boundElements_.concat(boundElements);
-        Object.assign(this.expressionToElements_, expressionToElements);
+      dev().fine(TAG, `Scanned ${bindings.length} bindings from ` +
+          `${boundElements.length} elements.`);
 
-        dev().fine(TAG, `Scanned ${bindings.length} bindings from ` +
-            `${boundElements.length} elements.`);
-
-        if (limitExceeded) {
-          user().error(TAG, 'Maximum number of bindings reached ' +
-              `(${this.maxNumberOfBindings_}). Additional elements with ` +
-              'bindings will be ignored.');
-        }
-
-        return bindings;
-      });
-    });
+      if (limitExceeded) {
+        user().error(TAG, 'Maximum number of bindings reached ' +
+            `(${this.maxNumberOfBindings_}). Additional elements with ` +
+            'bindings will be ignored.');
+      }
 
     // Once all scans are complete, combine the bindings and ask web-worker to
     // evaluate expressions in a single RPC.
@@ -388,9 +381,25 @@ export class Bind {
       if (bindings.length == 0) {
         return bindings.length;
       } else {
-        dev().fine(TAG, `Asking worker to parse expressions...`);
+        dev().fine(TAG, 'Asking worker to parse expressions...');
         return this.ww_('bind.addBindings', [bindings]);
       }
+    }).then(parseErrors => {
+      // Report each parse error.
+      Object.keys(parseErrors).forEach(expressionString => {
+        const elements = this.expressionToElements_[expressionString];
+        if (elements.length > 0) {
+          const parseError = parseErrors[expressionString];
+          const userError = user().createError(
+              `${TAG}: Expression compilation error in "${expressionString}". `
+              + parseError.message);
+          userError.stack = parseError.stack;
+          reportError(userError, elements[0]);
+        }
+      });
+
+      dev().fine(TAG, 'Finished parsing expressions with ' +
+          `${Object.keys(parseErrors).length} errors.`);
     });
   }
 
@@ -437,7 +446,7 @@ export class Bind {
 
     // Remove the bindings from the evaluator.
     if (deletedExpressions.length > 0) {
-      dev().fine(TAG, `Asking worker to remove expressions...`);
+      dev().fine(TAG, 'Asking worker to remove expressions...');
       return this.ww_(
           'bind.removeBindingsWithExpressionStrings', [deletedExpressions]);
     } else {
@@ -468,10 +477,9 @@ export class Bind {
     /** @type {!Object<string, !Array<!Element>>} */
     const expressionToElements = map();
 
-    const doc = dev().assert(node.ownerDocument, 'ownerDocument is null.');
-    // Third and fourth params of `createTreeWalker` are not optional on IE11.
-    const walker = doc.createTreeWalker(node, NodeFilter.SHOW_ELEMENT, null,
-        /* entityReferenceExpansion */ false);
+    const doc = dev().assert(
+        node.ownerDocument, 'ownerDocument is null.');
+    const walker = doc.createTreeWalker(node, NodeFilter.SHOW_ELEMENT);
 
     // Set to true if number of bindings in `node` exceeds `limit`.
     let limitExceeded = false;
@@ -648,7 +656,7 @@ export class Bind {
       const {expressionString, previousResult} = boundProperty;
       const newValue = results[expressionString];
       if (newValue === undefined ||
-          recursiveEquals(newValue, previousResult, /* depth */ 3)) {
+          this.shallowEquals_(newValue, previousResult)) {
         user().fine(TAG, 'Expression result unchanged or missing: ' +
             `"${expressionString}"`);
       } else {

@@ -368,8 +368,9 @@ export class ViewerStorageBinding {
 
   /** @override */
   loadBlob(origin) {
-    return this.viewer_.sendMessageAwaitResponse('loadStore',
-        dict({'origin': origin})).then(response => response['blob']);
+    return this.viewer_.sendMessageAwaitResponse('loadStore', {origin}).then(
+        response => response['blob']
+    );
   }
 
   /** @override */

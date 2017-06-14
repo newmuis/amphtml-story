@@ -50,6 +50,9 @@ export class AmpState extends AMP.BaseElement {
 
   /** @override */
   buildCallback() {
+    user().assert(isBindEnabledFor(this.win),
+        'Experiment "amp-bind" is disabled.');
+
     toggle(this.element, /* opt_display */ false);
     this.element.setAttribute('aria-hidden', 'true');
 

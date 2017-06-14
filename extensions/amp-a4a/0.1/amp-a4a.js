@@ -270,7 +270,12 @@ export class AmpA4A extends AMP.BaseElement {
      * cause promise chain to reject.
      * @private {?function(string, !Object=)}
      */
-    this.protectedEmitLifecycleEvent_ = null;
+    this.protectedEmitLifecycleEvent_ = protectFunctionWrapper(
+        this.emitLifecycleEvent, this,
+        (err, varArgs) => {
+          dev().error(TAG, this.element.getAttribute('type'),
+              'Error on emitLifecycleEvent', err, varArgs) ;
+        });
 
     /** @const {string} */
     this.sentinel = generateSentinel(window);
@@ -724,10 +729,7 @@ export class AmpA4A extends AMP.BaseElement {
           // is just to prefetch.
           const extensions = Services.extensionsFor(this.win);
           creativeMetaDataDef.customElementExtensions.forEach(
-              extensionId => extensions.preloadExtension(extensionId));
-          // Preload any fonts.
-          (creativeMetaDataDef.customStylesheets || []).forEach(font =>
-              this.preconnect.preload(font.href));
+              extensionId => extensions.loadExtension(extensionId));
           return creativeMetaDataDef;
         })
         .catch(error => {
@@ -770,18 +772,94 @@ export class AmpA4A extends AMP.BaseElement {
         refreshEndCallback();
         return;
       }
-      return this.mutateElement(() => {
-        this.togglePlaceholder(true);
-        // This delay provides a 1 second buffer where the ad loader is
-        // displayed in between the creatives.
-        return Services.timerFor(this.win).promise(1000).then(() => {
-          this.isRelayoutNeededFlag = true;
-          this.getResource().layoutCanceled();
-          Services.resourcesForDoc(this.getAmpDoc())
-              ./*OK*/requireLayout(this.element);
-        });
+    }
+
+    // For each signing service, we have exactly one Promise,
+    // keyInfoSetPromise, that holds an Array of Promises of signing keys.
+    // So long as any one of these signing services can verify the
+    // signature, then the creative is valid AMP.
+    /** @type {!AllServicesCryptoKeysDef} */
+    const keyInfoSetPromises = this.win.ampA4aValidationKeys;
+    // Track if verification found, as it will ensure that promises yet to
+    // resolve will "cancel" as soon as possible saving unnecessary resource
+    // allocation.
+    let verified = false;
+    return some(keyInfoSetPromises.map(keyInfoSetPromise => {
+      // Resolve Promise into an object containing a 'keys' field, which
+      // is an Array of Promises of signing keys.  *whew*
+      return keyInfoSetPromise.then(keyInfoSet => {
+        // As long as any one individual key of a particular signing
+        // service, keyInfoPromise, can verify the signature, then the
+        // creative is valid AMP.
+        if (verified) {
+          return Promise.reject('noop');
+        }
+        return some(keyInfoSet.keys.map(keyInfoPromise => {
+          // Resolve Promise into signing key.
+          return keyInfoPromise.then(keyInfo => {
+            if (verified) {
+              return Promise.reject('noop');
+            }
+            if (!keyInfo) {
+              return Promise.reject('Promise resolved to null key.');
+            }
+            const signatureVerifyStartTime = this.getNow_();
+            // If the key exists, try verifying with it.
+            return this.crypto_.verifySignature(
+                new Uint8Array(creative),
+                signature,
+                keyInfo)
+                .then(isValid => {
+                  if (isValid) {
+                    verified = true;
+                    this.protectedEmitLifecycleEvent_(
+                        'signatureVerifySuccess', {
+                          'met.delta.AD_SLOT_ID': Math.round(
+                              this.getNow_() - signatureVerifyStartTime),
+                          'signingServiceName.AD_SLOT_ID': keyInfo.serviceName,
+                        });
+                    return creative;
+                  }
+                  // Only report if signature is expected to match, given that
+                  // multiple key providers could have been specified.
+                  // Note: the 'keyInfo &&' check here is not strictly
+                  // necessary, because we checked that above.  But
+                  // Closure type compiler can't seem to recognize that, so
+                  // this guarantees it to the compiler.
+                  if (keyInfo &&
+                      this.crypto_.verifyHashVersion(signature, keyInfo)) {
+                    user().error(TAG, this.element.getAttribute('type'),
+                        'Key failed to validate creative\'s signature',
+                        keyInfo.serviceName, keyInfo.cryptoKey);
+                  }
+                  // Reject to ensure the some operation waits for other
+                  // possible providers to properly verify and resolve.
+                  return Promise.reject(
+                      `${keyInfo.serviceName} key failed to verify`);
+                },
+                err => {
+                  dev().error(
+                      TAG, this.element.getAttribute('type'),
+                      keyInfo.serviceName, err, this.element);
+                });
+          });
+        }))
+        // some() returns an array of which we only need a single value.
+            .then(returnedArray => returnedArray[0], () => {
+          // Rejection occurs if all keys for this provider fail to validate.
+              return Promise.reject(
+                  `All keys for ${keyInfoSet.serviceName} failed to verify`);
+            });
       });
-    });
+    }))
+        .then(returnedArray => {
+          this.protectedEmitLifecycleEvent_('adResponseValidateEnd');
+          return returnedArray[0];
+        }, () => {
+      // rejection occurs if all providers fail to verify.
+          this.protectedEmitLifecycleEvent_('adResponseValidateEnd');
+          return Promise.reject('No validation service could verify this key');
+        });
   }
 
   /**
@@ -1179,46 +1257,46 @@ export class AmpA4A extends AMP.BaseElement {
       if (url) {
         // Delay request until document is not in a prerender state.
         return viewerForDoc(this.getAmpDoc()).whenFirstVisible()
-          .then(() => xhrFor(this.win).fetchJson(url, {
-            mode: 'cors',
-            method: 'GET',
+            .then(() => xhrFor(this.win).fetchJson(url, {
+              mode: 'cors',
+              method: 'GET',
             // Set ampCors false so that __amp_source_origin is not
             // included in XHR CORS request allowing for keyset to be cached
             // across pages.
-            ampCors: false,
-            credentials: 'omit',
-          }).then(res => res.json()).then(jwkSetObj => {
-            const result = {serviceName: currServiceName};
-            if (isObject(jwkSetObj) && Array.isArray(jwkSetObj.keys) &&
+              ampCors: false,
+              credentials: 'omit',
+            }).then(res => res.json()).then(jwkSetObj => {
+              const result = {serviceName: currServiceName};
+              if (isObject(jwkSetObj) && Array.isArray(jwkSetObj.keys) &&
                 jwkSetObj.keys.every(isObject)) {
-              result.keys = jwkSetObj.keys;
-            } else {
-              user().error(TAG, this.element.getAttribute('type'),
-                  `Invalid response from signing server ${currServiceName}`,
-                  this.element);
-              result.keys = [];
-            }
-            return result;
-          })).then(jwkSet => {
-            return {
-              serviceName: jwkSet.serviceName,
-              keys: jwkSet.keys.map(jwk =>
+                result.keys = jwkSetObj.keys;
+              } else {
+                user().error(TAG, this.element.getAttribute('type'),
+                    `Invalid response from signing server ${currServiceName}`,
+                    this.element);
+                result.keys = [];
+              }
+              return result;
+            })).then(jwkSet => {
+              return {
+                serviceName: jwkSet.serviceName,
+                keys: jwkSet.keys.map(jwk =>
                   this.crypto_.importPublicKey(jwkSet.serviceName, jwk)
-                  .catch(err => {
-                    user().error(TAG, this.element.getAttribute('type'),
-                        `error importing keys for: ${jwkSet.serviceName}`,
-                        err, this.element);
-                    return null;
-                  })),
-            };
-          }).catch(err => {
-            user().error(
-                TAG, this.element.getAttribute('type'), err, this.element);
+                      .catch(err => {
+                        user().error(TAG, this.element.getAttribute('type'),
+                            `error importing keys for: ${jwkSet.serviceName}`,
+                            err, this.element);
+                        return null;
+                      })),
+              };
+            }).catch(err => {
+              user().error(
+                  TAG, this.element.getAttribute('type'), err, this.element);
             // TODO(a4a-team): This is a failure in the initial attempt to get
             // the keys, probably b/c of a network condition.  We should
             // re-trigger key fetching later.
-            return {serviceName: currServiceName, keys: []};
-          });
+              return {serviceName: currServiceName, keys: []};
+            });
       } else {
         // The given serviceName does not have a corresponding URL in
         // _a4a-config.js.
@@ -1262,7 +1340,7 @@ export class AmpA4A extends AMP.BaseElement {
       // If error occurred, it would have already been reported but let's
       // report to user in case of empty.
       user().warn(TAG, this.element.getAttribute('type'),
-        'No creative or URL available -- A4A can\'t render any ad');
+          'No creative or URL available -- A4A can\'t render any ad');
     }
     incrementLoadingAds(this.win, renderPromise);
     return renderPromise;
@@ -1505,7 +1583,7 @@ export class AmpA4A extends AMP.BaseElement {
       return null;
     }
     try {
-      const metaDataObj = parseJson(
+      const metaDataObj = JSON.parse(
           creative.slice(metadataStart + metadataString.length, metadataEnd));
       const ampRuntimeUtf16CharOffsets =
         metaDataObj['ampRuntimeUtf16CharOffsets'];

@@ -55,22 +55,20 @@ export function getMultiSizeDimensions(
 
     // Make sure that both dimensions given are positive numbers.
     if (!validateDimensions(width, height,
-        w => isNaN(w) || w <= 0,
-        h => isNaN(h) || h <= 0,
-        badParams => badParams.map(badParam =>
-            `Invalid ${badParam.dim} of ${badParam.val} ` +
-            'given for secondary size.').join(' '))) {
-      continue;
+        w => isNaN(w),
+        h => isNaN(h),
+        ({badDim, badVal}) =>
+          `Invalid ${badDim} of ${badVal} given for secondary size.`)) {
+      return;
     }
 
     // Check that secondary size is not larger than primary size.
     if (!validateDimensions(width, height,
         w => w > primaryWidth,
         h => h > primaryHeight,
-        badParams => badParams.map(badParam =>
-            `Secondary ${badParam.dim} ${badParam.val} ` +
-            `can't be larger than the primary ${badParam.dim}.`).join(' '))) {
-      continue;
+        ({badDim, badVal}) => `Secondary ${badDim} ${badVal} ` +
+          `can't be larger than the primary ${badDim}.`)) {
+      return;
     }
 
     // Check that if multi-size-validation is on, that the secondary sizes
@@ -84,11 +82,9 @@ export function getMultiSizeDimensions(
       if (!validateDimensions(width, height,
           w => w < minWidth,
           h => h < minHeight,
-          badParams => badParams.map(badParam =>
-              `Secondary ${badParam.dim} ${badParam.val} is ` +
-              `smaller than 2/3rds of the primary ${badParam.dim}.`)
-              .join(' '))) {
-        continue;
+          ({badDim, badVal}) => `Secondary ${badDim} ${badVal} is ` +
+            `smaller than 2/3rds of the primary ${badDim}.`)) {
+        return;
       }
     }
 

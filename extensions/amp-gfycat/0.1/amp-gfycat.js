@@ -74,8 +74,12 @@ class AmpGfycat extends AMP.BaseElement {
   }
 
   /** @override */
-  buildCallback() {
-    this.videoid_ = this.getVideoId_();
+  layoutCallback() {
+    const gfyid = user().assert(
+        this.element.getAttribute('data-gfyid'),
+        'The data-gfyid attribute is required for <amp-gfycat> %s',
+        this.element);
+    const noautoplay = this.element.hasAttribute('noautoplay');
 
     // Enable autoplay by default
     if (!this.element.hasAttribute('noautoplay')) {

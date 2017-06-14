@@ -76,11 +76,15 @@ describes.realWin('amp-social-share', {
   }
 
   it('errors if share endpoint is missing', () => {
-    const share = doc.createElement('amp-social-share');
-    share.setAttribute('type', 'unknown-provider');
-    doc.body.appendChild(share);
-    return expect(loaded(share)).to.be.eventually.rejectedWith(
-        /data-share-endpoint attribute is required/);
+    return createIframePromise().then(iframe => {
+      const share = iframe.doc.createElement('amp-social-share');
+      share.setAttribute('type', 'unknown-provider');
+      iframe.doc.body.appendChild(share);
+      return expect(share.whenBuilt())
+          .to.be.eventually.rejectedWith(
+          /data-share-endpoint attribute is required/
+          );
+    });
   });
 
   it('errors if type is missing', () => {
@@ -91,11 +95,15 @@ describes.realWin('amp-social-share', {
   });
 
   it('errors if type has space characters', () => {
-    const share = doc.createElement('amp-social-share');
-    share.setAttribute('type', 'hello world');
-    doc.body.appendChild(share);
-    return expect(loaded(share)).to.be.eventually.rejectedWith(
-        /Space characters are not allowed in type attribute value/);
+    return createIframePromise().then(iframe => {
+      const share = iframe.doc.createElement('amp-social-share');
+      share.setAttribute('type', 'hello world');
+      iframe.doc.body.appendChild(share);
+      return expect(share.whenBuilt())
+          .to.be.eventually.rejectedWith(
+          /Space characters are not allowed in type attribute value/
+          );
+    });
   });
 
   it('renders unconfigured providers if share endpoint provided', () => {

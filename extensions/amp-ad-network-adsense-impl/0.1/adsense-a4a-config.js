@@ -142,14 +142,9 @@ export function adsenseIsA4AEnabled(win, element) {
     ADSENSE_EXPERIMENT_FEATURE.HOLDBACK_INTERNAL].includes(experimentId);
 }
 
-/**
- * @param {!Window} win
- * @return {boolean} whether fast fetch delayed request experiment is enabled.
- */
-export function fastFetchDelayedRequestEnabled(win) {
-  return !!(
-      getExperimentBranch(win, ADSENSE_A4A_EXPERIMENT_NAME) ==
-        ADSENSE_EXPERIMENT_FEATURE.DELAYED_REQUEST_EXTERNAL ||
-      getExperimentBranch(win, FF_DR_EXP_NAME) ==
-        INTERNAL_FAST_FETCH_DELAY_REQUEST_EXP.EXPERIMENT);
+  return !!element.getAttribute('data-ad-client') &&
+      googleAdsIsA4AEnabled(
+          win, element, ADSENSE_A4A_EXPERIMENT_NAME,
+          externalBranches, internalBranches,
+          ADSENSE_A4A_EXTERNAL_DELAYED_EXPERIMENT_BRANCHES_PRE_LAUNCH);
 }

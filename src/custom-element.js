@@ -1292,7 +1292,7 @@ function createBaseCustomElementClass(win) {
       assertNotTemplate(this);
       dev().assert(this.isBuilt(),
           'Must be built to receive viewport events');
-      this.dispatchCustomEventForTesting(AmpEvents.LOAD_START);
+      this.dispatchCustomEventForTesting('amp:load:start');
       const isLoadEvent = (this.layoutCount_ == 0);  // First layout is "load".
       this.signals_.reset(CommonSignals.UNLOAD);
       if (isLoadEvent) {
@@ -1877,7 +1877,7 @@ function createBaseCustomElementClass(win) {
       this.getOverflowElement();
       if (!this.overflowElement_) {
         if (overflown) {
-          user().warn(TAG,
+          user().warn(TAG_,
               'Cannot resize element and overflow is not available', this);
         }
       } else {

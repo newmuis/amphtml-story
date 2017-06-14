@@ -140,10 +140,10 @@ export class AmpViewerIntegration {
     dev().fine(TAG, 'Send a handshake request');
     const ampdocUrl = ampdoc.getUrl();
     const srcUrl = getSourceUrl(ampdocUrl);
-    return messaging.sendRequest(RequestNames.CHANNEL_OPEN, dict({
-      'url': ampdocUrl,
-      'sourceUrl': srcUrl,
-    }),
+    return messaging.sendRequest(RequestNames.CHANNEL_OPEN, {
+      url: ampdocUrl,
+      sourceUrl: srcUrl,
+    },
         true /* awaitResponse */)
         .then(() => {
           dev().fine(TAG, 'Channel has been opened!');
@@ -161,7 +161,7 @@ export class AmpViewerIntegration {
   setup_(messaging, viewer, origin) {
     messaging.setDefaultHandler((type, payload, awaitResponse) => {
       return viewer.receiveMessage(
-          type, /** @type {!JsonObject} */ (payload), awaitResponse);
+          type, /** @type {!JSONType} */ (payload), awaitResponse);
     });
 
     viewer.setMessageDeliverer(messaging.sendRequest.bind(messaging), origin);

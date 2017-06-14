@@ -736,7 +736,7 @@ describes.repeated('', {
         expect(ampForm.urlReplacement_.expandInputValueAsync)
             .to.have.been.calledWith(clientIdField);
         expect(ampForm.urlReplacement_.expandInputValueAsync)
-              .to.have.been.calledWith(canonicalUrlField);
+            .to.have.been.calledWith(canonicalUrlField);
         return whenCalled(ampForm.xhr_.fetch).then(() => {
           expect(ampForm.xhr_.fetch).to.be.called;
           expect(clientIdField.value).to.match(/amp-.+/);

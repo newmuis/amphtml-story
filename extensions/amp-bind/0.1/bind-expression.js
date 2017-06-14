@@ -69,58 +69,18 @@ function generateFunctionWhitelist() {
     return copy;
   }
 
-  /**
-   * Static, not-in-place variant of Array#sort.
-   * @param {!Array} array
-   * @return {!Array}
-   */
-  function sort(array) {
-    if (!isArray(array)) {
-      throw new Error(`sort: ${array} is not an array.`);
-    }
-    const copy = Array.prototype.slice.call(array);
-    Array.prototype.sort.call(copy);
-    return copy;
-  }
-
-  /**
-   * Polyfills Object.values for IE.
-   * @param {!Object} object
-   * @return {!Array}
-   * @see https://github.com/es-shims/Object.values
-   */
-  function values(object) {
-    const v = [];
-    for (const key in object) {
-      if (hasOwn(object, key)) {
-        v.push(object[key]);
-      }
-    }
-    return v;
-  }
-
-  // Prototype functions.
-  const whitelist = dict({
-    '[object Array]': [
+  const whitelist = {
+    '[object Array]':
+    [
       Array.prototype.concat,
-      Array.prototype.filter,
-      // TODO(choumx): Need polyfill for Array#find and Array#findIndex.
       Array.prototype.indexOf,
       Array.prototype.join,
       Array.prototype.lastIndexOf,
-      Array.prototype.map,
-      Array.prototype.reduce,
       Array.prototype.slice,
-      Array.prototype.some,
       Array.prototype.includes,
     ],
-    '[object Number]': [
-      Number.prototype.toExponential,
-      Number.prototype.toFixed,
-      Number.prototype.toPrecision,
-      Number.prototype.toString,
-    ],
-    '[object String]': [
+    '[object String]':
+    [
       String.prototype.charAt,
       String.prototype.charCodeAt,
       String.prototype.concat,
@@ -133,9 +93,7 @@ function generateFunctionWhitelist() {
       String.prototype.toLowerCase,
       String.prototype.toUpperCase,
     ],
-  });
-
-  // Un-namespaced static functions.
+  };
   whitelist[BUILT_IN_FUNCTIONS] = [
     encodeURI,
     encodeURIComponent,

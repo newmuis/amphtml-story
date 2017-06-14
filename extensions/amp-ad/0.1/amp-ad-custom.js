@@ -98,11 +98,10 @@ export class AmpAdCustom extends AMP.BaseElement {
       // Set UI state
       if (templateData !== null && typeof templateData == 'object') {
         this.renderStarted();
-        Services.templatesFor(this.win)
-            .findAndRenderTemplate(element, templateData)
+        templatesFor(this.win).findAndRenderTemplate(element, templateData)
             .then(renderedElement => {
-              // Get here when the template has been rendered
-              // Clear out the template and replace it by the rendered version
+          // Get here when the template has been rendered
+          // Clear out the template and replace it by the rendered version
               removeChildren(element);
               element.appendChild(renderedElement);
             });

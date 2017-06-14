@@ -302,7 +302,7 @@ describes.realWin('MeasureScanner', {amp: 1}, env => {
       animations: [
         {target: target1, keyframes: {}, '--var1': '20px', '--var2': '30px'},
         {target: target2, duration: 300, keyframes: {},
-            '--var2': '40px', '--var3': 'var(--var4)'},
+          '--var2': '40px', '--var3': 'var(--var4)'},
       ],
     });
     expect(requests).to.have.length(2);

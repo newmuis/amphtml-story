@@ -129,9 +129,9 @@ export class LaterpayVendor {
     /** @private {string} */
     this.currentLocale_ = this.laterpayConfig_['locale'] || 'en';
 
-    /** @private {!JsonObject} */
-    this.i18n_ = /** @type {!JsonObject} */ (Object.assign(dict(),
-        DEFAULT_MESSAGES, this.laterpayConfig_['localeMessages'] || dict()));
+    /** @private {Object} */
+    this.i18n_ = Object.assign({}, DEFAULT_MESSAGES,
+        this.laterpayConfig_.localeMessages || {});
 
     /** @private {string} */
     this.purchaseConfigBaseUrl_ = this.getConfigUrl_() + CONFIG_BASE_PATH;
@@ -181,30 +181,30 @@ export class LaterpayVendor {
             throw user()
                 .createError('No merchant domains have been matched for this ' +
             'article, or no paid content configurations are setup.');
-      }
+          }
 
-      if (this.laterpayConfig_.scrollToTopAfterAuth) {
-        this.vsync_.mutate(() => this.viewport_.setScrollTop(0));
-      }
-      this.emptyContainer_();
-      return {access: response.access};
-    }, err => {
-      if (!err || !err.response) {
-        throw err;
-      }
-      const {response} = err;
-      if (response.status !== 402) {
-        throw err;
-      }
-      return response.json().catch(() => undefined).then(responseJson => {
-        this.purchaseConfig_ = responseJson;
+          if (this.laterpayConfig_.scrollToTopAfterAuth) {
+            this.vsync_.mutate(() => this.viewport_.setScrollTop(0));
+          }
+          this.emptyContainer_();
+          return {access: response.access};
+        }, err => {
+          if (!err || !err.response) {
+            throw err;
+          }
+          const {response} = err;
+          if (response.status !== 402) {
+            throw err;
+          }
+          return response.json().catch(() => undefined).then(responseJson => {
+            this.purchaseConfig_ = responseJson;
         // empty before rendering, in case authorization is being called again
         // with the same state
-        this.emptyContainer_()
-          .then(this.renderPurchaseOverlay_.bind(this));
-        return {access: false};
-      });
-    });
+            this.emptyContainer_()
+                .then(this.renderPurchaseOverlay_.bind(this));
+            return {access: false};
+          });
+        });
   }
 
   /**
@@ -242,10 +242,10 @@ export class LaterpayVendor {
    */
   getArticleTitle_() {
     const title = this.ampdoc.getRootNode().querySelector(
-        this.laterpayConfig_['articleTitleSelector']);
+        this.laterpayConfig_.articleTitleSelector);
     user().assert(
         title, 'No article title element found with selector %s',
-        this.laterpayConfig_['articleTitleSelector']);
+        this.laterpayConfig_.articleTitleSelector);
     return title.textContent.trim();
   }
 
@@ -256,9 +256,9 @@ export class LaterpayVendor {
   getContainer_() {
     const id = TAG + '-dialog';
     const dialogContainer = this.ampdoc.getElementById(id);
-    return user().assertElement(
+    return user().assert(
         dialogContainer,
-        'No element found with id ' + id
+        'No element found with id %s', id
     );
   }
 
@@ -307,7 +307,7 @@ export class LaterpayVendor {
     this.purchaseConfig_['premiumcontent']['description'] =
         this.getArticleTitle_();
     listContainer.appendChild(
-        this.createPurchaseOption_(this.purchaseConfig_['premiumcontent'])
+        this.createPurchaseOption_(this.purchaseConfig_.premiumcontent)
     );
     this.purchaseConfig_['timepasses'].forEach(timepass => {
       listContainer.appendChild(this.createPurchaseOption_(timepass));
@@ -324,10 +324,10 @@ export class LaterpayVendor {
       const purchaseType = this.selectedPurchaseOption_.dataset['purchaseType'];
       this.handlePurchase_(ev, value, purchaseType);
     });
-    this.innerContainer_.appendChild(listContainer);
-    this.innerContainer_.appendChild(purchaseButton);
-    this.innerContainer_.appendChild(
-        this.createAlreadyPurchasedLink_(this.purchaseConfig_['apl']));
+    dialogContainer.appendChild(listContainer);
+    dialogContainer.appendChild(purchaseButton);
+    dialogContainer.appendChild(
+        this.createAlreadyPurchasedLink_(this.purchaseConfig_.apl));
     this.renderTextBlock_('footer');
     dialogContainer.appendChild(this.innerContainer_);
     dialogContainer.appendChild(this.createLaterpayBadge_());
@@ -511,10 +511,11 @@ export class LaterpayVendor {
   handlePurchase_(ev, purchaseUrl, purchaseType) {
     ev.preventDefault();
     const urlPromise = this.accessService_.buildUrl(
-      purchaseUrl, /* useAuthData */ false);
+        purchaseUrl, /* useAuthData */ false);
     return urlPromise.then(url => {
       dev().fine(TAG, 'Authorization URL: ', url);
-      this.accessService_.loginWithUrl(url, purchaseType);
+      this.accessService_.loginWithUrl(
+          url, this.selectedPurchaseOption_.dataset.purchaseType);
     });
   }
 

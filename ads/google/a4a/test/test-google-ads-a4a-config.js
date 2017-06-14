@@ -20,6 +20,8 @@ import {
   googleAdsIsA4AEnabled,
   isInExperiment,
   isInManualExperiment,
+  isExternallyTriggeredExperiment,
+  isInternallyTriggeredExperiment,
 } from '../traffic-experiments';
 import {toggleExperiment} from '../../../../src/experiments';
 import {installPlatformService} from '../../../../src/service/platform-impl';

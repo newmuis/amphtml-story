@@ -275,7 +275,7 @@ export class AmpUserNotification extends AMP.BaseElement {
       // the notification or have the nagging notification sitting there
       // (to never resolve).
       return cid.get(
-        {scope: TAG, createCookieIfNotPresent: true},
+        {scope: 'amp-user-notification', createCookieIfNotPresent: true},
           Promise.resolve(), this.dialogPromise_);
     });
   }

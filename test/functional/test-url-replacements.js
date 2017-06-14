@@ -21,9 +21,9 @@ import {user} from '../../src/log';
 import {
   markElementScheduledForTesting,
   resetScheduledElementForTesting,
-} from '../../src/service/custom-element-registry';
+} from '../../src/custom-element';
 import {cidServiceForDocForTesting} from
-    '../../src/service/cid-impl';
+    '../../extensions/amp-analytics/0.1/cid-impl';
 import {installCryptoService} from '../../src/service/crypto-impl';
 import {installDocService} from '../../src/service/ampdoc-impl';
 import {installDocumentInfoServiceForDoc} from
@@ -321,7 +321,7 @@ describes.sandboxed('UrlReplacements', {}, () => {
         resolve();
       });
     });
-    return Services.urlReplacementsForDoc(win.ampdoc)
+    return urlReplacementsForDoc(win.ampdoc)
         .expandAsync('?url=SOURCE_URL')
         .then(res => {
           expect(res).to.contain('example.com');
@@ -533,7 +533,7 @@ describes.sandboxed('UrlReplacements', {}, () => {
     win.services.viewer = {
       obj: {isVisible: () => true},
     };
-    return Services.urlReplacementsForDoc(win.ampdoc)
+    return urlReplacementsForDoc(win.ampdoc)
         .expandAsync('?sh=BACKGROUND_STATE')
         .then(res => {
           expect(res).to.equal('?sh=0');
@@ -545,29 +545,10 @@ describes.sandboxed('UrlReplacements', {}, () => {
     win.services.viewer = {
       obj: {isVisible: () => false},
     };
-    return Services.urlReplacementsForDoc(win.ampdoc)
+    return urlReplacementsForDoc(win.ampdoc)
         .expandAsync('?sh=BACKGROUND_STATE')
         .then(res => {
           expect(res).to.equal('?sh=1');
-        });
-  });
-
-  it('Should replace VIDEO_STATE(video,parameter) with video data', () => {
-    const win = getFakeWindow();
-    sandbox.stub(Services, 'videoManagerForDoc')
-        .returns({
-          getVideoAnalyticsDetails(unusedVideo) {
-            return Promise.resolve({currentTime: 1.5});
-          },
-        });
-    sandbox.stub(win.document, 'getElementById')
-        .withArgs('video')
-        .returns(document.createElement('video'));
-
-    return Services.urlReplacementsForDoc(win.ampdoc)
-        .expandAsync('?sh=VIDEO_STATE(video,currentTime)')
-        .then(res => {
-          expect(res).to.equal('?sh=1.5');
         });
   });
 
@@ -930,7 +911,7 @@ describes.sandboxed('UrlReplacements', {}, () => {
         resolve();
       });
     });
-    return Services.urlReplacementsForDoc(win.ampdoc)
+    return urlReplacementsForDoc(win.ampdoc)
         .expandAsync('?sh=QUERY_PARAM(query_string_param1)&s')
         .then(res => {
           expect(res).to.match(/sh=foo&s/);
@@ -943,7 +924,7 @@ describes.sandboxed('UrlReplacements', {}, () => {
     sandbox.stub(trackPromise, 'getTrackImpressionPromise', () => {
       return Promise.resolve();
     });
-    return Services.urlReplacementsForDoc(win.ampdoc)
+    return urlReplacementsForDoc(win.ampdoc)
         .expandAsync('?sh=QUERY_PARAM(query_string_param1)&s')
         .then(res => {
           expect(res).to.match(/sh=&s/);
@@ -956,7 +937,7 @@ describes.sandboxed('UrlReplacements', {}, () => {
     sandbox.stub(trackPromise, 'getTrackImpressionPromise', () => {
       return Promise.resolve();
     });
-    return Services.urlReplacementsForDoc(win.ampdoc)
+    return urlReplacementsForDoc(win.ampdoc)
         .expandAsync('?sh=QUERY_PARAM(query_string_param1,default_value)&s')
         .then(res => {
           expect(res).to.match(/sh=default_value&s/);
@@ -988,7 +969,7 @@ describes.sandboxed('UrlReplacements', {}, () => {
 
   it('should reject javascript protocol', () => {
     const win = getFakeWindow();
-    const urlReplacements = Services.urlReplacementsForDoc(win.ampdoc);
+    const urlReplacements = urlReplacementsForDoc(win.ampdoc);
     /*eslint no-script-url: 0*/
     return urlReplacements.expandAsync('javascript://example.com/?r=RANDOM')
         .then(

@@ -45,8 +45,10 @@ export class AmpAdNetworkGmosspImpl extends AmpA4A {
   isValidElement() {
     const src = this.element.getAttribute('src') || '';
     return this.isAmpAdElement() &&
-        (startsWith(src, GMOSSP_BASE_URL_) ||
-         startsWith(src, GMOSSP_BASE_A4A_URL_));
+      startsWith(
+          this.element.getAttribute('src') || '',
+          GMOSSP_BASE_URL_
+      );
   }
 
   /** @override */
@@ -60,10 +62,27 @@ export class AmpAdNetworkGmosspImpl extends AmpA4A {
         GMOSSP_BASE_A4A_URL_);
   }
 
+  /**
+   * Extract creative and signature from a GMOSSP signed response.
+   *
+   * @override
+   */
+  extractCreativeAndSignature(responseText, responseHeaders) {
+    let signature = null;
+    try {
+      if (responseHeaders.has(AMP_SIGNATURE_HEADER_)) {
+        signature =
+          base64UrlDecodeToBytes(dev().assertString(
+              responseHeaders.get(AMP_SIGNATURE_HEADER_)));
+      }
+    } finally {
+      return Promise.resolve(/** @type
+        {!../../../extensions/amp-a4a/0.1/amp-a4a.AdResponseDef} */
+        ({creative: responseText, signature})
+      );
+    }
+  }
 }
 
-
-AMP.extension('amp-ad-network-gmossp-impl', '0.1', AMP => {
-  AMP.registerElement('amp-ad-network-gmossp-impl',
-      AmpAdNetworkGmosspImpl);
-});
+AMP.registerElement('amp-ad-network-gmossp-impl',
+    AmpAdNetworkGmosspImpl);

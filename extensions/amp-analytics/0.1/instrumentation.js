@@ -383,6 +383,55 @@ export class InstrumentationService {
   }
 
   /**
+   * @param {JSONType} timerSpec
+   * @private
+   */
+  isTimerSpecValid_(timerSpec) {
+    if (!timerSpec) {
+      user().error(TAG, 'Bad timer specification');
+      return false;
+    } else if (!timerSpec.hasOwnProperty('interval')) {
+      user().error(TAG, 'Timer interval specification required');
+      return false;
+    } else if (typeof timerSpec['interval'] !== 'number' ||
+               timerSpec['interval'] < MIN_TIMER_INTERVAL_SECONDS_) {
+      user().error(TAG, 'Bad timer interval specification');
+      return false;
+    } else if (timerSpec.hasOwnProperty('maxTimerLength') &&
+              (typeof timerSpec['maxTimerLength'] !== 'number' ||
+                  timerSpec['maxTimerLength'] <= 0)) {
+      user().error(TAG, 'Bad maxTimerLength specification');
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  /**
+   * @param {!function(!AnalyticsEvent)} listener
+   * @param {JSONType} timerSpec
+   * @private
+   */
+  createTimerListener_(listener, timerSpec) {
+    const hasImmediate = timerSpec.hasOwnProperty('immediate');
+    const callImmediate = hasImmediate ? Boolean(timerSpec['immediate']) : true;
+    const intervalId = this.ampdoc.win.setInterval(
+        listener.bind(null, this.createEventDepr_(AnalyticsEventType.TIMER)),
+        timerSpec['interval'] * 1000
+    );
+
+    if (callImmediate) {
+      listener(this.createEventDepr_(AnalyticsEventType.TIMER));
+    }
+
+    const maxTimerLength = timerSpec['maxTimerLength'] ||
+        DEFAULT_MAX_TIMER_LENGTH_SECONDS_;
+    this.ampdoc.win.setTimeout(
+        this.ampdoc.win.clearInterval.bind(this.ampdoc.win, intervalId),
+        maxTimerLength * 1000);
+  }
+
+  /**
    * Checks to confirm that a given trigger type is allowed for the element.
    * Specifically, it confirms that if the element is in the embed, only a
    * subset of the trigger types are allowed.
