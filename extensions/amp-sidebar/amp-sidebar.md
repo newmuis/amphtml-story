@@ -21,9 +21,7 @@ limitations under the License.
 <table>
   <tr>
     <td width="40%"><strong>Description</strong></td>
-    <td>
-    A sidebar provides a way to display meta content intended for temporary access (navigation links, buttons, menus, etc.). The sidebar can be revealed by a button tap while the main content remains visually underneath.
-    </td>
+    <td>A sidebar provides a way to display meta content intended for temporary access (navigation links, buttons, menus, etc.).The sidebar can be revealed by a button tap while the main content remains visually underneath.</td>
   </tr>
   <tr>
     <td width="40%"><strong>Required Script</strong></td>
@@ -61,26 +59,24 @@ for content within the sidebar to be displayed on other parts of the main conten
 - The width of the sidebar can be set and adjusted between 45px and 80vw using CSS.
 - Touch zoom is disabled on the `amp-sidebar` and it's mask when the sidebar is open.
 
-*Example:*
-
-In the following example, we use `amp-sidebar` to contain navigation items. However, The second and fourth item, Nav Item 2 and Nav Item 4, are assigned to element id that is on the page. By using the [`on`](../../spec/amp-actions-and-events.md) attribute, we can scroll smoothly to the element, using the element id and `scrollTo`.
+Example:
 
 ```html
 <amp-sidebar id="sidebar1" layout="nodisplay" side="right">
   <ul>
-    <li>Nav item 1</li>
-    <li><a href="#idTwo" on="tap:idTwo.scrollTo">Nav item 2</a></li>
-    <li>Nav item 3</li>
-    <li><a href="#idFour" on="tap:idFour.scrollTo">Nav item 4</a></li>
-    <li>Nav item 5</li>
-    <li>Nav item 6</li>
+    <li> Nav item 1</li>
+    <li> Nav item 2</li>
+    <li> Nav item 3</li>
+    <li> Nav item 4</li>
+    <li> Nav item 5</li>
+    <li> Nav item 6</li>
   </ul>
 </amp-sidebar>
 ```
 
 ### Opening and closing the sidebar
 
-To toggle, open, or close the sidebar when an element is tapped or clicked, set the [`on`](../../spec/amp-actions-and-events.md) action attribute on the element, and specify one of the following action methods:
+To toggle, open, or close the sidebar when an element is tapped or clicked, set the [`on`](../../spec/amp-actions-and-events.md) action attribute on the element, and specify one of the following action methods: 
 
 <table>
   <tr>
@@ -105,7 +101,7 @@ If the user taps back on the partially-visible main content area, this closes th
 
 Alternatively, pressing the escape key on the keyboard will also close the sidebar.
 
-*Example:*
+Example:
 
 ```html
 <button class="hamburger" on='tap:sidebar1.toggle'></button>
@@ -114,42 +110,25 @@ Alternatively, pressing the escape key on the keyboard will also close the sideb
 <button on='tap:sidebar1.close'>x</button>
 ```
 
-### Toolbar (Experimental)
+{% call callout('Tip', type='success') %}
+See live demos at [AMP By Example](https://ampbyexample.com/components/amp-sidebar/).
+{% endcall %}
 
-You can create a `toolbar` element that displays in the `<body>` by specifying the `toolbar` attribute with a media query and a `toolbar-target` attribute with an element id on a `<nav>` element that is a child of  `<amp-sidebar>`. The `toolbar` duplicates the `<nav>` element and its children and appends the element into the `toolbar-target` element.
+## Attributes
 
-#### Behavior
+##### side
 
-- The sidebar may implement toolbars by adding nav elements with the `toolbar` attribute and `toolbar-target` attribute.
-- The nav element must be a child of `<amp-sidebar>` and follow this format: `<nav toolbar="(media-query)" toolbar-target="elementID">`.
-    - For instance, this would be a valid use of toolbar: `<nav toolbar="(max-width: 1024px)" toolbar-target="target-element">`.
-- The nav containing the toolbar attribute must only contain a single `<ul>` element, that contains `<li>` elements.
-    - The `<li>` elements may contain any valid HTML elements (supported by AMP), or any of the AMP elements that `<amp-sidebar>` supports.
-- Toolbar behavior is only applied while the `toolbar` attribute media-query is valid. Also, an element with the `toolbar-target` attribute id must exist on the page for the toolbar to be applied.
+Indicates what side of the page the sidebar should open from, either `left` or `right`.  If a `side` is not specified, the `side` value will be inherited from the `body` tag's `dir` attribute (`ltr` => `left` , `rtl` => `right`); if no `dir` exists, the `side` defaults to `left`.
 
-*Example: Basic Toolbar*
+##### layout
 
-In the following example, we display a `toolbar` if the window width is less than or equal to 767px. The `toolbar` contains a search input element. The `toolbar` element will be appended to the `<div id="target-element">` element.
+Specifies the display layout of the sidebar, which must be `nodisplay`.
 
-```html
-<amp-sidebar id="sidebar1" layout="nodisplay" side="right">
-  <ul>
-    <li>Nav item 1</li>
-    <li><a href="#idTwo" on="tap:idTwo.scrollTo">Nav item 2</a></li>
-    <li>Nav item 3</li>
-    <li><a href="#idFour" on="tap:idFour.scrollTo">Nav item 4</a></li>
-    <li>Nav item 5</li>
-    <li>Nav item 6</li>
-  </ul>
+##### open
 
-  <nav toolbar="(max-width: 767px)" toolbar-target="target-element">
-    <ul>
-      <li>
-        <input placeholder="Search..."/>
-      </li>
-    </ul>
-  </nav>
-</amp-sidebar>
+This attribute is present when the sidebar is open.
+
+##### common attributes
 
 <div id="target-element">
 </div>
@@ -159,41 +138,10 @@ In the following example, we display a `toolbar` if the window width is less tha
 
 The `toolbar` element within the `<amp-sidebar>` element, will have classes applied to the element depending if the `toolbar-target` element is shown or hidden. This is useful for applying different styles on the `toolbar` element and then `toolbar-target` element. The classes are `amp-sidebar-toolbar-target-shown`, and `amp-sidebar-toolbar-target-hidden`. The class `amp-sidebar-toolbar-target-shown` is applied to the `toolbar` element when the `toolbar-target` element is shown. The class `amp-sidebar-toolbar-target-hidden` is applied to the `toolbar` element when the `toolbar-target` element is hidden.
 
-*Example: Toolbar State Classes*
+-  The `width` of the `amp-sidebar` may be set to adjust the width between the pre-set min(45px) and max(80vw) values.
+- The height of the `amp-sidebar` may be set to adjust the height of the sidebar, if required. If the height exceeds 100vw, the sidebar will have a vertical scrollbar. The preset height of the sidebar is 100vw and can be overridden in CSS to make it shorter.
+- The current state of the sidebar is exposed via the `open` attribute that is set on the `amp-sidebar` tag when the side bar is open on the page.
 
-In the following example, we display a `toolbar` if the window width is less than or equal to 767px. The `toolbar` contains a search input element. The `toolbar` element will be appended to the `<div id="target-element">` element. However, we added some custom styles to hide the `toolbar` element, when the `<div id="toolbar-target">` element is shown.
-
-```html
-<style amp-custom="">
-
-  .amp-sidebar-toolbar-target-shown {
-      display: none;
-  }
-
-</style>
-
-<amp-sidebar id="sidebar1" layout="nodisplay" side="right">
-  <ul>
-    <li>Nav item 1</li>
-    <li><a href="#idTwo" on="tap:idTwo.scrollTo">Nav item 2</a></li>
-    <li>Nav item 3</li>
-    <li><a href="#idFour" on="tap:idFour.scrollTo">Nav item 4</a></li>
-    <li>Nav item 5</li>
-    <li>Nav item 6</li>
-  </ul>
-
-  <nav toolbar="(max-width: 767px)" toolbar-target="target-element">
-    <ul>
-      <li>
-        <input placeholder="Search..."/>
-      </li>
-    </ul>
-  </nav>
-</amp-sidebar>
-
-<div id="target-element">
-</div>
-```
 
 
 
