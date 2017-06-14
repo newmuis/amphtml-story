@@ -559,5 +559,4 @@ If set to `include`, this turns on the ability to read and write cookies on the 
 If provided, the page will not process analytics requests until an [amp-user-notification](../../extensions/amp-user-notification/amp-user-notification.md) with the given HTML element id is confirmed (accepted) by the user. This is an optional attribute.
 
 
-## Analytics for AMP components
-AMP component developers can implement collection of data using AMP analytics. For more information, please refer to [Implementing analytics for AMP components](./amp-components-analytics.md)
+See [amp-analytics rules](https://github.com/ampproject/amphtml/blob/master/extensions/amp-analytics/validator-amp-analytics.protoascii) in the AMP validator specification.
