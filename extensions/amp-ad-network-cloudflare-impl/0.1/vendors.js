@@ -18,8 +18,8 @@
  * @const {!JsonObject}
  */
 export const NETWORKS = /** @type {!JsonObject} */ ({
-  'cloudflare': {
-    'base': 'https://firebolt.cloudflaredemo.com',
+  cloudflare: {
+    base: 'https://firebolt.cloudflaredemo.com',
   },
 
   'adzerk': {

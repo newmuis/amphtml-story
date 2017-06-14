@@ -17,7 +17,7 @@
 import {Observable} from '../observable';
 import {findIndex} from '../utils/array';
 import {dict, map} from '../utils/object';
-import {Services} from '../services';
+import {documentStateFor} from './document-state';
 import {registerServiceBuilderForDoc} from '../service';
 import {dev, duplicateErrorIfNecessary} from '../log';
 import {isIframed} from '../dom';
@@ -866,9 +866,7 @@ export class Viewer {
       // assimilating with the resolved (or rejected) internal value.
       return /** @type {!Promise<?JsonObject|string|undefined>} */ (
           Promise.resolve(this.messageDeliverer_(
-              eventType,
-              /** @type {?JsonObject|string|undefined} */ (data),
-              awaitResponse)));
+              eventType, data, awaitResponse)));
     }
 
     if (!this.messagingReadyPromise_) {

@@ -633,11 +633,11 @@ export class AmpForm {
 
   /**
    * Returns form data as an object.
-   * @return {!JSONType}
+   * @return {!JsonObject}
    * @private
    */
   getFormAsObject_() {
-    const data = /** @type {!JSONType} */ ({});
+    const data = /** @type {!JsonObject} */ ({});
     const inputs = this.form_.elements;
     const submittableTagsRegex = /^(?:input|select|textarea)$/i;
     const unsubmittableTypesRegex = /^(?:button|image|file|reset)$/i;

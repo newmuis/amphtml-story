@@ -18,8 +18,8 @@ import {registerServiceBuilderForDoc} from '../service';
 import {getSourceOrigin} from '../url';
 import {dev} from '../log';
 import {dict} from '../utils/object';
-import {parseJson, recreateNonProtoObject} from '../json';
-import {Services} from '../services';
+import {recreateNonProtoObject} from '../json';
+import {viewerForDoc} from '../services';
 
 /** @const */
 const TAG = 'Storage';
@@ -368,9 +368,8 @@ export class ViewerStorageBinding {
 
   /** @override */
   loadBlob(origin) {
-    return this.viewer_.sendMessageAwaitResponse('loadStore', {origin}).then(
-        response => response['blob']
-    );
+    return this.viewer_.sendMessageAwaitResponse('loadStore',
+        dict({'origin': origin})).then(response => response['blob']);
   }
 
   /** @override */

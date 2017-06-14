@@ -262,7 +262,7 @@ export class AccessService {
 
   /**
    * @param {!JsonObject} configJson
-   * @return {!JsonObject}
+   * @return {?Object<string, string>}
    * @private
    */
   buildConfigLoginMap_(configJson) {
@@ -535,7 +535,7 @@ export class AccessService {
   }
 
   /**
-   * @param {!JsonObject} response
+   * @param {!JsonObjectDef} response
    * @return {!Promise}
    * @private
    */
@@ -550,7 +550,7 @@ export class AccessService {
 
   /**
    * @param {!Element} element
-   * @param {!JsonObject} response
+   * @param {!JsonObjectDef} response
    * @return {!Promise}
    * @private
    */
@@ -591,8 +591,8 @@ export class AccessService {
   /**
    * Discovers and renders templates.
    * @param {!Element} element
-   * @param {!JsonObject} response
-   * @return {?Promise}
+   * @param {!JsonObjectDef} response
+   * @return {!Promise}
    * @private
    */
   renderTemplates_(element, response) {
@@ -615,7 +615,7 @@ export class AccessService {
   /**
    * @param {!Element} element
    * @param {!Element} templateOrPrev
-   * @param {!JsonObject} response
+   * @param {!JsonObjectDef} response
    * @return {!Promise}
    * @private
    */

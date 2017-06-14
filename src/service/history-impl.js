@@ -21,7 +21,7 @@ import {
 } from '../service';
 import {getMode} from '../mode';
 import {dev} from '../log';
-import {map} from '../utils/object';
+import {dict, map} from '../utils/object';
 import {timerFor} from '../services';
 import {viewerForDoc} from '../services';
 

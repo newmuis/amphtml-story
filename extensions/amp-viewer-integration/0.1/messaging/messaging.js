@@ -216,7 +216,7 @@ export class Messaging {
    * @private
    */
   sendResponse_(requestId, messageName, messageData) {
-    this.sendMessage_({
+    this.sendMessage_(/** @type {!AmpViewerMessage} */ ({
       app: APP,
       requestid: requestId,
       type: MessageType.RESPONSE,
@@ -235,7 +235,7 @@ export class Messaging {
     const errString = this.errorToString_(reason);
     this.logError_(
         TAG + ': sendResponseError_, Message name: ' + messageName, errString);
-    this.sendMessage_({
+    this.sendMessage_(/** @type {!AmpViewerMessage} */ ({
       app: APP,
       requestid: requestId,
       type: MessageType.RESPONSE,

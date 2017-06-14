@@ -829,7 +829,7 @@ export function parseFragment(fragment) {
     if (startsWith(json, '{%22')) {
       json = decodeURIComponent(json);
     }
-    return /** @type {!JsonObject} */ (json ? parseJson(json) : dict());
+    return /** @type {!JsonObject} */ (json ? JSON.parse(json) : {});
   } catch (err) {
     return null;
   }

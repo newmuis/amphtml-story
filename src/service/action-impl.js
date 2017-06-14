@@ -463,7 +463,7 @@ export class ActionService {
   /**
    * @param {!Element} target
    * @param {string} method
-   * @param {?JSONType} args
+   * @param {?JsonObject} args
    * @param {?Element} source
    * @param {?ActionEventDef} event
    * @param {ActionTrust} trust
@@ -823,8 +823,7 @@ function argValueForTokens(tokens) {
  * @param {?ActionInfoArgsDef} args
  * @param {?ActionEventDef} event
  * @return {?JsonObject}
- * @private
- * @visibleForTesting
+ * @private Visible for testing only.
  */
 export function dereferenceExprsInArgs(args, event) {
   if (!args) {

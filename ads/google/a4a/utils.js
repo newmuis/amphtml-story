@@ -450,6 +450,11 @@ export function additionalDimensions(win, viewportSize) {
  * @param {!../../../src/service/xhr-impl.FetchResponseHeaders} responseHeaders
  *   XHR service FetchResponseHeaders object containing the response
  *   headers.
+ * @param {number=} opt_deltaTime The time difference, in ms, between the
+ *   lifecycle reporter's initialization and now.
+ * @param {number=} opt_initTime The initialization time, in ms, of the
+ *   lifecycle reporter.
+ *   TODO(levitzky) Remove the above two params once AV numbers stabilize.
  * @return {?JsonObject} config or null if invalid/missing.
  */
 export function extractAmpAnalyticsConfig(a4a, responseHeaders) {
@@ -506,7 +511,7 @@ export function extractAmpAnalyticsConfig(a4a, responseHeaders) {
     opt_deltaTime = Math.round(opt_deltaTime);
 
     // Duscover and build visibility endpoints.
-    const requests = {};
+    const requests = dict();
     for (let idx = 1; idx <= urls.length; idx++) {
       // TODO: Ensure url is valid and not freeform JS?
       requests[`visibility${idx}`] = `${urls[idx - 1]}`;

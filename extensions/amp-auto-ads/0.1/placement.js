@@ -212,7 +212,7 @@ export class Placement {
 
 
 /**
- * @param {!../../../src/service/ampdoc-impl.AmpDoc} ampdoc
+ * @param {!Window} win
  * @param {!JsonObject} configObj
  * @return {!Array<!Placement>}
  */

@@ -286,7 +286,59 @@ export class InstrumentationService {
   }
 
   /**
-   * @param {!../../../src/service/viewport/viewport-impl.ViewportChangedEventDef} e
+   * Creates listeners for visibility conditions or calls the callback if all
+   * the conditions are met.
+   * @param {function(!AnalyticsEvent)} callback The callback to call when the
+   *   event occurs.
+   * @param {!JsonObject} config Configuration for instrumentation.
+   * @param {AnalyticsEventType} eventType Event type for which the callback is triggered.
+   * @param {!Element} analyticsElement The element assoicated with the
+   *   config.
+   * @private
+   */
+  createVisibilityListener_(callback, config, eventType, analyticsElement) {
+    dev().assert(eventType == AnalyticsEventType.VISIBLE ||
+        eventType == AnalyticsEventType.HIDDEN,
+        'createVisibilityListener should be called with visible or hidden ' +
+        'eventType');
+    const shouldBeVisible = eventType == AnalyticsEventType.VISIBLE;
+    /** @const {!JsonObject} */
+    const spec = config['visibilitySpec'];
+    if (spec) {
+      if (!isVisibilitySpecValid(config)) {
+        return;
+      }
+
+      this.visibility_.listenOnce(spec, vars => {
+        const el = getElement(this.ampdoc, spec['selector'],
+            analyticsElement, spec['selectionMethod']);
+        if (el) {
+          const attr = getDataParamsFromAttributes(el, undefined,
+              VARIABLE_DATA_ATTRIBUTE_KEY);
+          for (const key in attr) {
+            vars[key] = attr[key];
+          }
+        }
+        callback(this.createEventDepr_(eventType, vars));
+      }, shouldBeVisible, analyticsElement);
+    } else {
+      if (this.viewer_.isVisible() == shouldBeVisible) {
+        callback(this.createEventDepr_(eventType));
+        config['called'] = true;
+      } else {
+        this.viewer_.onVisibilityChanged(() => {
+          if (!config['called'] &&
+              this.viewer_.isVisible() == shouldBeVisible) {
+            callback(this.createEventDepr_(eventType));
+            config['called'] = true;
+          }
+        });
+      }
+    }
+  }
+
+  /**
+   * @param {!../../../src/service/viewport-impl.ViewportChangedEventDef} e
    * @private
    */
   onScroll_(e) {
@@ -383,21 +435,21 @@ export class InstrumentationService {
   }
 
   /**
-   * @param {JSONType} timerSpec
+   * @param {JsonObject} timerSpec
    * @private
    */
   isTimerSpecValid_(timerSpec) {
-    if (!timerSpec) {
+    if (!timerSpec || typeof timerSpec != 'object') {
       user().error(TAG, 'Bad timer specification');
       return false;
-    } else if (!timerSpec.hasOwnProperty('interval')) {
+    } else if (!('interval' in timerSpec)) {
       user().error(TAG, 'Timer interval specification required');
       return false;
     } else if (typeof timerSpec['interval'] !== 'number' ||
                timerSpec['interval'] < MIN_TIMER_INTERVAL_SECONDS_) {
       user().error(TAG, 'Bad timer interval specification');
       return false;
-    } else if (timerSpec.hasOwnProperty('maxTimerLength') &&
+    } else if (('maxTimerLength' in timerSpec) &&
               (typeof timerSpec['maxTimerLength'] !== 'number' ||
                   timerSpec['maxTimerLength'] <= 0)) {
       user().error(TAG, 'Bad maxTimerLength specification');
@@ -409,11 +461,11 @@ export class InstrumentationService {
 
   /**
    * @param {!function(!AnalyticsEvent)} listener
-   * @param {JSONType} timerSpec
+   * @param {JsonObject} timerSpec
    * @private
    */
   createTimerListener_(listener, timerSpec) {
-    const hasImmediate = timerSpec.hasOwnProperty('immediate');
+    const hasImmediate = 'immediate' in timerSpec;
     const callImmediate = hasImmediate ? Boolean(timerSpec['immediate']) : true;
     const intervalId = this.ampdoc.win.setInterval(
         listener.bind(null, this.createEventDepr_(AnalyticsEventType.TIMER)),

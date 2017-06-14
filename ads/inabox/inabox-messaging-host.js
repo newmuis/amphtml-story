@@ -94,7 +94,7 @@ export class InaboxMessagingHost {
    * @return {boolean} true if message get successfully processed
    */
   processMessage(message) {
-    const request = deserializeMessage(getData(message));
+    const request = deserializeMessage(message.data);
     if (!request || !request['sentinel']) {
       dev().fine(TAG, 'Ignored non-AMP message:', message);
       return false;
@@ -107,7 +107,7 @@ export class InaboxMessagingHost {
       return false;
     }
 
-    if (!this.msgObservable_.fire(request.type, this,
+    if (!this.msgObservable_.fire(request['type'], this,
         [iframe, request, message.source, message.origin])) {
       dev().warn(TAG, 'Unprocessed AMP message:', message);
       return false;

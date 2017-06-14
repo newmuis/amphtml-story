@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-/** @externs */
-
 /**
  * A type for Objects that can be JSON serialized or that come from
  * JSON serialization. Requires the objects fields to be accessed with
@@ -25,38 +23,6 @@
  * @dict
  */
 function JsonObject() {}
-
-/**
- * Force the dataset property to be handled as a JsonObject.
- * @type {!JsonObject}
- */
-Element.prototype.dataset;
-
-/**
- * - n is the name.
- * - f is the function body of the extension.
- * - p is the priority. Only supported value is "high".
- *   high means, that the extension is not subject to chunking.
- *   This should be used for work, that should always happen
- *   as early as possible. Currently this is primarily used
- *   for viewer communication setup.
- * - v is the release version
- * @constructor @struct
- */
-function ExtensionPayload() {}
-
-/** @type {string} */
-ExtensionPayload.prototype.n;
-
-/** @type {function(!Object)} */
-ExtensionPayload.prototype.f;
-
-/** @type {string|undefined} */
-ExtensionPayload.prototype.p;
-
-/** @type {string} */
-ExtensionPayload.prototype.v;
-
 
 /**
  * @typedef {?JsonObject|undefined|string|number|!Array<JsonValue>}
@@ -143,8 +109,6 @@ AmpViewerMessage.prototype.rsvp;
 /** @public {string|undefined}  */
 AmpViewerMessage.prototype.error;
 
-// AMP-Analytics Cross-domain iframes
-let IframeTransportEvent;
 
 // amp-viz-vega related externs.
 /**

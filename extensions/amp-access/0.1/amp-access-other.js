@@ -27,7 +27,7 @@ export class AccessOtherAdapter {
   /**
    * @param {!../../../src/service/ampdoc-impl.AmpDoc} ampdoc
    * @param {!JsonObject} configJson
-   * @param {!./amp-access.AccessTypeAdapterContextDef} context
+   * @param {!AccessTypeAdapterContextDef} context
    */
   constructor(ampdoc, configJson, context) {
     /** @const */

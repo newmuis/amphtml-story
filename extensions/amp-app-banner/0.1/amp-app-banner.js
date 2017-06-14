@@ -265,7 +265,7 @@ export class AmpIosAppBanner extends AbstractAppBanner {
       }, OPEN_LINK_TIMEOUT);
       openWindowDialog(this.win, openInAppUrl, '_top');
     } else {
-      Services.timerFor(this.win).delay(() => {
+      timerFor(this.win).delay(() => {
         this.viewer_.sendMessage('navigateTo', dict({'url': installAppUrl}));
       }, OPEN_LINK_TIMEOUT);
       this.viewer_.sendMessage('navigateTo', dict({'url': openInAppUrl}));

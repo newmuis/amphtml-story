@@ -162,10 +162,10 @@ export class AmpAnimation extends AMP.BaseElement {
 
   /**
    * Returns the animation spec.
-   * @return {?JSONType}
+   * @return {?JsonObject}
    */
   getAnimationSpec() {
-    return /** @type {?JSONType} */ (this.configJson_);
+    return /** @type {?JsonObject} */ (this.configJson_);
   }
 
   /** @override */
@@ -333,7 +333,7 @@ export class AmpAnimation extends AMP.BaseElement {
   }
 
   /**
-   * @param {?JSONType=} opt_args
+   * @param {?JsonObject=} opt_args
    * @return {?Promise}
    * @private
    */
@@ -376,7 +376,7 @@ export class AmpAnimation extends AMP.BaseElement {
   }
 
   /**
-   * @param {?JSONType=} opt_args
+   * @param {?JsonObject=} opt_args
    * @return {!Promise<!./web-animations.WebAnimationRunner>}
    * @private
    */
