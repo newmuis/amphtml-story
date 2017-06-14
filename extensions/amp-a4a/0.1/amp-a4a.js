@@ -76,9 +76,6 @@ const METADATA_STRINGS = [
 /** @type {string} */
 export const DEFAULT_SAFEFRAME_VERSION = '1-0-9';
 
-/** @const {string} */
-export const CREATIVE_SIZE_HEADER = 'X-CreativeSize';
-
 /** @type {string} @visibleForTesting */
 export const RENDERING_TYPE_HEADER = 'X-AmpAdRender';
 
