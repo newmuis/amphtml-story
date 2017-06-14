@@ -28,6 +28,7 @@ import {AmpStoryGridLayer} from './amp-story-grid-layer';
 import {AmpStoryPage} from './amp-story-page';
 import {CSS} from '../../../build/amp-story-0.1.css';
 import {EventType} from './events';
+import {KeyCodes} from '../../../src/utils/key-codes';
 import {SystemLayer} from './system-layer';
 import {Layout} from '../../../src/layout';
 import {closest} from '../../../src/dom';
@@ -80,6 +81,9 @@ export class AmpStory extends AMP.BaseElement {
     this.element.addEventListener(EventType.EXIT_FULLSCREEN, () => {
       this.exitFullScreen_(/* opt_explicitUserAction */ true);
     });
+    this.win.document.addEventListener('keydown', e => {
+      this.onKeyDown_(e);
+    }, true);
   }
 
 
@@ -165,6 +169,24 @@ export class AmpStory extends AMP.BaseElement {
       this.schedulePause(activePage);
       this.scheduleResume(page);
     });
+  }
+
+
+  /**
+   * Handles all key presses within the story.
+   * @param {!Event} e The keydown event.
+   * @private
+   */
+  onKeyDown_(e) {
+    switch(e.keyCode) {
+      // TODO(newmuis): This will need to be flipped for RTL.
+      case KeyCodes.LEFT_ARROW:
+        this.previous_();
+        break;
+      case KeyCodes.RIGHT_ARROW:
+        this.next_();
+        break;
+    }
   }
 
 
