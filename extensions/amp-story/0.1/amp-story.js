@@ -118,17 +118,40 @@ export class AmpStory extends AMP.BaseElement {
 
 
   /**
+   * Gets the next page that the user should be advanced to, upon navigation.
+   * @return {!Element} The element representing the page that the user should
+   *     be advanced to.
+   * @private
+   */
+  getNextPage_() {
+    const activePage = this.getActivePage_();
+    const nextPageId = activePage.getAttribute('advance-to');
+
+    if (nextPageId) {
+      return user().assert(
+          this.element.querySelector(`amp-story-page#${nextPageId}`),
+          `Page "${activePage.id}" refers to page "${nextPageId}", but ` +
+          `no such page exists.`);
+    } else if (activePage.nextElementSibling === this.systemLayer_ ||
+        activePage.nextElementSibling === this.bookend_) {
+      return null;
+    } else {
+      return activePage.nextElementSibling;
+    }
+  }
+
+
+  /**
    * Advance to the next screen in the story, if there is one.
    * @private
    */
   next_() {
-    const activePage = this.getActivePage_();
-    if (!activePage.nextElementSibling ||
-        activePage.nextElementSibling == this.bookend_) {
+    const nextPage = this.getNextPage_();
+    if (!nextPage) {
       return;
     }
 
-    this.switchTo_(dev().assertElement(activePage.nextElementSibling))
+    this.switchTo_(dev().assertElement(nextPage))
         .then(() => this.preloadNext_());
   }
 
@@ -255,7 +278,7 @@ export class AmpStory extends AMP.BaseElement {
    * @private
    */
   preloadNext_() {
-    const next = this.getActivePage_().nextElementSibling;
+    const next = this.getNextPage_();
     if (!next) {
       return;
     }
