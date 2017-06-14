@@ -32,7 +32,7 @@ import {KeyCodes} from '../../../src/utils/key-codes';
 import {SystemLayer} from './system-layer';
 import {Layout} from '../../../src/layout';
 import {closest} from '../../../src/dom';
-import {dev} from '../../../src/log';
+import {dev, user} from '../../../src/log';
 import {
   exitFullScreen,
   isFullScreenSupported,
@@ -77,13 +77,19 @@ export class AmpStory extends AMP.BaseElement {
 
     this.element.addEventListener('click',
         this.maybePerformSystemNavigation_.bind(this), true);
-
     this.element.addEventListener(EventType.EXIT_FULLSCREEN, () => {
       this.exitFullScreen_(/* opt_explicitUserAction */ true);
     });
     this.win.document.addEventListener('keydown', e => {
       this.onKeyDown_(e);
     }, true);
+
+    const firstPage = user().assertElement(
+        this.element.querySelector('amp-story-page'),
+        'Story must have at least one page.');
+
+    firstPage.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
+    this.scheduleResume(firstPage);
   }
 
 
