@@ -65,6 +65,9 @@ export class AmpStory extends AMP.BaseElement {
 
     /** @private {!SystemLayer} */
     this.systemLayer_ = new SystemLayer(this.win);
+
+    /** @private {!Array<!Element>} */
+    this.pageHistoryStack_ = [];
   }
 
   /** @override */
@@ -146,12 +149,14 @@ export class AmpStory extends AMP.BaseElement {
    * @private
    */
   next_() {
+    const activePage = this.getActivePage_();
     const nextPage = this.getNextPage_();
     if (!nextPage) {
       return;
     }
 
     this.switchTo_(dev().assertElement(nextPage))
+        .then(() => this.pageHistoryStack_.push(activePage))
         .then(() => this.preloadNext_());
   }
 
@@ -161,12 +166,12 @@ export class AmpStory extends AMP.BaseElement {
    * @private
    */
   previous_() {
-    const activePage = this.getActivePage_();
-    if (!activePage.previousElementSibling) {
+    const previousPage = this.pageHistoryStack_.pop();
+    if (!previousPage) {
       return;
     }
 
-    this.switchTo_(dev().assertElement(activePage.previousElementSibling));
+    this.switchTo_(dev().assertElement(previousPage));
   }
 
 
