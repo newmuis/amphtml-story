@@ -52,8 +52,8 @@ export class Platform {
    * @return {boolean}
    */
   isSafari() {
-    return /Safari/i.test(this.navigator_.userAgent) && !this.isChrome() &&
-        !this.isEdge() && !this.isFirefox();
+    return /Safari/i.test(this.navigator_.userAgent) &&
+        !this.isChrome() && !this.isIe() && !this.isEdge() && !this.isFirefox();
   }
 
   /**

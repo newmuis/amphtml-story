@@ -71,6 +71,9 @@ export class AmpSidebar extends AMP.BaseElement {
     this.isIos_ = platform.isIos();
 
     /** @private @const {boolean} */
+    this.isIos_ = platform.isIos();
+
+    /** @private @const {boolean} */
     this.isSafari_ = platform.isSafari();
 
     /** @private {number} */
@@ -105,22 +108,6 @@ export class AmpSidebar extends AMP.BaseElement {
     if (this.side_ != 'left' && this.side_ != 'right') {
       this.side_ = isRTL(this.document_) ? 'right' : 'left';
       this.element.setAttribute('side', this.side_);
-    }
-
-    if (this.isToolbarExperimentEnabled_) {
-      const ampdoc = this.getAmpDoc();
-      // Get the toolbar attribute from the child navs.
-      const toolbarElements =
-        toArray(this.element.querySelectorAll('nav[toolbar]'));
-
-      toolbarElements.forEach(toolbarElement => {
-        try {
-          this.toolbars_.push(new Toolbar(toolbarElement, this.vsync_,
-            ampdoc));
-        } catch (e) {
-          this.user().error(TAG, 'Failed to instantiate toolbar', e);
-        }
-      });
     }
 
     if (this.isIos_) {
@@ -245,6 +232,7 @@ export class AmpSidebar extends AMP.BaseElement {
     this.viewport_.enterOverlayMode();
     this.vsync_.mutate(() => {
       toggle(this.element, /* display */true);
+      this.openMask_();
       if (this.isIos_ && this.isSafari_) {
         this.compensateIosBottombar_();
       }
