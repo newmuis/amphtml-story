@@ -1,5 +1,6 @@
 import {AmpStory} from '../amp-story';
 import {EventType} from '../events';
+import {KeyCodes} from '../../../../src/utils/key-codes';
 import {
   stubFullScreenForTesting,
   resetFullScreenForTesting,
@@ -35,6 +36,15 @@ describes.realWin('amp-story', {
     });
   }
 
+  function createEvent(eventType) {
+    const eventObj = document.createEventObject ?
+        document.createEventObject() : document.createEvent('Events');
+    if (eventObj.initEvent) {
+      eventObj.initEvent(eventType, true, true);
+    }
+    return eventObj;
+  }
+
   beforeEach(() => {
     win = env.win;
     element = win.document.createElement('amp-story');
@@ -54,6 +64,7 @@ describes.realWin('amp-story', {
         sandbox.stub(element.implementation_.systemLayer_, 'build')
             .returns(systemLayerRootMock);
 
+    createPages(element, 5);
     const appendChild = sandbox.stub(element, 'appendChild', NOOP);
 
     element.build();
@@ -124,6 +135,7 @@ describes.realWin('amp-story', {
     const exitFullScreenStub = sandbox.stub(
         element.implementation_, 'exitFullScreen_', NOOP);
 
+    createPages(element, 5);
     element.build();
 
     element.dispatchEvent(new Event(EventType.EXIT_FULLSCREEN));
@@ -181,5 +193,43 @@ describes.realWin('amp-story', {
 
     // first page is not counted as part of the progress
     expect(updateProgressBarStub).to.have.been.calledWith(index, count - 1);
+  });
+
+  it('should pause/resume pages when switching pages', () => {
+    const impl = element.implementation_;
+    const pages = createPages(element, 5);
+    impl.schedulePause = sandbox.spy();
+    impl.scheduleResume = sandbox.spy();
+
+    const oldPage = pages[0];
+    const newPage = pages[1];
+
+    element.build();
+
+    return impl.switchTo_(newPage).then(() => {
+      expect(impl.schedulePause).to.have.been.calledWith(oldPage);
+      expect(impl.scheduleResume).to.have.been.calledWith(newPage);
+    });
+  });
+
+  it('should go to next page on right arrow keydown', () => {
+    const impl = element.implementation_;
+    const pages = createPages(element, 5);
+
+    element.build();
+
+    expect(pages[0].hasAttribute('active')).to.be.true;
+    expect(pages[1].hasAttribute('active')).to.be.false;
+
+    const eventObj = createEvent('keydown');
+    eventObj.keyCode = KeyCodes.RIGHT_ARROW;
+    eventObj.which = KeyCodes.RIGHT_ARROW;
+    const docEl = win.document.documentElement;
+    docEl.dispatchEvent ?
+        docEl.dispatchEvent(eventObj) :
+        docEl.fireEvent('onkeydown', eventObj);
+
+    expect(pages[0].hasAttribute('active')).to.be.false;
+    expect(pages[1].hasAttribute('active')).to.be.true;
   });
 });
