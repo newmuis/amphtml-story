@@ -18,6 +18,7 @@ import {
   additionalDimensions,
   addCsiSignalsToAmpAnalyticsConfig,
   extractAmpAnalyticsConfig,
+  extractGoogleAdCreativeAndSignature,
   EXPERIMENT_ATTRIBUTE,
   googleAdUrl,
   mergeExperimentIds,
@@ -164,76 +165,7 @@ describe('Google A4A utils', () => {
 
         url = ['https://foo.com?hello=world', 'https://bar.com?a=b'];
         const config = extractAmpAnalyticsConfig(a4a, headers);
-        const visibilityCsiRequest = config.requests.visibilityCsi;
-        expect(config.triggers.continuousVisible.request)
-            .to.contain('visibilityCsi');
-        const iniLoadCsiRequest = config.requests.iniLoadCsi;
-        const renderStartCsiRequest = config.requests.renderStartCsi;
-        expect(visibilityCsiRequest).to.not.be.null;
-        expect(iniLoadCsiRequest).to.not.be.null;
-        expect(renderStartCsiRequest).to.not.be.null;
-        // We expect slotId == null, since no real element is created, and so
-        // no slot index is ever set. Additionally, below it is possible to
-        // have negative times, but only in in unit tests, never in production.
-        const getRegExps = metricName => [
-          /^https:\/\/csi\.gstatic\.com\/csi\?/,
-          /s=a4a/,
-          /&c=[0-9]+/,
-          /&slotId=null/,
-          /&qqid\.null=[a-zA-Z_]+/,
-          new RegExp(`&met\\.a4a\\.null=${metricName}\\.-?[0-9]+`),
-          /&dt=-?[0-9]+/,
-          /e\.null=00000001%2C0000002/,
-          /rls=\$internalRuntimeVersion\$/,
-          /adt.null=(doubleclick|adsense)/,
-        ];
-        getRegExps('visibilityCsi').forEach(regExp => {
-          expect(visibilityCsiRequest).to.match(regExp);
-        });
-        getRegExps('iniLoadCsi').forEach(regExp => {
-          expect(iniLoadCsiRequest).to.match(regExp);
-        });
-        getRegExps('renderStartCsi').forEach(regExp => {
-          expect(renderStartCsiRequest).to.match(regExp);
-        });
-        // Need to remove this request as it will vary in test execution.
-        delete config.requests.visibilityCsi;
-        config.triggers.continuousVisible.request.splice(
-            config.triggers.continuousVisible.request.indexOf('visibilityCsi'),
-            1);
-        delete config.requests.iniLoadCsi;
-        delete config.requests.renderStartCsi;
-        expect(config).to.jsonEqual({
-          transport: {beacon: false, xhrpost: false},
-          requests: {
-            visibility1: url[0],
-            visibility2: url[1],
-          },
-          triggers: {
-            continuousVisible: {
-              on: 'visible',
-              request: ['visibility1', 'visibility2'],
-              visibilitySpec: {
-                selector: 'amp-ad',
-                selectionMethod: 'closest',
-                visiblePercentageMin: 50,
-                continuousTimeMin: 1000,
-              },
-            },
-            continuousVisibleIniLoad: {
-              on: 'ini-load',
-              request: 'iniLoadCsi',
-              selector: 'amp-ad',
-              selectionMethod: 'closest',
-            },
-            continuousVisibleRenderStart: {
-              on: 'render-start',
-              request: 'renderStartCsi',
-              selector: 'amp-ad',
-              selectionMethod: 'closest',
-            },
-          },
-        });
+        expect(config).to.deep.equal(builtConfig);
         headers.has = function(name) {
           expect(name).to.equal('X-AmpAnalytics');
           return false;

@@ -36,7 +36,6 @@ import {
   extractAmpAnalyticsConfig,
   addCsiSignalsToAmpAnalyticsConfig,
   QQID_HEADER,
-  maybeAppendErrorParameter,
 } from '../../../ads/google/a4a/utils';
 import {
   googleLifecycleReporterFactory,
@@ -118,28 +117,6 @@ export class AmpAdNetworkAdsenseImpl extends AmpA4A {
 
     /** @private {?string} */
     this.qqid_ = null;
-
-    /**
-     * For full-width responsive ads: whether the element has already been
-     * aligned to the edges of the viewport.
-     * @private {boolean}
-     */
-    this.responsiveAligned_ = false;
-
-    /**
-     * The contents of the data-auto-format attribute, or empty string if the
-     * attribute was not set.
-     * @private {?string}
-     */
-    this.autoFormat_ = null;
-  }
-
-  /**
-   * @return {boolean}
-   * @private
-   */
-  isResponsive_() {
-    return this.autoFormat_ == 'rspv';
   }
 
   /** @override */
@@ -342,52 +319,6 @@ export class AmpAdNetworkAdsenseImpl extends AmpA4A {
     }
     this.ampAnalyticsConfig_ = null;
     this.qqid_ = null;
-  }
-
-  /** @override */
-  onLayoutMeasure() {
-    super.onLayoutMeasure();
-
-    if (this.isResponsive_() && !this.responsiveAligned_) {
-      this.responsiveAligned_ = true;
-
-      const layoutBox = this.getLayoutBox();
-
-      // Nudge into the correct horizontal position by changing side margin.
-      this.getVsync().run({
-        measure: state => {
-          state.direction =
-            computedStyle(this.win, this.element)['direction'];
-        },
-        mutate: state => {
-          if (state.direction == 'rtl') {
-            setStyle(this.element, 'marginRight', layoutBox.left, 'px');
-          } else {
-            setStyle(this.element, 'marginLeft', -layoutBox.left, 'px');
-          }
-        },
-      }, {direction: ''});
-    }
-  }
-
-  /** @override */
-  getPreconnectUrls() {
-    return ['https://googleads.g.doubleclick.net'];
-  }
-
-  /**
-   * Calculates the appropriate height for a full-width responsive ad of the
-   * given width.
-   * @param {!{width: number, height: number}} viewportSize
-   * @return {number}
-   * @private
-   */
-  static getResponsiveHeightForContext_(viewportSize) {
-    const minHeight = 100;
-    const maxHeight = Math.min(300, viewportSize.height);
-    // We aim for a 6:5 aspect ratio.
-    const idealHeight = Math.round(viewportSize.width / 1.2);
-    return clamp(idealHeight, minHeight, maxHeight);
   }
 
   /** @override */

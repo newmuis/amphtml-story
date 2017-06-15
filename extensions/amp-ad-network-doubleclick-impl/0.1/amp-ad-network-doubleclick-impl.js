@@ -40,6 +40,8 @@ import {
   AmpAnalyticsConfigDef,
   extractAmpAnalyticsConfig,
   groupAmpAdsByType,
+  addCsiSignalsToAmpAnalyticsConfig,
+  QQID_HEADER,
 } from '../../../ads/google/a4a/utils';
 import {getMultiSizeDimensions} from '../../../ads/google/utils';
 import {
@@ -415,6 +417,7 @@ export class AmpAdNetworkDoubleclickImpl extends AmpA4A {
     this.sraResponseResolver = sraInitializer.resolver;
     this.sraResponseRejector = sraInitializer.rejector;
     this.sraResponsePromise_ = sraInitializer.promise;
+    this.qqid_ = null;
   }
 
   /**
