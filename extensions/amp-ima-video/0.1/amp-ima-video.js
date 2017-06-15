@@ -35,15 +35,9 @@ import {
   listen,
 } from '../../../src/event-helper';
 import {dict} from '../../../src/utils/object';
-import {
-  childElementsByTag,
-  fullscreenEnter,
-  fullscreenExit,
-  isFullscreenElement,
-  isJsonScriptTag,
-  removeElement,
-} from '../../../src/dom';
-import {user, dev} from '../../../src/log';
+import {removeElement} from '../../../src/dom';
+import {startsWith} from '../../../src/string';
+import {user} from '../../../src/log';
 import {VideoEvents} from '../../../src/video-interface';
 import {Services} from '../../../src/services';
 import {isEnumValue} from '../../../src/types';

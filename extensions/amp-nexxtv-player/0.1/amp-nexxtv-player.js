@@ -18,7 +18,7 @@ import {assertAbsoluteHttpOrHttpsUrl} from '../../../src/url';
 import {tryParseJson} from '../../../src/json';
 import {isLayoutSizeDefined} from '../../../src/layout';
 import {dict} from '../../../src/utils/object';
-import {user, dev} from '../../../src/log';
+import {user} from '../../../src/log';
 import {
   installVideoManagerForDoc,
 } from '../../../src/service/video-manager-impl';

@@ -251,7 +251,9 @@ export class Messaging {
    */
   sendMessage_(message) {
     this.port_./*OK*/postMessage(
-        this.isWebview_ ? JSON.stringify(message) : message);
+        this.isWebview_
+            ? JSON.stringify(message)
+            : message);
   }
 
   /**

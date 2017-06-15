@@ -26,8 +26,8 @@ import {
 } from '../../../src/iframe-helper';
 import {Services} from '../../../src/services';
 import {dev} from '../../../src/log';
-import {reportErrorToAnalytics} from '../../../src/error';
 import {dict} from '../../../src/utils/object';
+import {timerFor} from '../../../src/services';
 import {setStyle} from '../../../src/style';
 import {getData, loadPromise} from '../../../src/event-helper';
 import {getHtml} from '../../../src/get-html';
@@ -130,9 +130,11 @@ export class AmpAdXOriginIframeHandler {
           this.positionObserver_.observe(
               dev().assertElement(this.iframe),
               PositionObserverFidelity.HIGH, pos => {
+                // Valid cast because it is an external object.
+                const posCast = /** @type {!JsonObject} */ (pos);
                 this.positionObserverHighFidelityApi_.send(
                     POSITION_HIGH_FIDELITY,
-                    pos);
+                    posCast);
               });
         });
     }
@@ -159,7 +161,10 @@ export class AmpAdXOriginIframeHandler {
 
           postMessageToWindows(
               this.iframe, [{win: source, origin}],
-              'get-html-result', {content, messageId}, true
+              'get-html-result', dict({
+                'content': content,
+                'messageId': messageId,
+              }), true
           );
         }, true, false));
 
@@ -412,37 +417,6 @@ export class AmpAdXOriginIframeHandler {
       'inViewport': inViewport,
       'pageHidden': !this.viewer_.isVisible(),
     }));
-  }
-
-  /**
-   * Retrieve iframe position entry in next animation frame.
-   * @private
-   */
-  getIframePositionPromise_() {
-    return this.viewport_.getClientRectAsync(
-        dev().assertElement(this.iframe)).then(position => {
-          dev().assert(position,
-              'element clientRect should intersects with root clientRect');
-          const viewport = this.viewport_.getRect();
-          return dict({
-            'targetRect': position,
-            'viewportRect': viewport,
-          });
-        });
-  }
-
-  /** @private */
-  sendPosition_() {
-    if (this.sendPositionPending_) {
-      // Only send once in single animation frame.
-      return;
-    }
-
-    this.sendPositionPending_ = true;
-    this.getIframePositionPromise_().then(position => {
-      this.sendPositionPending_ = false;
-      this.inaboxPositionApi_.send(MessageType.POSITION, position);
-    });
   }
 
   /** @private */

@@ -48,7 +48,7 @@ import {urls} from '../src/config';
 import {endsWith} from '../src/string';
 import {parseJson} from '../src/json';
 import {parseUrl, getSourceUrl, isProxyOrigin} from '../src/url';
-import {initLogConstructor, setReportError, user} from '../src/log';
+import {dev, initLogConstructor, setReportError, user} from '../src/log';
 import {dict} from '../src/utils/object.js';
 import {getMode} from '../src/mode';
 import {startsWith} from '../src/string.js';

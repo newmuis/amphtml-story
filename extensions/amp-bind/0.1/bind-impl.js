@@ -150,8 +150,8 @@ export class Bind {
     /** @const @private {!./bind-validator.BindValidator} */
     this.validator_ = new BindValidator();
 
-    /** @const @private {!Object} */
-    this.scope_ = Object.create(null);
+    /** @const @private {!JsonObject} */
+    this.scope_ = dict();
 
     /** @const @private {!../../../src/service/resources-impl.Resources} */
     this.resources_ = resourcesForDoc(ampdoc);
@@ -684,10 +684,23 @@ export class Bind {
           && boundElement.element.tagName == 'AMP-STATE') {
         return Promise.resolve();
       }
-      return this.applyBoundElement_(results, boundElement);
-    });
-    return Promise.all(promises);
-  }
+      const promise = this.resources_.mutateElement(element, () => {
+        const mutations = dict();
+        let width, height;
+
+        updates.forEach(update => {
+          const {boundProperty, newValue} = update;
+          const mutation = this.applyBinding_(boundProperty, element, newValue);
+          if (mutation) {
+            mutations[mutation.name] = mutation.value;
+            const property = boundProperty.property;
+            if (property == 'width') {
+              width = isFiniteNumber(newValue) ? Number(newValue) : width;
+            } else if (property == 'height') {
+              height = isFiniteNumber(newValue) ? Number(newValue) : height;
+            }
+          }
+        });
 
   /**
    * Applies expression results to only given elements and their descendants.

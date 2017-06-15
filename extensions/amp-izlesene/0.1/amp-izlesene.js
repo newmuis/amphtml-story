@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import {addParamsToUrl} from '../../../src/url';
-import {getDataParamsFromAttributes} from '../../../src/dom';
-import {isLayoutSizeDefined} from '../../../src/layout';
-import {dev, user} from '../../../src/log';
-import {dict} from '../../../src/utils/object';
+ import {addParamsToUrl} from '../../../src/url';
+ import {getDataParamsFromAttributes} from '../../../src/dom';
+ import {isLayoutSizeDefined} from '../../../src/layout';
+ import {dev, user} from '../../../src/log';
+ import {dict} from '../../../src/utils/object';
 
  class AmpIzlesene extends AMP.BaseElement {
    constructor(element) {
@@ -92,7 +92,9 @@ import {dict} from '../../../src/utils/object';
   /** @override */
    pauseCallback() {
      if (this.iframe_ && this.iframe_.contentWindow) {
-       this.iframe_.contentWindow./*OK*/postMessage({command: 'pause'}, '*');
+       this.iframe_.contentWindow./*OK*/postMessage(dict({
+         'command': 'pause',
+       }), '*');
      }
    }
 };

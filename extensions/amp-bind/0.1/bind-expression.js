@@ -426,15 +426,6 @@ export class BindExpression {
   }
 
   /**
-   * Returns true iff method is
-   * @param {string} method
-   * @return {boolean}
-   */
-  isObjectMethod_(method) {
-    return method == 'keys' || method == 'values';
-  }
-
-  /**
    * Returns true if input array contains a plain object.
    * @param {!Array} array
    * @return {boolean}

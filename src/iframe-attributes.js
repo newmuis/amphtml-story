@@ -18,7 +18,7 @@ import {Services} from './services';
 import {experimentToggles, isCanary} from './experiments';
 import {getLengthNumeral} from './layout';
 import {getModeObject} from './mode-object';
-import {DomFingerprint} from './utils/dom-fingerprint';
+import {domFingerprint} from './utils/dom-fingerprint';
 import {dict} from './utils/object.js';
 
 /**
@@ -54,7 +54,7 @@ export function getContextMetadata(
   const layoutRect = element.getPageLayoutBox();
   attributes['_context'] = dict({
     'ampcontextVersion': '$internalRuntimeVersion$',
-    'ampcontextFilepath': urls.thirdParty + '/$internalRuntimeVersion$' +
+    'ampcontextFilepath': urls.cdn + '/$internalRuntimeVersion$' +
         '/ampcontext-v0.js',
     'sourceUrl': docInfo.sourceUrl,
     'referrer': referrer,
@@ -75,7 +75,7 @@ export function getContextMetadata(
       'height': layoutRect.height,
     } : null,
     'initialIntersection': element.getIntersectionChangeEntry(),
-    'domFingerprint': DomFingerprint.generate(element),
+    'domFingerprint': domFingerprint(element),
     'experimentToggles': experimentToggles(parentWindow),
     'sentinel': sentinel,
   });
