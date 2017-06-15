@@ -1,0 +1,165 @@
+<!doctype html>
+<html ⚡>
+<head>
+  <meta charset="utf-8">
+  <link rel="canonical" href="index.html">
+  <link rel="icon" href="./media/a-favicon.png" type="image/png" />
+  <link rel="manifest" href="./manifest.json">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}} @keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
+
+  <title>Best Takeaways from NBA Finals Game 2</title>
+  <style amp-custom>
+    @font-face {
+      font-family: 'Alternate Gothic2 BT';
+      src: url(font/alternate-gothic2-bt.ttf);
+    }
+
+    body {
+      color: #fff;
+      font-size: 2.8125vmax;
+      font-family: 'Alternate Gothic2 BT', sans-serif;
+      text-transform: uppercase;
+    }
+
+    amp-story-grid-layer {
+      padding: 2em;
+    }
+
+    #logo {
+      padding-bottom: 11px;
+    }
+
+    #contentLayer {
+      align-content: end;
+    }
+
+    #cover h1 {
+      font-size: 70px;
+      font-weight: normal;
+      letter-spacing: 1.67px;
+      line-height: 60px;
+      text-shadow: 0 2px 5px rgba(0,0,0,0.52);
+      padding-top: 60px;
+    }
+
+    .big-score {
+      font-size: 70px;
+      font-weight: normal;
+      letter-spacing: 1.67px;
+      line-height: 60px;
+      margin: 0;
+      padding: 0;
+      text-shadow: 0 2px 5px rgba(0,0,0,0.52);
+    }
+
+    .score {
+      text-align: center;
+    }
+
+    .score .caption {
+      font-size: 12px;
+      line-height: 16px;
+    }
+
+    .score .separator {
+      font-size: 24px;
+      line-height: 40px;
+      padding: 0 1em;
+    }
+
+    #at-the-half .foreground {
+      grid-template-rows: 33% 1fr 33%;
+      grid-template-columns: auto auto;
+      grid-template-areas: "gsw-logo  gsw-score"
+                           "caption   caption"
+                           "cle-score cle-logo";
+      align-items: center;
+      justify-items: center;
+    }
+
+    #gsw-logo  { grid-area: gsw-logo; }
+    #gsw-score { grid-area: gsw-score; }
+    #half-caption {
+      font-size: 42px;
+      grid-area: caption;
+      line-height: 1;
+    }
+    #cle-score { grid-area: cle-score; }
+    #cle-logo { grid-area: cle-logo; }
+  </style>  
+</head>
+
+<body>
+  <amp-story>
+
+    <!-- Cover -->
+    <amp-story-page id="cover" active>
+      <amp-story-grid-layer preset="fill">
+        <amp-img src="media/curry.jpg" alt="Steph Curry celebrating" width="720" height="1280"></amp-img>
+      </amp-story-grid-layer>
+      <amp-story-grid-layer preset="vertical" id="contentLayer">
+        <amp-img id="logo" src="media/nba-finals.png" alt="The Finals" width="482" height="140" layout="responsive"></amp-img>
+        <div class="score">
+          <p class="caption">GS Leads series 2-0</p>
+          <span>GS 132</span>
+          <span class="separator">|</span>
+          <span>CLE 113</span>
+        </div>
+        <h1>Best Takeaways from NBA Finals Game 2</h1>
+      </amp-story-grid-layer>
+    </amp-story-page>
+
+    <!-- At The Half -->
+    <amp-story-page id="at-the-half">
+      <amp-story-grid-layer preset="fill">
+        <amp-img src="media/showdown.jpg" width="720" height="1280"></amp-img>
+      </amp-story-grid-layer>
+      <amp-story-grid-layer class="foreground">
+        <amp-img id="gsw-logo" src="media/warriors.png" alt="Golden State Warriors" width="61" height="75"></amp-img>
+        <h1 id="gsw-score" class="big-score">67</h1>
+        <p id="half-caption">Both teams were locked in a battle at the half</p>
+        <h1 id="cle-score" class="big-score">64</h1>
+        <amp-img id="cle-logo" src="media/cavs.png" alt="Cleveland Cavaliers" width="90" height="48"></amp-img>
+      </amp-story-grid-layer>
+    </amp-story-page>
+
+    <!-- Curry Highlight -->
+    <amp-story-page id="curry-highlight">
+      <amp-story-grid-layer preset="vertical">
+        <amp-video layout="responsive" src="media/curry.mp4" width="632" height="720"></amp-video>
+      </amp-story-grid-layer>
+      <amp-story-grid-layer preset="vertical">
+        <div class="score">
+          <p class="caption">GS Leads series 2-0</p>
+          <span>GS 132</span>
+          <span class="separator">|</span>
+          <span>CLE 113</span>
+        </div>
+        <div class="bottom">
+          <p>Steph Curry shows off his handles against King James</p>
+        </div>
+      </amp-story-grid-layer>
+    </amp-story-page>
+
+    <!-- Tweet -->
+    <amp-story-page id="paul-pierce-reacts">
+      <amp-story-grid-layer preset="vertical">
+        <amp-img layout="responsive" src="media/durant.jpg" width="720" height="576"></amp-img>
+      </amp-story-grid-layer>
+      <amp-story-grid-layer preset="vertical">
+        <amp-twitter width="300" height="400"
+            layout="responsive"
+            data-tweetid="871558595510390785"
+            data-cards="hidden"
+            data-chrome="noborders">
+        </amp-twitter>
+      </amp-story-grid-layer>
+    </amp-story-page>
+  </amp-story>
+
+  <script async src="https://cdn.ampproject.org/v0.js"></script>
+  <script async custom-element="amp-twitter" src="https://cdn.ampproject.org/v0/amp-twitter-0.1.js"></script>
+  <script async src="//stamp-prototype.appspot.com/v0/amp-story-0.1.js"></script>
+</body>
+</html>
