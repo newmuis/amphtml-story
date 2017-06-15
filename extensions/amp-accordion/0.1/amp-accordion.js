@@ -73,7 +73,6 @@ class AmpAccordion extends AMP.BaseElement {
           'See https://github.com/ampproject/amphtml/blob/master/extensions/' +
           'amp-accordion/amp-accordion.md. Found in: %s', this.element);
       const content = sectionComponents[1];
-      content.classList.add('i-amphtml-accordion-content');
       let contentId = content.getAttribute('id');
       if (!contentId) {
         contentId = this.element.id + '_AMP_content_' + index;
@@ -81,22 +80,23 @@ class AmpAccordion extends AMP.BaseElement {
       }
 
 
-        const header = sectionComponents[0];
-        header.classList.add('i-amphtml-accordion-header');
-        header.setAttribute('role', 'heading');
-        header.setAttribute('aria-controls', contentId);
-        header.setAttribute('aria-expanded',
-            section.hasAttribute('expanded').toString());
-        if (!header.hasAttribute('tabindex')) {
-          header.setAttribute('tabindex', 0);
+
+      if (!this.currentState_[contentId] != null) {
+        if (this.currentState_[contentId]) {
+          section.setAttribute('expanded', '');
+        } else if (this.currentState_[contentId] === false) {
+          section.removeAttribute('expanded');
         }
-        this.headers_.push(header);
-        header.addEventListener('click', this.clickHandler_.bind(this));
-        header.addEventListener('keydown', this.keyDownHandler_.bind(this));
-      });
+        this.mutateElement(() => {
+          // Just mark this element as dirty since we changed the state
+          // based on runtime state. This triggers checking again
+          // whether children need layout.
+          // See https://github.com/ampproject/amphtml/issues/3586
+          // for details.
+        });
+      }
 
       const header = sectionComponents[0];
-      header.classList.add('i-amphtml-accordion-header');
       header.setAttribute('role', 'heading');
       header.setAttribute('aria-controls', contentId);
       header.setAttribute('aria-expanded',
@@ -253,7 +253,4 @@ class AmpAccordion extends AMP.BaseElement {
   }
 }
 
-
-AMP.extension(TAG, '0.1', AMP => {
-  AMP.registerElement(TAG, AmpAccordion);
-});
+AMP.registerElement('amp-accordion', AmpAccordion);

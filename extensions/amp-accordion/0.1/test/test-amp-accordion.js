@@ -194,7 +194,7 @@ describes.realWin('amp-accordion', {
           'section > *:first-child');
       // Focus the first header,
       tryFocus(headerElements[0]);
-      expect(doc.activeElement)
+      expect(iframe.doc.activeElement)
           .to.equal(headerElements[0]);
       const upArrowEvent = {
         keyCode: KeyCodes.UP_ARROW,
