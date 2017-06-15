@@ -100,6 +100,7 @@ app.get('/stamp2.js', function(req, res) {
     'www/components2/amp-story-page.js',
     'www/components2/amp-story-base-layer.js',
     'www/components2/amp-story-fill-layer.js',
+    'www/components2/amp-story-grid-layer.js',
     'www/components2/amp-story-sequential-layer.js',
     'www/components2/define-elements.js',
   ];
