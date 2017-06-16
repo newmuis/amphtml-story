@@ -17,14 +17,15 @@
 import {ActionTrust} from '../action-trust';
 import {OBJECT_STRING_ARGS_KEY} from '../service/action-impl';
 import {Layout, getLayoutClass} from '../layout';
-import {Services} from '../services';
+import {actionServiceForDoc, urlReplacementsForDoc} from '../services';
+import {bindForDoc} from '../services';
 import {computedStyle, getStyle, toggle} from '../style';
 import {dev, user} from '../log';
-import {dict} from '../utils/object';
+import {historyForDoc} from '../services';
 import {isProtocolValid} from '../url';
 import {registerServiceBuilderForDoc} from '../service';
-import {tryFocus} from '../dom';
-import {toWin} from '../types';
+import {resourcesForDoc} from '../services';
+import {vsyncFor} from '../services';
 
 /**
  * @param {!Element} element
@@ -37,10 +38,6 @@ function isShowable(element) {
 
 /** @const {string} */
 const TAG = 'STANDARD-ACTIONS';
-
-/** @const {Array<string>} */
-const PERMITTED_POSITIONS = ['top','bottom','center'];
-
 
 /**
  * This service contains implementations of some of the most typical actions,
@@ -67,6 +64,9 @@ export class StandardActions {
 
     /** @const @private {!./viewport/viewport-impl.Viewport} */
     this.viewport_ = Services.viewportForDoc(ampdoc);
+
+    /** @const @private {!./url-replacements-impl.UrlReplacements} */
+    this.urlReplacements_ = urlReplacementsForDoc(ampdoc);
 
     this.installActions_(this.actions_);
   }
@@ -106,6 +106,9 @@ export class StandardActions {
       case 'setState':
         this.handleAmpSetState_(invocation);
         return;
+      case 'navigateTo':
+        this.handleAmpNavigateTo_(invocation);
+        return;
       case 'goBack':
         this.handleAmpGoBack_(invocation);
         return;
@@ -143,6 +146,25 @@ export class StandardActions {
             + '"AMP.setState(foo=\'bar\')".');
       }
     });
+  }
+
+  /**
+   * @param {!./action-impl.ActionInvocation} invocation
+   * @private
+   */
+  handleAmpNavigateTo_(invocation) {
+    if (!invocation.satisfiesTrust(ActionTrust.HIGH)) {
+      return;
+    }
+    const url = invocation.args['url'];
+    if (!isProtocolValid(url)) {
+      user().error(TAG, 'Cannot navigate to invalid protocol: ' + url);
+      return;
+    }
+    const expandedUrl = this.urlReplacements_.expandUrlSync(url);
+    const node = invocation.target;
+    const win = (node.ownerDocument || node).defaultView;
+    win.location = expandedUrl;
   }
 
   /**
