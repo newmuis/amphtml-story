@@ -521,7 +521,7 @@ export class FetchResponse {
    */
   json() {
     return /** @type {!Promise<!JsonObject>} */ (
-        this.drainText_().then(JSON.parse.bind(JSON)));
+        this.drainText_().then(parseJson));
   }
 
   /**

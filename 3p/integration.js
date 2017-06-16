@@ -210,10 +210,17 @@ const AMP_EMBED_ALLOWED = {
 };
 
 
+/** @const {!JsonObject} */
+const FALLBACK_CONTEXT_DATA = dict({
+  '_context': dict(),
+});
+
+
 // Need to cache iframeName as it will be potentially overwritten by
 // masterSelection, as per below.
 const iframeName = window.name;
 
+window.context = data['_context'];
 
 init(window);
 
@@ -373,19 +380,21 @@ const defaultAllowedTypesInCustomFrame = [
 
 
 /**
- * Initialize 3p frame.
- * @param {!Window} win
+ * Gets data encoded in iframe name attribute.
+ * @return {!JsonObject}
  */
-function init(win) {
-  const config = getAmpConfig();
-
-  // Overriding to short-circuit src/mode#getMode()
-  win.AMP_MODE = config.mode;
-
-  initLogConstructor();
-  setReportError(console.error.bind(console));
-
-  setExperimentToggles(config.experimentToggles);
+function getData(iframeName) {
+  try {
+    // TODO(bradfrizzell@): Change the data structure of the attributes
+    //    to make it less terrible.
+    return parseJson(iframeName)['attributes'];
+  } catch (err) {
+    if (!getMode().test) {
+      dev().info(
+          'INTEGRATION', 'Could not parse context from:', iframeName);
+    }
+    return FALLBACK_CONTEXT_DATA;
+  }
 }
 
 
@@ -438,16 +447,16 @@ function isMaster() {
 window.draw3p = function(opt_configCallback, opt_allowed3pTypes,
     opt_allowedEmbeddingOrigins) {
   try {
-    const data = getAttributeData();
-    const location = getLocation();
+    const location = parseUrl(data['_context']['location']['href']);
 
     ensureFramed(window);
     validateParentOrigin(window, location);
-    validateAllowedTypes(window, getEmbedType(), opt_allowed3pTypes);
+    validateAllowedTypes(window, data['type'], opt_allowed3pTypes);
     if (opt_allowedEmbeddingOrigins) {
       validateAllowedEmbeddingOrigins(window, opt_allowedEmbeddingOrigins);
     }
-    installContext(window, data);
+    installContext(window);
+    delete data['_context'];
     manageWin(window);
     installEmbedStateListener();
 
@@ -561,16 +570,21 @@ function installContextUsingStandardImpl(win, data) {
   // Define master related properties to be lazily read.
   Object.defineProperties(win.context, {
     master: {
-      get: () => masterSelection(win, embedType),
+      get: () => masterSelection(win, data['type']),
     },
     isMaster: {
       get: isMaster,
     },
   });
 
-  if (embedType === 'facebook' ||
-      embedType === 'twitter' ||
-      embedType === 'github') {
+  win.context.data = data;
+  win.context.location = parseUrl(data['_context']['location']['href']);
+  win.context.noContentAvailable = triggerNoContentAvailable;
+  win.context.requestResize = triggerResizeRequest;
+  win.context.renderStart = triggerRenderStart;
+
+  const type = data['type'];
+  if (type === 'facebook' || type === 'twitter' || type === 'github') {
     // Only make this available to selected embeds until the
     // generic solution is available.
     win.context.updateDimensions = triggerDimensions;
@@ -829,7 +843,7 @@ export function parseFragment(fragment) {
     if (startsWith(json, '{%22')) {
       json = decodeURIComponent(json);
     }
-    return /** @type {!JsonObject} */ (json ? JSON.parse(json) : {});
+    return /** @type {!JsonObject} */ (json ? parseJson(json) : dict());
   } catch (err) {
     return null;
   }

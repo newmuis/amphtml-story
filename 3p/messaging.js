@@ -15,7 +15,6 @@
  */
 
 import {parseJson} from '../src/json';
-import {getData} from '../src/event-helper';
 
 /**
  * Send messages to parent frame. These should not contain user data.
@@ -81,8 +80,7 @@ function startListening(win) {
       return;
     }
     // Parse JSON only once per message.
-    const data = /** @type {!JsonObject} */ (
-        parseJson(/**@type {string} */ (getData(event)).substr(4)));
+    const data = parseJson(event.data.substr(4));
     if (win.context.sentinel && data['sentinel'] != win.context.sentinel) {
       return;
     }

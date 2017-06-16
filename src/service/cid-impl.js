@@ -37,7 +37,7 @@ import {isIframed} from '../../../src/dom';
 import {getCryptoRandomBytesArray} from '../../../src/utils/bytes';
 import {viewerForDoc} from '../../../src/services';
 import {cryptoFor} from '../../../src/crypto';
-import {tryParseJson} from '../../../src/json';
+import {parseJson, tryParseJson} from '../../../src/json';
 import {timerFor} from '../../../src/services';
 import {user, rethrowAsync} from '../../../src/log';
 

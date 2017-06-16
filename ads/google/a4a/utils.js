@@ -24,6 +24,7 @@ import {dev} from '../../../src/log';
 import {dict} from '../../../src/utils/object';
 import {getMode} from '../../../src/mode';
 import {isProxyOrigin} from '../../../src/url';
+import {parseJson} from '../../../src/json';
 import {
   resourcesForDoc,
   viewerForDoc,
