@@ -126,8 +126,7 @@ describe('preconnect', () => {
           iframe.doc.querySelector('link[rel=preconnect]')
               .getAttribute('referrerpolicy')).to.equal('origin');
       return visible.then(() => {
-        expect(iframe.doc.querySelectorAll(
-            'link[rel=prefetch],link[rel=preload]'))
+        expect(iframe.doc.querySelectorAll('link[rel=preload]'))
             .to.have.length(0);
         expect(open).to.have.not.been.called;
       });
@@ -294,7 +293,7 @@ describe('preconnect', () => {
         expect(as == '' || as == 'fetch').to.be.ok;
         preloads[0].as = 'not-valid';
         if (preloads[0].as != 'not-valid') {
-          expect(as == '' || as == 'fetch').to.be.ok;
+          expect(as).to.equal('fetch');
         }
       });
     });
