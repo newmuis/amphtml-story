@@ -349,8 +349,8 @@ export function runVideoPlayerIntegrationTests(
         if (opt_experiment) {
           toggleExperiment(fixtureGlobal.win, opt_experiment, false);
         }
-        removeElement(videoGlobal);
-        removeElement(fixtureGlobal.iframe);
+        fixtureGlobal.doc.body.removeChild(videoGlobal);
+        fixtureGlobal.iframe.remove();
       }
     } catch (e) {}
   }
