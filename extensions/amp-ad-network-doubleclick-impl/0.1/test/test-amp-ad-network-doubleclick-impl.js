@@ -375,7 +375,6 @@ describes.realWin('amp-ad-network-doubleclick-impl', realWinConfig, env => {
           /(\?|&)u_tz=-?[0-9]+(&|$)/,
           /(\?|&)u_his=[0-9]+(&|$)/,
           /(\?|&)oid=2(&|$)/,
-          /(\?|&)brdim=-?[0-9]+(%2C-?[0-9]+){9}(&|$)/,
           /(\?|&)isw=[0-9]+(&|$)/,
           /(\?|&)ish=[0-9]+(&|$)/,
           /(\?|&)pfx=(1|0)(&|$)/,

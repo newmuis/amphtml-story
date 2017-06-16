@@ -88,28 +88,179 @@ describes.realWin('amp-ad-network-adsense-impl', {
     impl = new AmpAdNetworkAdsenseImpl(element);
   });
 
-  /**
-   * Instantiates element and impl, adding the former to the document of the
-   * iframe.
-   * @param {!{width, height, type}} config
-   */
-  function createImplTag(config) {
-    config.type = 'adsense';
-    element = createElementWithAttributes(doc, 'amp-ad', config);
-    // To trigger CSS styling.
-    element.setAttribute('data-a4a-upgrade-type',
-        'amp-ad-network-adsense-impl');
-    // Used to test styling which is targetted at first iframe child of
-    // amp-ad.
-    const iframe = doc.createElement('iframe');
-    element.appendChild(iframe);
-    sandbox.stub(element, 'tryUpgrade_', () => {});
-    doc.body.appendChild(element);
-    impl = new AmpAdNetworkAdsenseImpl(element);
-    impl.buildCallback();
-    element.classList.remove('i-amphtml-notbuilt');
-    impl.iframe = iframe;
-  }
+  afterEach(() => {
+  });
+
+  // WARNING: When running this test file in isolation, running more than one
+  // of the sub-tests in the following describe yields errors that are not
+  // present when this test is ran in aggregate.
+  describe('#getAdUrl', () => {
+
+    beforeEach(() => {
+      resetSharedState();
+    });
+
+    const invariantParams = {
+      'client': 'ca-adsense',
+      'format': '320x50',
+      'w': '320',
+      'h': '50',
+      'output': 'html',
+      'is_amp': '3',
+      'eid': '8675309',
+    };
+    const variableParams = [
+      'slotname', 'adk', 'adf', 'ea', 'flash', 'url', 'wg', 'dt', 'bpp', 'bdt',
+      'fdt', 'idt', 'shb', 'cbv', 'saldr', 'amp_v', 'correlator', 'frm',
+      'ga_vid', 'ga_hid', 'iag', 'icsg', 'nhd', 'dssz', 'mdo', 'mso', 'u_tz',
+      'u_his', 'u_java', 'u_h', 'u_w', 'u_ah', 'u_aw', 'u_cd', 'u_nplug',
+      'u_nmime', 'dff', 'adx', 'ady', 'biw', 'isw', 'ish', 'ifk', 'oid', 'loc',
+      'rx', 'eae', 'pc', 'vis', 'rsz', 'abl', 'ppjl', 'pfx', 'fu',
+      'bc', 'ifi', 'dtd',
+    ];
+    // Skipping this test until all AdSense parameters are standardized, and
+    // their implementation in A4A and 3p reach parity.
+    it.skip('with single slot', () => {
+      return createIframePromise().then(fixture => {
+        // Set up the element's underlying infrastructure.
+        upgradeOrRegisterElement(fixture.win, 'amp-a4a',
+            AmpAdNetworkAdsenseImpl);
+        const elem = createAdsenseImplElement({
+          'data-ad-client': 'ca-adsense',
+          'width': '320',
+          'height': '50',
+          'data-experiment-id': '8675309',
+        }, fixture.doc, 'amp-a4a');
+        return fixture.addElement(elem).then(addedElem => {
+          // Create AdsenseImpl instance.
+          impl = new AmpAdNetworkAdsenseImpl(addedElem);
+          // The expected url parameters whose values are known and fixed.
+          const urlParams = Object.assign({}, invariantParams, {pv: '2'});
+          return impl.getAdUrl().then(adUrl => {
+            const queryPairs = adUrl.split('?')[1].split('&');
+            const actualQueryParams = {};
+            queryPairs.forEach(pair => {
+              const pairArr = pair.split('=');
+              actualQueryParams[pairArr[0]] = pairArr[1];
+            });
+            // Check that the fixed url parameters are all contained within the
+            // actual query parameters, and that the corresponding known values
+            // match.
+            for (const name in urlParams) {
+              expect(!!actualQueryParams[name],
+                  `missing parameter ${name}`)
+                  .to.be.true;
+              expect(actualQueryParams[name],
+                  `parameter ${name} has wrong value`)
+                  .to.equal(urlParams[name]);
+            }
+            // Check that the other url parameters are also contained within the
+            // actual query parameters. Remember the ones that aren't for
+            // debugging purposes.
+            const missingParams = [];
+            for (const i in variableParams) {
+              const name = variableParams[i];
+              if (!actualQueryParams[name]) {
+                missingParams.push(name);
+              }
+            }
+            expect(missingParams.length,
+                `missing parameters ${missingParams.join(', ')}`)
+                .to.equal(0);
+            // Check if there are any extraneous actual query parameters.
+            // Remember them for debugging purposes.
+            const extraneousParams = [];
+            for (const name in actualQueryParams) {
+              if (!(name in urlParams) && !variableParams.includes(name)) {
+                extraneousParams.push(`${name}=${actualQueryParams[name]}`);
+              }
+            }
+            expect(extraneousParams.length,
+                'found extraneous parameters: ' + extraneousParams.join('&'))
+                .to.equal(0);
+          });
+        });
+      });
+    });
+    it('should contain act', () => {
+      return createIframePromise().then(fixture => {
+        // Set up the element's underlying infrastructure.
+        upgradeOrRegisterElement(fixture.win, 'amp-a4a',
+            AmpAdNetworkAdsenseImpl);
+        const ampStickyAd =
+              createElementWithAttributes(fixture.doc, 'amp-sticky-ad', {
+                'layout': 'nodisplay',
+              });
+        ampStickyAd.appendChild(element);
+        fixture.doc.body.appendChild(ampStickyAd);
+        return impl.getAdUrl().then(adUrl => {
+          expect(adUrl.indexOf('act=sa') >= 0).to.be.true;
+        });
+      });
+    });
+    // Not using arrow function here because otherwise the way closure behaves
+    // prevents me from calling this.timeout(5000).
+    // TODO(@tdrl, #8965): Make this pass reliably on Travis.
+    it.skip('with multiple slots', function() {
+      // When ran locally, this test tends to exceed 2000ms timeout.
+      this.timeout(5000);
+      // Reset counter for purpose of this test.
+      delete window['ampAdGoogleIfiCounter'];
+      return createIframePromise().then(fixture => {
+        // Set up the element's underlying infrastructure.
+        upgradeOrRegisterElement(fixture.win, 'amp-a4a',
+            AmpAdNetworkAdsenseImpl);
+        const elem1 = createAdsenseImplElement({
+          'data-ad-client': 'ca-adsense',
+          'width': '320',
+          'height': '50',
+          'data-experiment-id': '8675309',
+        }, fixture.doc, 'amp-a4a');
+        const elem2 = createAdsenseImplElement({
+          'data-ad-client': 'ca-adsense',
+          'width': '320',
+          'height': '50',
+          'data-experiment-id': '8675309',
+        }, fixture.doc, 'amp-a4a');
+        const elem3 = createAdsenseImplElement({
+          'data-ad-client': 'ca-not-adsense',
+          'width': '320',
+          'height': '50',
+          'data-experiment-id': '8675309',
+        }, fixture.doc, 'amp-a4a');
+        return fixture.addElement(elem1).then(addedElem1 => {
+          // Create AdsenseImpl instance.
+          const impl1 = new AmpAdNetworkAdsenseImpl(addedElem1);
+          return impl1.getAdUrl().then(adUrl1 => {
+            expect(adUrl1).to.match(/pv=2/);
+            expect(adUrl1).to.not.match(/prev_fmts/);
+            expect(adUrl1).to.match(/ifi=1/);
+            return fixture.addElement(elem2).then(addedElem2 => {
+              const impl2 = new AmpAdNetworkAdsenseImpl(addedElem2);
+              return impl2.getAdUrl().then(adUrl2 => {
+                expect(adUrl2).to.match(/pv=1/);
+                expect(adUrl2).to.match(/prev_fmts=320x50/);
+                expect(adUrl2).to.match(/ifi=2/);
+                return fixture.addElement(elem3).then(addedElem3 => {
+                  const impl3 = new AmpAdNetworkAdsenseImpl(addedElem3);
+                  return impl3.getAdUrl().then(adUrl3 => {
+                    expect(adUrl3).to.match(/pv=2/);
+                    // By some quirk of the test infrastructure, when this test
+                    // is ran individually, each added slot after the first one
+                    // has a bounding rectangle of 0x0. The important thing to
+                    // test here is the number of previous formats.
+                    expect(adUrl3).to.match(
+                        /prev_fmts=(320x50%2C320x50|320x50%2C0x0)/);
+                    expect(adUrl3).to.match(/ifi=3/);
+                  });
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+  });
 
   describe('#isValidElement', () => {
     it('should be valid', () => {
@@ -460,7 +611,7 @@ describes.realWin('amp-ad-network-adsense-impl', {
       });
     });
     it('returns the right URL', () => {
-      element.setAttribute('data-ad-slot', 'some_slot');
+      new AmpAd(element).upgradeCallback();
       return impl.getAdUrl().then(url => {
         [
           /^https:\/\/googleads\.g\.doubleclick\.net\/pagead\/ads/,
@@ -469,7 +620,6 @@ describes.realWin('amp-ad-network-adsense-impl', {
           /(\?|&)amp_v=%24internalRuntimeVersion%24(&|$)/,
           /(\?|&)client=ca-adsense(&|$)/,
           /(\?|&)format=\d+x\d+(&|$)/,
-          /(\?|&)iu=some_slot(&|$)/,
           /(\?|&)w=\d+(&|$)/,
           /(\?|&)h=\d+(&|$)/,
           /(\?|&)d_imp=1(&|$)/,
@@ -493,74 +643,10 @@ describes.realWin('amp-ad-network-adsense-impl', {
           /(\?|&)ish=\d+(&|$)/,
           /(\?|&)pfx=(1|0)(&|$)/,
           /(\?|&)url=https?%3A%2F%2F[a-zA-Z0-9.:%]+(&|$)/,
-          /(\?|&)top=localhost(&|$)/,
-          /(\?|&)ref=https%3A%2F%2Facme.org%2F(&|$)/,
+          /(\?|&)top=https?%3A%2F%2Flocalhost%3A9876%2F%3Fid%3D\d+(&|$)/,
+          /(\?|&)ref=https?%3A%2F%2Flocalhost%3A9876%2F%3Fid%3D\d+(&|$)/,
           /(\?|&)dtd=\d+(&|$)/,
         ].forEach(regexp => expect(url).to.match(regexp));
-      });
-      it('sets rafmt for responsive', () => {
-        element.setAttribute('data-ad-slot', 'some_slot');
-        element.setAttribute('data-auto-format', 'rspv');
-        return impl.getAdUrl().then(url => {
-          expect(url).to.match(/(\?|&)ramft=13(&|$)/);
-        });
-      });
-    });
-
-    // Not using arrow function here because otherwise the way closure behaves
-    // prevents me from calling this.timeout(5000).
-    it('with multiple slots', function() {
-      // When run locally, this test tends to exceed 2000ms timeout.
-      this.timeout(10000);
-      // Reset counter for purpose of this test.
-      delete win['ampAdGoogleIfiCounter'];
-      const elem1 = createAdsenseImplElement({
-        'data-ad-client': 'ca-adsense',
-        'width': '320',
-        'height': '50',
-        'data-experiment-id': '8675309',
-      }, doc);
-      doc.body.appendChild(elem1);
-      const elem2 = createAdsenseImplElement({
-        'data-ad-client': 'ca-adsense',
-        'width': '320',
-        'height': '50',
-        'data-experiment-id': '8675309',
-      }, doc, 'amp-ad');
-      doc.body.appendChild(elem2);
-      const elem3 = createAdsenseImplElement({
-        'data-ad-client': 'ca-not-adsense',
-        'width': '320',
-        'height': '50',
-        'data-experiment-id': '8675309',
-      }, doc, 'amp-ad');
-      doc.body.appendChild(elem3);
-      const impl1 = new AmpAdNetworkAdsenseImpl(elem1);
-      const impl2 = new AmpAdNetworkAdsenseImpl(elem2);
-      const impl3 = new AmpAdNetworkAdsenseImpl(elem3);
-      toggleExperiment(impl1.win, 'as-use-attr-for-format', true);
-      //new AmpAd(elem1).upgradeCallback();
-      return impl1.getAdUrl().then(adUrl1 => {
-        expect(adUrl1).to.match(/pv=2/);
-        expect(adUrl1).to.not.match(/prev_fmts/);
-        expect(adUrl1).to.match(/ifi=1/);
-        //new AmpAd(elem2).upgradeCallback();
-        return impl2.getAdUrl().then(adUrl2 => {
-          expect(adUrl2).to.match(/pv=1/);
-          expect(adUrl2).to.match(/prev_fmts=320x50/);
-          expect(adUrl2).to.match(/ifi=2/);
-          //new AmpAd(elem3).upgradeCallback();
-          return impl3.getAdUrl().then(adUrl3 => {
-            expect(adUrl3).to.match(/pv=2/);
-            // By some quirk of the test infrastructure, when this test
-            // is ran individually, each added slot after the first one
-            // has a bounding rectangle of 0x0. The important thing to
-            // test here is the number of previous formats.
-            expect(adUrl3).to.match(
-                /prev_fmts=(320x50%2C320x50|320x50%2C0x0)/);
-            expect(adUrl3).to.match(/ifi=3/);
-          });
-        });
       });
     });
   });
