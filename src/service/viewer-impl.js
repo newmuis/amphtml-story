@@ -866,7 +866,9 @@ export class Viewer {
       // assimilating with the resolved (or rejected) internal value.
       return /** @type {!Promise<?JsonObject|string|undefined>} */ (
           Promise.resolve(this.messageDeliverer_(
-              eventType, data, awaitResponse)));
+              eventType,
+              /** @type {?JsonObject|string|undefined} */ (data),
+              awaitResponse)));
     }
 
     if (!this.messagingReadyPromise_) {
