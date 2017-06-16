@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-import {Services} from '../../../src/services';
-import {signatureVerifierFor} from './legacy-signature-verifier';
-import {VerificationStatus} from './signature-verifier';
+import {
+  verifyHashVersion,
+  LegacySignatureVerifier,
+  PublicKeyInfoDef,
+} from './legacy-signature-verifier';
 import {
   is3pThrottled,
   getAmpAdRenderOutsideViewport,
@@ -43,7 +45,6 @@ import {viewerForDoc} from '../../../src/services';
 import {xhrFor} from '../../../src/services';
 import {endsWith} from '../../../src/string';
 import {platformFor} from '../../../src/services';
-import {cryptoFor} from '../../../src/crypto';
 import {isExperimentOn} from '../../../src/experiments';
 import {setStyle} from '../../../src/style';
 import {assertHttpsUrl} from '../../../src/url';
@@ -115,6 +116,27 @@ export let SizeInfoDef;
       customStylesheets: !Array<{href: string}>
     }} */
 let CreativeMetaDataDef;
+
+/**
+ * A set of public keys for a single AMP signing service.  A single service may
+ * return more than one key if, e.g., they're rotating keys and they serve
+ * the current and upcoming keys.  A CryptoKeysDef stores one or more
+ * (promises to) keys, in the order given by the return value from the
+ * signing service.
+ *
+ * @typedef {{serviceName: string, keys: !Array<!Promise<!PublicKeyInfoDef>>}}
+ */
+let CryptoKeysDef;
+
+/**
+ * The public keys for all signing services.  This is an array of promises,
+ * one per signing service, in the order given by the array returned by
+ * #getSigningServiceNames().  Each entry resolves to the keys returned by
+ * that service, represented by a `CryptoKeysDef` object.
+ *
+ * @typedef {Array<!Promise<!CryptoKeysDef>>}
+ */
+let AllServicesCryptoKeysDef;
 
 /** @private */
 export const LIFECYCLE_STAGES = {
@@ -231,6 +253,9 @@ export class AmpA4A extends AMP.BaseElement {
 
     /** @private {boolean} whether creative has been verified as AMP */
     this.isVerifiedAmpCreative_ = false;
+
+    /** @private @const {!LegacySignatureVerifier} */
+    this.signatureVerifier_ = new LegacySignatureVerifier(this.win);
 
     /** @private {?ArrayBuffer} */
     this.creativeBody_ = null;
@@ -474,6 +499,9 @@ export class AmpA4A extends AMP.BaseElement {
    * @private
    */
   shouldInitializePromiseChain_() {
+    if (!this.signatureVerifier_.isAvailable()) {
+      return false;
+    }
     const slotRect = this.getIntersectionElementLayoutBox();
     if (slotRect.height == 0 || slotRect.width == 0) {
       dev().fine(
@@ -806,7 +834,7 @@ export class AmpA4A extends AMP.BaseElement {
             }
             const signatureVerifyStartTime = this.getNow_();
             // If the key exists, try verifying with it.
-            return this.crypto_.verifySignature(
+            return this.signatureVerifier_.verifySignature(
                 new Uint8Array(creative),
                 signature,
                 keyInfo)
@@ -827,8 +855,7 @@ export class AmpA4A extends AMP.BaseElement {
                   // necessary, because we checked that above.  But
                   // Closure type compiler can't seem to recognize that, so
                   // this guarantees it to the compiler.
-                  if (keyInfo &&
-                      this.crypto_.verifyHashVersion(signature, keyInfo)) {
+                  if (keyInfo && verifyHashVersion(signature, keyInfo)) {
                     user().error(TAG, this.element.getAttribute('type'),
                         'Key failed to validate creative\'s signature',
                         keyInfo.serviceName, keyInfo.cryptoKey);
@@ -1248,7 +1275,7 @@ export class AmpA4A extends AMP.BaseElement {
    * @private
    */
   getKeyInfoSets_() {
-    if (!this.crypto_.isCryptoAvailable()) {
+    if (!this.signatureVerifier_.isAvailable()) {
       return [];
     }
     return this.getSigningServiceNames().map(serviceName => {
@@ -1282,7 +1309,8 @@ export class AmpA4A extends AMP.BaseElement {
               return {
                 serviceName: jwkSet.serviceName,
                 keys: jwkSet.keys.map(jwk =>
-                  this.crypto_.importPublicKey(jwkSet.serviceName, jwk)
+                  this.signatureVerifier_
+                      .importPublicKey(jwkSet.serviceName, jwk)
                       .catch(err => {
                         user().error(TAG, this.element.getAttribute('type'),
                             `error importing keys for: ${jwkSet.serviceName}`,

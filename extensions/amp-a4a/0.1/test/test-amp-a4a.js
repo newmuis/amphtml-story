@@ -39,7 +39,6 @@ import {Signals} from '../../../../src/utils/signals';
 import {Extensions} from '../../../../src/service/extensions-impl';
 import {Viewer} from '../../../../src/service/viewer-impl';
 import {ampdocServiceFor} from '../../../../src/ampdoc';
-import {cryptoFor} from '../../../../src/crypto';
 import {cancellation} from '../../../../src/error';
 import {forceExperimentBranch} from '../../../../src/experiments';
 import {
@@ -1778,9 +1777,8 @@ describe('amp-a4a', () => {
           setupForAdTesting(fixture);
           const a4aElement = createA4aElement(fixture.doc);
           a4a = new MockA4AImpl(a4aElement);
-          a4a.buildCallback();
           stubVerifySignature =
-              sandbox.stub(signatureVerifierFor(a4a.win), 'verifySignature_');
+              sandbox.stub(a4a.signatureVerifier_, 'verifySignature');
         });
       });
 
@@ -1970,12 +1968,34 @@ describe('amp-a4a', () => {
     });
   });
 
-  describe('#extractSize', () => {
-
-    it('should return a size', () => {
-      expect(AmpA4A.prototype.extractSize(new Headers({
-        'X-CreativeSize': '320x50',
-      }))).to.deep.equal({width: 320, height: 50});
+    it('should fetch a single key', () => {
+      expect(win.ampA4aValidationKeys).not.to.exist;
+      // Key fetch happens on A4A class construction.
+      const a4a = new MockA4AImpl(a4aElement);  // eslint-disable-line no-unused-vars
+      a4a.buildCallback();
+      const result = win.ampA4aValidationKeys;
+      expect(result).to.be.instanceof(Array);
+      expect(result).to.have.lengthOf(1);
+      return Promise.all(result).then(serviceInfos => {
+        expect(xhrMockJson).to.be.calledOnce;
+        expect(xhrMockJson).to.be.calledWith(
+            'https://cdn.ampproject.org/amp-ad-verifying-keyset.json', {
+              mode: 'cors',
+              method: 'GET',
+              ampCors: false,
+              credentials: 'omit',
+            });
+        const serviceInfo = serviceInfos[0];
+        expect(serviceInfo).to.have.all.keys(['serviceName', 'keys']);
+        expect(serviceInfo['serviceName']).to.equal('google');
+        expect(serviceInfo['keys']).to.be.an.instanceof(Array);
+        expect(serviceInfo['keys']).to.have.lengthOf(1);
+        const keyInfoPromise = serviceInfo['keys'][0];
+        expect(keyInfoPromise).to.be.an.instanceof(win.Promise);
+        return keyInfoPromise.then(keyInfo => {
+          verifyIsKeyInfo(keyInfo);
+        });
+      });
     });
 
     it('should wait for first visible', () => {
@@ -2069,7 +2089,7 @@ describe('amp-a4a', () => {
           expect(serviceInfo['keys']).to.be.an.instanceof(Array);
           expect(serviceInfo['keys']).to.have.lengthOf(1);
           const keyInfoPromise = serviceInfo['keys'][0];
-          expect(keyInfoPromise).to.be.an.instanceof(Promise);
+          expect(keyInfoPromise).to.be.an.instanceof(win.Promise);
           return keyInfoPromise.then(keyInfo => {
             verifyIsKeyInfo(keyInfo);
           });
@@ -2162,7 +2182,7 @@ describe('amp-a4a', () => {
             if (serviceName == 'google') {
               expect(serviceInfo['keys']).to.have.lengthOf(1);
               const keyInfoPromise = serviceInfo['keys'][0];
-              expect(keyInfoPromise).to.be.an.instanceof(Promise);
+              expect(keyInfoPromise).to.be.an.instanceof(win.Promise);
               return keyInfoPromise.then(keyInfo => {
                 verifyIsKeyInfo(keyInfo);
               });

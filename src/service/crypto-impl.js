@@ -16,7 +16,7 @@
 
 import {registerServiceBuilder, getService} from '../service';
 import {dev} from '../log';
-import {Services} from '../services';
+import {extensionsFor} from '../services';
 import {stringToBytes, utf8EncodeSync} from '../utils/bytes';
 import {base64UrlEncodeFromBytes} from '../utils/base64';
 
@@ -129,46 +129,10 @@ export class Crypto {
    * the current browsing context is not secure (e.g., it's on an insecure HTTP
    * page, or an HTTPS iframe embedded in an insecure HTTP page).
    *
-   * @param {string} serviceName used to identify the signing service.
-   * @param {!JsonObject} jwk An object which is hopefully an RSA JSON Web Key.  The
-   *     caller should verify that it is an object before calling this function.
-   * @return {!Promise<!PublicKeyInfoDef>}
+   * @return {boolean} whether Web Cryptography is available
    */
-  importPublicKey(serviceName, jwk) {
-    dev().assert(this.isCryptoAvailable());
-    // WebKit wants this as an ArrayBufferView.
-    return (this.isWebkit_ ?
-          utf8Encode(JSON.stringify(jwk)) : Promise.resolve(jwk))
-        .then(encodedJwk => this.subtle_.importKey(
-            'jwk',
-            encodedJwk,
-            {name: 'RSASSA-PKCS1-v1_5', hash: {name: 'SHA-256'}},
-            true,
-            ['verify']))
-        .then(cryptoKey => {
-          // We do the importKey first to allow the browser to check for
-          // an invalid key.  This last check is in case the key is valid
-          // but a different kind.
-          if (typeof jwk['n'] != 'string' || typeof jwk['e'] != 'string') {
-            throw new Error('missing fields in JSON Web Key');
-          }
-          const mod = base64UrlDecodeToBytes(jwk['n']);
-          const pubExp = base64UrlDecodeToBytes(jwk['e']);
-          const lenMod = lenPrefix(mod);
-          const lenPubExp = lenPrefix(pubExp);
-          const data = new Uint8Array(lenMod.length + lenPubExp.length);
-          data.set(lenMod);
-          data.set(lenPubExp, lenMod.length);
-          // The list of RSA public keys are not under attacker's
-          // control, so a collision would not help.
-          return this.subtle_.digest({name: 'SHA-1'}, data)
-              .then(digest => ({
-                serviceName,
-                cryptoKey,
-                // Hash is the first 4 bytes of the SHA-1 digest.
-                hash: new Uint8Array(/** @type {ArrayBuffer} */(digest), 0, 4),
-              }));
-        });
+  isPkcsAvailable() {
+    return Boolean(this.subtle_) && this.win_['isSecureContext'] !== false;
   }
 
   /**
