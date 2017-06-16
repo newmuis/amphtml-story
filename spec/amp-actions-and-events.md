@@ -58,12 +58,10 @@ You can listen to multiple events on an element by separating the two events wit
 
 Example: `on="submit-success:lightbox1;submit-error:lightbox2"`
 
-
 ## Multiple Actions For One Event
 You can execute multiple actions in sequence for the same event by separating the two actions with a comma ','.
 
 Example: `on="tap:target1.actionA,target2.actionB"`
-
 
 ## Globally defined Events and Actions
 Currently AMP defines `tap` event globally that you can listen to on any HTML element (including amp-elements).
@@ -80,6 +78,18 @@ For example, the following is possible in AMP.
 <button on="tap:warning-message.hide">Cool, thanks!</button>
 ```
 
+## Trust
+
+Each event has a "trust" level that corresponds to the user's intentionality
+behind that event. Each action has a "required trust" which is the minimum trust
+level of an event to trigger the action.
+
+For example, a medium-trust event  (e.g. `slideChange`) cannot trigger a
+high-required-trust action (e.g. `navigateTo`).
+
+See the tables below for the trust levels of each event and required trust for
+each action.
+
 ## Element Specific Events
 
 ### * - all elements
@@ -87,10 +97,12 @@ For example, the following is possible in AMP.
   <tr>
     <th>Event</th>
     <th>Description</th>
+    <th>Trust</th>
   </tr>
   <tr>
     <td><code>tap</code></td>
     <td>Fired when the element is clicked/tapped.</td>
+    <td>High</td>
   </tr>
 </table>
 
@@ -101,11 +113,12 @@ For example, the following is possible in AMP.
     <th>Description</th>
     <th>Elements</th>
     <th>Data</th>
+    <th>Trust</th>
   </tr>
   <!-- change -->
   <tr>
-    <td rowspan=3><code>change</code></td>
-    <td rowspan=3>Fired when the value of the element is changed and committed.</td>
+    <td rowspan=4><code>change</code></td>
+    <td rowspan=4>Fired when the value of the element is changed and committed.</td>
     <td>input[type="range"]</td>
     <td>
       <pre>event.min
@@ -113,19 +126,29 @@ event.max
 event.value
 event.valueAsNumber</pre>
     </td>
+    <td>Medium</td>
   </tr>
   <tr>
     <td>input[type="radio"], input[type="checkbox"]</td>
     <td>
       <code>event.checked</code> : If the element is checked
     </td>
+    <td>Medium</td>
   </tr>
   <!-- input-debounced -->
   <tr>
-    <td>input[type="text"], select</td>
+    <td>input[type="text"]</td>
     <td>
       <code>event.value</code> : String of the text or selected option
     </td>
+    <td>Medium</td>
+  </tr>
+  <tr>
+    <td>select</td>
+    <td>
+      <code>event.value</code> : String of the text or selected option
+    </td>
+    <td>High</td>
   </tr>
   <!-- input-debounced -->
   <tr>
@@ -133,6 +156,7 @@ event.valueAsNumber</pre>
     <td>Fired when the value of the element is changed. This is similar to the standard <code>input</code> event, but it only fires when 300ms have passed after the value of the input has stopped changing.</td>
     <td>Elements that fire <code>input</code> event.</td>
     <td>Same as above.</td>
+    <td>Medium</td>
   </tr>
 </table>
 
@@ -142,12 +166,13 @@ event.valueAsNumber</pre>
     <th>Event</th>
     <th>Description</th>
     <th>Data</th>
+    <th>Trust</th>
   </tr>
   <tr>
     <td><code>slideChange</code></td>
     <td>Fired when the user manually changes the carousel's current slide. Does not fire on autoplay or the <code>goToSlide</code> action.</td>
-    <td><pre>// Slide number.
-event.index</pre></td>
+    <td><code>event.index</code> : slide number</td>
+    <td>Medium</td>
   </tr>
 </table>
 
@@ -157,12 +182,13 @@ event.index</pre></td>
     <th>Event</th>
     <th>Description</th>
     <th>Data</th>
+    <th>Trust</th>
   </tr>
   <tr>
     <td><code>select</code></td>
     <td>Fired when the user manually selects an option.</td>
-    <td><pre>// The `option` attribute value of the selected element.
-event.targetOption</pre></td>
+    <td><code>event.targetOption</code> : The <code>option</code> attribute value of the selected element</td>
+    <td>High</td>
   </tr>
 </table>
 
@@ -172,55 +198,51 @@ event.targetOption</pre></td>
     <th>Event</th>
     <th>Description</th>
     <th>Data</th>
+    <th>Trust</th>
   </tr>
   <tr>
     <td><code>submit</code></td>
     <td>Fired when the form is submitted.</td>
     <td></td>
+    <td>High</td>
   </tr>
   <tr>
     <td><code>submit-success</code></td>
     <td>Fired when the form submission response is success.</td>
-    <td><pre>// Response JSON.
-event.response</pre></td>
+    <td><code>event.response</code> : JSON response</td>
+    <td>Medium</td>
   </tr>
   <tr>
     <td><code>submit-error</code></td>
     <td>Fired when the form submission response is an error.</td>
-    <td><pre>// Response JSON.
-event.response</pre></td>
-  </tr>
-  <tr>
-    <td><code>valid</code></td>
-    <td>Fired when the form is valid.</td>
-    <td></td>
-  </tr>
-  <tr>
-    <td><code>invalid</code></td>
-    <td>Fired when the form is invalid.</td>
-    <td></td>
+    <td><code>event.response</code> : JSON response</td>
+    <td>Medium</td>
   </tr>
 </table>
 
-
 ## Element Specific Actions
+
 ### * (all elements)
 <table>
   <tr>
     <th>Action</th>
     <th>Description</th>
+    <th>Required Trust</th>
   </tr>
   <tr>
     <td><code>hide</code></td>
     <td>Hides the target element.</td>
+    <td>Medium</td>
   </tr>
   <tr>
     <td>show</td>
     <td>Shows the target element.</td>
+    <td>Medium</td>
   </tr>
   <tr>
     <td>toggleVisibility</td>
     <td>Toggles the visibility of the target element.</td>
+    <td>Medium</td>
   </tr>
 </table>
 
@@ -229,10 +251,12 @@ event.response</pre></td>
   <tr>
     <th>Action</th>
     <th>Description</th>
+    <th>Required Trust</th>
   </tr>
   <tr>
     <td><code>goToSlide(index=INTEGER)</code></td>
     <td>Advances the carousel to a specified slide index.</td>
+    <td>Low</td>
   </tr>
 </table>
 
@@ -241,10 +265,12 @@ event.response</pre></td>
   <tr>
     <th>Action</th>
     <th>Description</th>
+    <th>Required Trust</th>
   </tr>
   <tr>
     <td><code>open (default)</code></td>
     <td>Opens the image lightbox with the source image being the one that triggered the action.</td>
+    <td>Medium</td>
   </tr>
 </table>
 
@@ -253,14 +279,17 @@ event.response</pre></td>
   <tr>
     <th>Action</th>
     <th>Description</th>
+    <th>Required Trust</th>
   </tr>
   <tr>
     <td><code>open (default)</code></td>
     <td>Opens the lightbox.</td>
+    <td>Medium</td>
   </tr>
   <tr>
     <td><code>close</code></td>
     <td>Closes the lightbox.</td>
+    <td>Medium</td>
   </tr>
 </table>
 
@@ -269,10 +298,12 @@ event.response</pre></td>
   <tr>
     <th>Action</th>
     <th>Description</th>
+    <th>Required Trust</th>
   </tr>
   <tr>
     <td><code>update (default)</code></td>
     <td>Updates the DOM items to show updated content.</td>
+    <td>Low</td>
   </tr>
 </table>
 
@@ -281,18 +312,22 @@ event.response</pre></td>
   <tr>
     <th>Action</th>
     <th>Description</th>
+    <th>Required Trust</th>
   </tr>
   <tr>
     <td><code>open (default)</code></td>
     <td>Opens the sidebar.</td>
+    <td>Medium</td>
   </tr>
   <tr>
     <td><code>close</code></td>
     <td>Closes the sidebar.</td>
+    <td>Medium</td>
   </tr>
   <tr>
     <td><code>toggle</code></td>
     <td>Toggles the state of the sidebar.</td>
+    <td>Medium</td>
   </tr>
 </table>
 
@@ -301,10 +336,12 @@ event.response</pre></td>
   <tr>
     <th>Action</th>
     <th>Description</th>
+    <th>Required Trust</th>
   </tr>
   <tr>
     <td><code>dismiss (default)</code></td>
     <td>Hides the referenced user notification element.</td>
+    <td>Medium</td>
   </tr>
 </table>
 
@@ -313,22 +350,27 @@ event.response</pre></td>
   <tr>
     <th>Action</th>
     <th>Description</th>
+    <th>Required Trust</th>
   </tr>
   <tr>
     <td><code>play</code></td>
     <td>Plays the video.</td>
+    <td>High</td>
   </tr>
   <tr>
     <td><code>pause</code></td>
     <td>Pauses the video.</td>
+    <td>Low</td>
   </tr>
   <tr>
     <td><code>mute</code></td>
     <td>Mutes the video.</td>
+    <td>Low</td>
   </tr>
   <tr>
     <td><code>unmute</code></td>
     <td>Unmutes the video.</td>
+    <td>High</td>
   </tr>
   <tr>
     <td><code>fullscreen</code></td>
@@ -353,10 +395,12 @@ event.response</pre></td>
   <tr>
     <th>Action</th>
     <th>Description</th>
+    <th>Required Trust</th>
   </tr>
   <tr>
     <td>submit</td>
     <td>Submits the form.</td>
+    <td>High</td>
   </tr>
 </table>
 
@@ -373,32 +417,22 @@ actions that apply to the whole document.
   <tr>
     <th>Action</th>
     <th>Description</th>
+    <th>Required Trust</th>
   </tr>
   <tr>
     <td>navigateTo(url=STRING)</td>
     <td>Navigates current window to given URL. Supports <a href="./amp-var-substitutions.md">standard URL subsitutions</a>. Can only be invoked via <code>tap</code> or <code>change</code> events.</td>
+    <td>High</td>
   </tr>
   <tr>
     <td>goBack</td>
     <td>Navigates back in history.</td>
+    <td>High</td>
   </tr>
   <tr>
-    <td><code>print</code></td>
-    <td>Opens the Print Dialog to print the current page.</td>
-  </tr>
-  <tr>
-    <td><code>setState({foo: 'bar'})</code><sup>1</sup></td>
-    <td>
-      <p>Requires <a href="../extensions/amp-bind/amp-bind.md#updating-state-with-ampsetstate">amp-bind</a>.</p>
-      <p>Merges an object literal into the bindable state.</p>
-      <p></p>
-    </td>
-  </tr>
-  <tr>
-    <td><code>pushState({foo: 'bar'})</code><sup>1</sup></td>
-    <td>
-      <p>Requires <a href="../extensions/amp-bind/amp-bind.md#modifying-history-with-amppushstate">amp-bind</a>.</p>
-      <p>Merges an object literal into the bindable state and pushes a new entry onto browser history stack. Popping the entry will restore the previous values of variables (in this example, <code>foo</code>).    </td>
+    <td>setState</td>
+    <td>Updates <code>amp-bind</code>'s state. See <a href="../extensions/amp-bind/amp-bind.md#ampsetstate">details</a>.</td>
+    <td>Medium</td>
   </tr>
 </table>
 
