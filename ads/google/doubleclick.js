@@ -53,7 +53,7 @@ export function doubleclick(global, data) {
     };
   }
 
-  centerAd(global);
+  centerAd();
 
   const gptFilename = selectGptExperiment(data);
 
@@ -67,6 +67,11 @@ export function doubleclick(global, data) {
  * @param {!string} url
  */
 function doubleClickWithGpt(global, data, gladeExperiment, url) {
+  const dimensions = [[
+    parseInt(data.overrideWidth || data.width, 10),
+    parseInt(data.overrideHeight || data.height, 10),
+  ]];
+
   // Handle multi-size data parsing, validation, and inclusion into dimensions.
   const multiSizeDataStr = data.multiSize || null;
   const primaryWidth = parseInt(data.overrideWidth || data.width, 10);
@@ -240,10 +245,7 @@ function getCorrelator(global) {
   return makeCorrelator(global.context.clientId, global.context.pageViewId);
 }
 
-/**
- * @param {!Window} global
- */
-function centerAd(global) {
+function centerAd() {
   setStyles(dev().assertElement(global.document.getElementById('c')), {
     top: '50%',
     left: '50%',
