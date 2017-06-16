@@ -51,20 +51,15 @@ function serve() {
       'NODE_ENV': 'development',
       'SERVE_PORT': port,
       'SERVE_HOST': host,
-      'SERVE_USEHTTPS': useHttps,
-      'SERVE_PROCESS_ID': process.pid,
-      'SERVE_QUIET': quiet
-    },
-    stdout: !quiet,
+      'SERVE_USEHTTPS': useHttps},
   })
-  .once('quit', function () {
+  .once('exit', function () {
     util.log(util.colors.green('Shutting down server'));
+    process.exit();
   });
-  if (!quiet) {
-    util.log(util.colors.yellow('Run `gulp build` then go to '
-        + getHost() + '/examples/article.amp.html'
-    ));
-  }
+  util.log(util.colors.yellow('Run `gulp build` then go to '
+      + getHost() + '/examples/article.amp.html'
+  ));
 }
 
 process.on('SIGINT', function() {
