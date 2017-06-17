@@ -57,17 +57,6 @@ export const ValidAdContainerTypes = {
   'AMP-STICKY-AD': 'sa',
 };
 
-/**
- * See `VisibilityState` enum.
- * @const {!Object<string, string>}
- */
-const visibilityStateCodes = {
-  'visible': '1',
-  'hidden': '2',
-  'prerender': '3',
-  'unloaded': '5',
-};
-
 /** @const {string} */
 export const QQID_HEADER = 'X-QQID';
 
