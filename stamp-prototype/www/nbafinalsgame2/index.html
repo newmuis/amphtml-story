@@ -26,29 +26,25 @@
       padding: 2em;
     }
 
-    #logo {
-      padding-bottom: 11px;
-    }
-
     #contentLayer {
       align-content: end;
+      grid-gap: 10px;
+      grid-template-rows: auto auto 1fr auto;
     }
 
     #cover h1 {
-      font-size: 70px;
+      font-size: 4.375em;
       font-weight: normal;
       letter-spacing: 1.67px;
-      line-height: 60px;
+      line-height: 0.85;
       text-shadow: 0 2px 5px rgba(0,0,0,0.52);
-      padding-top: 60px;
     }
 
     .big-score {
-      font-size: 70px;
+      font-size: 4.375em;
       font-weight: normal;
       letter-spacing: 1.67px;
-      line-height: 60px;
-      margin: 0;
+      line-height: 0.85;
       padding: 0;
       text-shadow: 0 2px 5px rgba(0,0,0,0.52);
     }
@@ -58,18 +54,18 @@
     }
 
     .score .caption {
-      font-size: 12px;
-      line-height: 16px;
+      font-size: 0.75em;
+      line-height: 1.333;
     }
 
     .score .separator {
-      font-size: 24px;
-      line-height: 40px;
+      font-size: 1.5em;
+      line-height: 1.5;
       padding: 0 1em;
     }
 
     #at-the-half .foreground {
-      grid-template-rows: 33% 1fr 33%;
+      grid-template-rows: 1fr 26.5625% 1fr;
       grid-template-columns: auto auto;
       grid-template-areas: "gsw-logo  gsw-score"
                            "caption   caption"
@@ -78,15 +74,43 @@
       justify-items: center;
     }
 
+    blockquote, #half-caption, .bottom {
+      font-size: 2.625em;
+      letter-spacing: 1px;
+      line-height: 1;
+      padding: 0;
+    }
+
     #gsw-logo  { grid-area: gsw-logo; }
     #gsw-score { grid-area: gsw-score; }
     #half-caption {
-      font-size: 42px;
+      font-size: 2.4em;
       grid-area: caption;
-      line-height: 1;
+      max-height: 100%;
+      overflow: hidden;
     }
     #cle-score { grid-area: cle-score; }
     #cle-logo { grid-area: cle-logo; }
+
+    .full-bleed-layer {
+      padding: 0;
+    }
+
+    .bottom {
+      background-image: url(media/blue_bg.png);
+      background-position: top right;
+      background-repeat: no-repeat;
+      background-size: cover;
+      padding: 18% 30% 11% 9%;
+    }
+
+    #curry-text-layer {
+      align-content: end;
+    }
+
+    #kd-layer {
+      grid-gap: 1em;
+    }
   </style>  
 </head>
 
@@ -99,14 +123,14 @@
         <amp-img src="media/curry.jpg" alt="Steph Curry celebrating" width="720" height="1280"></amp-img>
       </amp-story-grid-layer>
       <amp-story-grid-layer preset="vertical" id="contentLayer">
-        <amp-img id="logo" src="media/nba-finals.png" alt="The Finals" width="482" height="140" layout="responsive"></amp-img>
-        <div class="score">
+        <amp-img id="logo" src="media/nba-finals.png" alt="The Finals" width="482" height="140" layout="responsive" style="grid-row-start: 1"></amp-img>
+        <div class="score" style="grid-row-start: 2">
           <p class="caption">GS Leads series 2-0</p>
           <span>GS 132</span>
           <span class="separator">|</span>
           <span>CLE 113</span>
         </div>
-        <h1>Best Takeaways from NBA Finals Game 2</h1>
+        <h1 style="grid-row-start: 4">Best Takeaways from NBA Finals Game 2</h1>
       </amp-story-grid-layer>
     </amp-story-page>
 
@@ -126,33 +150,35 @@
 
     <!-- Curry Highlight -->
     <amp-story-page id="curry-highlight">
-      <amp-story-grid-layer preset="vertical">
-        <amp-video layout="responsive" src="media/curry.mp4" width="632" height="720"></amp-video>
+      <amp-story-grid-layer preset="vertical" class="full-bleed-layer" id="curry-highlight-layer">
+        <amp-video layout="responsive" src="media/curry.mp4" width="632" height="720" muted autoplay loop></amp-video>
       </amp-story-grid-layer>
-      <amp-story-grid-layer preset="vertical">
-        <div class="score">
-          <p class="caption">GS Leads series 2-0</p>
-          <span>GS 132</span>
-          <span class="separator">|</span>
-          <span>CLE 113</span>
-        </div>
+      <amp-story-grid-layer preset="vertical" class="full-bleed-layer" id="curry-text-layer">
         <div class="bottom">
           <p>Steph Curry shows off his handles against King James</p>
+        </div>
+      </amp-story-grid-layer>
+      <amp-story-grid-layer preset="thirds">
+        <div class="score" style="grid-area: upper-third">
+          <p class="caption">Q4 4:50</p>
+          <span>GS 110</span>
+          <span class="separator">|</span>
+          <span>CLE 92</span>
         </div>
       </amp-story-grid-layer>
     </amp-story-page>
 
     <!-- Tweet -->
     <amp-story-page id="paul-pierce-reacts">
-      <amp-story-grid-layer preset="vertical">
+      <amp-story-grid-layer preset="vertical" class="full-bleed-layer">
         <amp-img layout="responsive" src="media/durant.jpg" width="720" height="576"></amp-img>
       </amp-story-grid-layer>
-      <amp-story-grid-layer preset="vertical">
+      <amp-story-grid-layer preset="vertical" id="kd-layer">
+        <blockquote>&ldquo;It's Kevin Durant's World.&rdquo;</blockquote>
         <amp-twitter width="300" height="400"
             layout="responsive"
             data-tweetid="871558595510390785"
-            data-cards="hidden"
-            data-chrome="noborders">
+            data-chrome="noborders transparent">
         </amp-twitter>
       </amp-story-grid-layer>
     </amp-story-page>
