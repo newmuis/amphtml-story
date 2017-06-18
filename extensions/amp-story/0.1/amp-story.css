@@ -144,14 +144,20 @@ amp-story-grid-layer[preset="fill"] > amp-video video {
 amp-story-grid-layer[preset="vertical"] {
   align-content: start;
   grid-auto-flow: row !important;
-  grid-template-columns: auto !important;
-  justify-content: start;
+  grid-template-columns: 100% !important;
+  justify-content: stretch;
+  justify-items: start;
+}
+
+amp-story-grid-layer[preset="vertical"] > * {
+  width: 100%;
 }
 
 amp-story-grid-layer[preset="horizontal"] {
-  align-content: center;
+  align-content: stretch;
+  align-items: start;
   grid-auto-flow: column !important;
-  grid-template-rows: auto !important;
+  grid-template-rows: 100% !important;
   justify-content: start;
 }
 
