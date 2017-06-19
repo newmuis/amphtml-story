@@ -118,7 +118,9 @@ export class AmpStory extends AMP.BaseElement {
     const activePage = this.getActivePage_();
     if (!activePage.nextElementSibling) {
       return;
-    } else if (activePage.nextElementSibling == this.bookend_) {
+    }
+    
+    if (activePage.nextElementSibling == this.bookend_) {
       this.showBookend_();
       return;
     }
@@ -156,7 +158,7 @@ export class AmpStory extends AMP.BaseElement {
 
     const activePage = this.getActivePage_();
 
-    if (isFullScreenSupported(this.element)) {
+    if (isFullScreenSupported(this.element) && this.isAutoFullScreenEnabled_) {
       this.enterFullScreen_();
     }
 
@@ -208,7 +210,7 @@ export class AmpStory extends AMP.BaseElement {
    * @private
    */
   showBookend_() {
-    exitFullScreen(this.element);
+    this.exitFullScreen_();
     this.element.classList.add('i-amp-story-bookend-active');
     this.isBookendActive_ = true;
   }
