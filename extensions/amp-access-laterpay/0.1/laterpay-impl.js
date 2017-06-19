@@ -297,9 +297,6 @@ export class LaterpayVendor {
     const dialogContainer = this.getContainer_();
     this.innerContainer_ = this.createElement_('div');
     this.innerContainer_.className = TAG + '-container';
-    if (this.laterpayConfig_['sandbox']) {
-      this.renderTextBlock_('sandbox');
-    }
     this.renderTextBlock_('header');
     const listContainer = this.createElement_('ul');
     this.purchaseConfig_['premiumcontent']['tp_title'] =
@@ -324,9 +321,9 @@ export class LaterpayVendor {
       const purchaseType = this.selectedPurchaseOption_.dataset['purchaseType'];
       this.handlePurchase_(ev, value, purchaseType);
     });
-    dialogContainer.appendChild(listContainer);
-    dialogContainer.appendChild(purchaseButton);
-    dialogContainer.appendChild(
+    this.innerContainer_.appendChild(listContainer);
+    this.innerContainer_.appendChild(purchaseButton);
+    this.innerContainer_.appendChild(
         this.createAlreadyPurchasedLink_(this.purchaseConfig_.apl));
     this.renderTextBlock_('footer');
     dialogContainer.appendChild(this.innerContainer_);
@@ -361,7 +358,7 @@ export class LaterpayVendor {
 
   /**
    * @private
-   * @return {!Element}
+   * @return {!Node}
    */
   createLaterpayBadge_() {
     const a = this.createElement_('a');
