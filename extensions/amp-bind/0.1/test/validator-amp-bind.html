@@ -40,6 +40,7 @@
     button
   </button>
 
+  <!-- AMP-STATE -->
   <!-- amp-state with child script -->
   <amp-state id="withChildScript">
     <script type="application/json">
@@ -48,15 +49,12 @@
       }
     </script>
   </amp-state>
-
   <!-- amp-state with `src` attr -->
   <amp-state id="withSrc" src="https://www.foo.com/data.json">
   </amp-state>
-
   <!-- amp-state with `src` and `credentials` attrs -->
   <amp-state id="withSrcPlusCredentials" src="https://www.foo.com/data.json" credentials="omit">
   </amp-state>
-
   <!-- amp-state with child script and `src` attr -->
   <amp-state id="withChildScriptAndSrc" src="https://www.foo.com/data.json">
     <script type="application/json">
@@ -65,7 +63,6 @@
       }
     </script>
   </amp-state>
-
   <!-- amp-state with child script and `src` and `credentials` attrs -->
   <amp-state id="withChildScriptAndSrcPlusCredentials" src="https://www.foo.com/data.json" credentials="include">
     <script type="application/json">
