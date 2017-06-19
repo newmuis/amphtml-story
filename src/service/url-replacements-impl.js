@@ -20,13 +20,12 @@ import {
   installServiceInEmbedScope,
   registerServiceBuilderForDoc,
 } from '../service';
-import {
-  parseUrl,
-  removeFragment,
-  parseQueryString,
-  addParamsToUrl,
-  getSourceUrl,
-} from '../url';
+import {parseUrl, removeFragment, parseQueryString,
+  addParamsToUrl} from '../url';
+import {viewerForDoc} from '../services';
+import {viewportForDoc} from '../services';
+import {userNotificationManagerFor} from '../services';
+import {activityForDoc} from '../services';
 import {getTrackImpressionPromise} from '../impression.js';
 import {
   VariableSource,
@@ -877,17 +876,11 @@ export class UrlReplacements {
     }
     if (whitelist) {
       const isAllowedOrigin = this.isAllowedOrigin_(url);
-      const isSecure = isSecureUrl(href);
       if (!isAllowedOrigin) {
         user().warn('URL', 'Ignoring link replacement', href,
             ' because the link does not go to the document\'s' +
             ' source, canonical, or whitelisted origin.');
-      }
-      if (!isSecure) {
-        user().warn('URL', 'Ignoring link replacement', href,
-            ' because it is only supported for secure links.');
-      }
-      if (isAllowedOrigin && isSecure) {
+      } else {
         href = this.expandSync(
             href,
             /* opt_bindings */ undefined,
