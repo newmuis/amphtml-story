@@ -15,6 +15,7 @@
  */
 
 import '../amp-gist';
+import {adopt} from '../../../../src/runtime';
 
 
 describes.realWin('amp-gist', {
@@ -24,10 +25,15 @@ describes.realWin('amp-gist', {
 }, env => {
   let win, doc;
 
-  beforeEach(() => {
-    win = env.win;
-    doc = win.document;
-  });
+  function getIns(gistid, file) {
+    return createIframePromise().then(iframe => {
+      doNotLoadExternalResourcesInTest(iframe.win);
+      const ins = iframe.doc.createElement('amp-gist');
+      ins.setAttribute('data-gistid', gistid);
+      ins.setAttribute('height', '237');
+      if (file) {
+        ins.setAttribute('data-file', file);
+      }
 
   function getIns(gistid, file) {
     const ins = doc.createElement('amp-gist');
