@@ -19,11 +19,10 @@ import {Gestures} from '../../../src/gesture';
 import {KeyCodes} from '../../../src/utils/key-codes';
 import {Layout} from '../../../src/layout';
 import {SwipeXYRecognizer} from '../../../src/gesture-recognizers';
-import {computedStyle, setImportantStyles} from '../../../src/style';
-import {dev, user} from '../../../src/log';
-import {getMode} from '../../../src/mode';
-import {Services} from '../../../src/services';
-import {debounce} from '../../../src/utils/rate-limit';
+import {dev} from '../../../src/log';
+import {historyForDoc} from '../../../src/services';
+import {vsyncFor} from '../../../src/services';
+import {timerFor} from '../../../src/services';
 import * as st from '../../../src/style';
 
 /** @const {string} */
@@ -140,13 +139,9 @@ class AmpLightbox extends AMP.BaseElement {
     this.boundCloseOnEscape_ = this.closeOnEscape_.bind(this);
     this.win.document.documentElement.addEventListener(
         'keydown', this.boundCloseOnEscape_);
-    this.getViewport().enterLightboxMode()
+    this.getViewport().enterLightboxMode(this.element)
         .then(() => this.finalizeOpen_());
   }
-
-  finalizeOpen_() {
-    // TODO(alanorozco): backport iframe overlay logic into viewport service
-    this.maybeEnterFrameFullOverlayMode_();
 
   finalizeOpen_() {
     if (this.isScrollable_) {
@@ -206,14 +201,11 @@ class AmpLightbox extends AMP.BaseElement {
     if (this.isScrollable_) {
       st.setStyle(this.element, 'webkitOverflowScrolling', '');
     }
-    this.getViewport().leaveLightboxMode()
+    this.getViewport().leaveLightboxMode(this.element)
         .then(() => this.finalizeClose_());
   }
 
   finalizeClose_() {
-    // TODO(alanorozco): backport iframe overlay logic into viewport service
-    this.maybeLeaveFrameFullOverlayMode_();
-
     this./*OK*/collapse();
     if (this.historyId_ != -1) {
       this.getHistory_().pop(this.historyId_);
