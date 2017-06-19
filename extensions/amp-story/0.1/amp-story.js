@@ -163,10 +163,21 @@ export class AmpStory extends AMP.BaseElement {
     this.navigationState_.installConsumer(new AnalyticsTrigger(this.element));
     this.navigationState_.installConsumer(this.variableService_);
 
+<<<<<<< HEAD
     this.navigationState_.updateActivePage(0, this.activePage_.id);
 
     registerServiceBuilder(this.win, 'story-variable',
         () => this.variableService_);
+=======
+    firstPage.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
+    this.scheduleResume(firstPage);
+
+    // Mark all videos as autoplay
+    const videos = this.element.querySelectorAll('amp-video');
+    for (const video of videos) {
+      video.setAttribute('autoplay', '');
+    }
+>>>>>>> 16f77f01... Autoplay all videos in a story.
   }
 
 
