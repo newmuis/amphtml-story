@@ -83,16 +83,12 @@ export class AmpStory extends AMP.BaseElement {
     this.element.addEventListener(EventType.EXIT_FULLSCREEN, () => {
       this.exitFullScreen_(/* opt_explicitUserAction */ true);
     });
-    this.win.document.addEventListener('keydown', e => {
-      this.onKeyDown_(e);
-    }, true);
 
-    const firstPage = user().assertElement(
-        this.element.querySelector('amp-story-page'),
-        'Story must have at least one page.');
-
-    firstPage.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
-    this.scheduleResume(firstPage);
+    // Mark all videos as autoplay
+    const videos = this.element.querySelectorAll('amp-video');
+    for (const video of videos) {
+      video.setAttribute('autoplay', '');
+    }
   }
 
 
