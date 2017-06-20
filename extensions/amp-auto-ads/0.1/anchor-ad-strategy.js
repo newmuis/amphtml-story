@@ -15,26 +15,26 @@
  */
 import {createElementWithAttributes} from '../../../src/dom';
 import {user} from '../../../src/log';
-import {dict} from '../../../src/utils/object';
-import {Services} from '../../../src/services';
+import {viewportForDoc} from '../../../src/services';
 
+/** @const */
 const TAG = 'amp-auto-ads';
-const STICKY_AD_TAG = 'amp-sticky-ad';
-const OPT_IN_STATUS_ANCHOR_ADS = 2;
 
+/** @const */
+const OPT_IN_STATUS_ANCHOR_ADS = 2;
 
 export class AnchorAdStrategy {
   /**
-   * @param {!../../../src/service/ampdoc-impl.AmpDoc} ampdoc
-   * @param {!JsonObject<string, string>} baseAttributes Any attributes that
-   *     should be added to any inserted ads.
+   * @param {!Window} win
+   * @param {!Object<string, string>} baseAttributes Any attributes that should
+   *     be added to any inserted ads.
    * @param {!JSONType} configObj
    */
-  constructor(ampdoc, baseAttributes, configObj) {
-    /** @const {!../../../src/service/ampdoc-impl.AmpDoc} */
-    this.ampdoc = ampdoc;
+  constructor(win, baseAttributes, configObj) {
+    /** @const @private {!Window} */
+    this.win_ = win;
 
-    /** @const @private {!JsonObject<string, string>} */
+    /** @const @private {!Object<string, string>} */
     this.baseAttributes_ = baseAttributes;
 
     /** @const @private {!JSONType} */
@@ -52,8 +52,6 @@ export class AnchorAdStrategy {
       user().warn(TAG, 'exists <amp-sticky-ad>');
       return Promise.resolve(false);
     }
-    Services.extensionsFor(this.ampdoc.win)./*OK*/installExtensionForDoc(
-        this.ampdoc, STICKY_AD_TAG);
     this.placeStickyAd_();
     return Promise.resolve(true);
   }
@@ -63,8 +61,7 @@ export class AnchorAdStrategy {
    * @private
    */
   hasExistingStickyAd_() {
-    return this.ampdoc.getRootNode()
-        .getElementsByTagName('AMP-STICKY-AD').length > 0;
+    return this.win_.document.getElementsByTagName('AMP-STICKY-AD').length > 0;
   }
 
   /**
@@ -85,20 +82,17 @@ export class AnchorAdStrategy {
   }
 
   placeStickyAd_() {
-    const viewportWidth =
-        Services.viewportForDoc(this.ampdoc).getWidth();
-    const attributes = /** @type {!JsonObject} */ (
-        Object.assign(dict(), this.baseAttributes_, dict({
-          'width': String(viewportWidth),
-          'height': '100',
-        })));
-    const doc = this.ampdoc.win.document;
+    const viewportWidth = viewportForDoc(this.win_.document).getWidth();
+    const attributes = Object.assign({}, this.baseAttributes_, {
+      'width': String(viewportWidth),
+      'height': '100',
+    });
     const ampAd = createElementWithAttributes(
-        doc, 'amp-ad', attributes);
+        this.win_.document, 'amp-ad', attributes);
     const stickyAd = createElementWithAttributes(
-        doc, 'amp-sticky-ad', dict({'layout': 'nodisplay'}));
+        this.win_.document, 'amp-sticky-ad', {'layout': 'nodisplay'});
     stickyAd.appendChild(ampAd);
-    const body = this.ampdoc.getBody();
-    body.insertBefore(stickyAd, body.firstChild);
+    this.win_.document.body.insertBefore(
+        stickyAd, this.win_.document.body.firstChild);
   }
 }

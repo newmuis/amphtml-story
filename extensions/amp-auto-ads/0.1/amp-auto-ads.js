@@ -47,12 +47,9 @@ export class AmpAutoAds extends AMP.BaseElement {
       return;
     }
 
-    const ampdoc = this.getAmpDoc();
-    Services.extensionsFor(this.win)./*OK*/installExtensionForDoc(
-        ampdoc, AD_TAG);
-
     const configPromise = this.getConfig_(adNetwork.getConfigUrl());
-    Promise.all([configPromise, ampdoc.whenReady()]).then(values => {
+    const docPromise = this.getAmpDoc().whenReady();
+    Promise.all([configPromise, docPromise]).then(values => {
       const configObj = values[0];
       if (!configObj) {
         return;
@@ -65,7 +62,7 @@ export class AmpAutoAds extends AMP.BaseElement {
       const adTracker =
           new AdTracker(getExistingAds(ampdoc), adNetwork.getAdConstraints());
       new AdStrategy(placements, attributes, adTracker).run();
-      new AnchorAdStrategy(ampdoc, attributes, configObj).run();
+      new AnchorAdStrategy(this.win, attributes, configObj).run();
     });
   }
 
