@@ -118,7 +118,7 @@ export class AmpStory extends AMP.BaseElement {
 
   /**
    * Gets the next page that the user should be advanced to, upon navigation.
-   * @return {!Element} The element representing the page that the user should
+   * @return {?Element} The element representing the page that the user should
    *     be advanced to.
    * @private
    */
@@ -130,13 +130,15 @@ export class AmpStory extends AMP.BaseElement {
       return user().assert(
           this.element.querySelector(`amp-story-page#${nextPageId}`),
           `Page "${activePage.id}" refers to page "${nextPageId}", but ` +
-          `no such page exists.`);
-    } else if (activePage.nextElementSibling === this.systemLayer_ ||
+          'no such page exists.');
+    }
+
+    if (activePage.nextElementSibling === this.systemLayer_.getRoot() ||
         activePage.nextElementSibling === this.bookend_) {
       return null;
-    } else {
-      return activePage.nextElementSibling;
     }
+
+    return activePage.nextElementSibling;
   }
 
 
