@@ -80,6 +80,12 @@ export class AmpStory extends AMP.BaseElement {
     this.element.addEventListener(EventType.EXIT_FULLSCREEN, () => {
       this.exitFullScreen_(/* opt_explicitUserAction */ true);
     });
+
+    // Mark all videos as autoplay
+    const videos = this.element.querySelectorAll('amp-video');
+    for (const video of videos) {
+      video.setAttribute('autoplay', '');
+    }
   }
 
 
