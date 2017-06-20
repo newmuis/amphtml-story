@@ -29,8 +29,9 @@ import {
   installServiceInEmbedScope,
 } from '../service';
 import {getMode} from '../mode';
-import {hasOwn, map} from '../utils/object';
+import {getValueForExpr} from '../json';
 import {isArray, isFiniteNumber} from '../types';
+import {map} from '../utils/object';
 import {timerFor} from '../services';
 import {vsyncFor} from '../services';
 
@@ -87,6 +88,18 @@ const WHITELISTED_INPUT_DATA_ = {
     'value': TYPE.STRING,
   },
 };
+
+/**
+ * An expression arg value, e.g. `foo.bar` in `e:t.m(arg=foo.bar)`.
+ * @typedef {{expression: string}}
+ */
+let ActionInfoArgExpressionDef;
+
+/**
+ * An arg value.
+ * @typedef {(boolean|number|string|ActionInfoArgExpressionDef)}
+ */
+let ActionInfoArgValueDef;
 
 /**
  * Map of arg names to their values, e.g. {arg: 123} in `e:t.m(arg=123)`.
@@ -410,8 +423,8 @@ export class ActionService {
     for (let i = 0; i < action.actionInfos.length; i++) {
       const actionInfo = action.actionInfos[i];
 
-      // Replace any variables in args with data in `event`.
-      const args = applyActionInfoArgs(actionInfo.args, event);
+      // Replace any expressions in args with data in `event`.
+      const args = dereferenceExprsInArgs(actionInfo.args, event);
 
       // Global target, e.g. `AMP`.
       const globalTarget = this.globalTargets_[actionInfo.target];
@@ -807,25 +820,9 @@ function argValueForTokens(tokens) {
   } else if (tokens.length == 1) {
     return /** @type {(boolean|number|string)} */ (tokens[0].value);
   } else {
-    return data => {
-      let current = data;
-      // Traverse properties of `data` per token values.
-      for (let i = 0; i < tokens.length; i++) {
-        const value = String(tokens[i].value);
-        if (current && hasOwn(current, value)) {
-          current = current[value];
-        } else {
-          return null;
-        }
-      }
-      // Only allow dereferencing of primitives.
-      const type = typeof current;
-      if (type === 'string' || type === 'number' || type === 'boolean') {
-        return current;
-      } else {
-        return null;
-      }
-    };
+    const values = tokens.map(token => token.value);
+    const expression = values.join('.');
+    return /** @type {ActionInfoArgExpressionDef} */ ({expression});
   }
 }
 
@@ -834,7 +831,8 @@ function argValueForTokens(tokens) {
  * @param {?ActionInfoArgsDef} args
  * @param {?ActionEventDef} event
  * @return {?JsonObject}
- * @private Visible for testing only.
+ * @private
+ * @visibleForTesting
  */
 export function dereferenceExprsInArgs(args, event) {
   if (!args) {
