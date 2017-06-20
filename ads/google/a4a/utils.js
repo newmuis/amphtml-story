@@ -213,12 +213,12 @@ export function googlePageParameters(win, doc, startTime, output = 'html') {
   const referrerPromise = viewerForDoc(doc).getReferrerUrl();
   return getOrCreateAdCid(doc, 'AMP_ECID_GOOGLE', '_ga')
       .then(clientId => referrerPromise.then(referrer => {
-        const documentInfo = documentInfoForDoc(win.document);
+        const documentInfo = documentInfoForDoc(doc);
         // Read by GPT for GA/GPT integration.
         win.gaGlobal = win.gaGlobal ||
         {cid: clientId, hid: documentInfo.pageViewId};
         const screen = win.screen;
-        const viewport = viewportForDoc(win.document);
+        const viewport = viewportForDoc(doc);
         const viewportRect = viewport.getRect();
         const viewportSize = viewport.getSize();
         return {
@@ -392,8 +392,7 @@ function elapsedTimeWithCeiling(time, start) {
 export function getCorrelator(win, opt_cid, opt_nodeOrDoc) {
   if (!win.ampAdPageCorrelator) {
     win.ampAdPageCorrelator = makeCorrelator(
-        opt_cid,
-        Services.documentInfoForDoc(opt_nodeOrDoc || win.document).pageViewId);
+        opt_cid, documentInfoForDoc(opt_nodeOrDoc || win.document).pageViewId);
   }
   return win.ampAdPageCorrelator;
 }
