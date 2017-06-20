@@ -79,7 +79,6 @@
  * and `integration` below.
  */
 
-import fetchMock from 'fetch-mock';
 import installCustomElements from
     'document-register-element/build/document-register-element.node';
 import {BaseElement} from '../src/base-element';
@@ -151,7 +150,7 @@ export let TestSpec;
 /**
  * An object specifying the configuration of an AmpFixture.
  *
- * - ampdoc: "single", "shadow", "multi", "none", "fie".
+ * - ampdoc: "single", "shadow", "multi", "none".
  *
  * @typedef {{
  *   runtimeOn: (boolean|undefined),
@@ -228,7 +227,6 @@ export const realWin = describeEnv(spec => [
  * @param {string} name
  * @param {{
  *   body: string,
- *   css: (string|undefined),
  *   hash: (string|undefined),
  * }} spec
  * @param {function({
@@ -284,23 +282,6 @@ export const repeated = (function() {
 
   return mainFunc;
 })();
-
-
-/**
- * Mocks Window.fetch in the given environment and exposes `env.fetchMock`. For
- * convenience, also exposes fetch-mock's mock() function as
- * `env.expectFetch(matcher, response)`.
- *
- * @param {!Object} env
- * @see http://www.wheresrhys.co.uk/fetch-mock/quickstart
- */
-function attachFetchMock(env) {
-  fetchMock.constructor.global = env.win;
-  fetchMock._mock();
-
-  env.fetchMock = fetchMock;
-  env.expectFetch = fetchMock.mock.bind(fetchMock);
-}
 
 
 /**
@@ -466,10 +447,10 @@ class IntegrationFixture {
 
   /** @override */
   setup(env) {
-    const spec = this.spec;
+    const body = this.spec.body;
     return new Promise((resolve, reject) => {
       env.iframe = createElementWithAttributes(document, 'iframe', {
-        src: addParamsToUrl('/amp4test/compose-doc', spec) + `#${this.hash}`,
+        src: addParamsToUrl('/amp4test/compose-doc', {body}) + `#${this.hash}`,
       });
       env.iframe.onload = function() {
         env.win = env.iframe.contentWindow;
