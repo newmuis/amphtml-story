@@ -204,21 +204,28 @@ export function extractUrlExperimentId(win, element) {
  *   parameter or not.
  */
 function maybeSetExperimentFromUrl(win, element, experimentName,
-    controlBranchId, treatmentBranchId, delayedControlId,
-    delayedTreatmentBrandId, sfgControlId, sfgTreatmentId, manualId) {
+     controlBranchId, treatmentBranchId, delayedControlId,
+     delayedTreatmentBrandId, sfgControlId, sfgTreatmentId, manualId) {
   const expParam = viewerForDoc(element).getParam('exp') ||
-      parseQueryString(win.location.search)['exp'];
+    parseQueryString(win.location.search)['exp'];
   if (!expParam) {
     return false;
   }
-  const match = /(^|,)(a4a:[^,]*)/.exec(expParam);
-  const a4aParam = match && match[2];
-  if (!a4aParam) {
+  // Allow for per type experiment control with Doubleclick key set for 'da'
+  // and AdSense using 'aa'.  Fallbsck to 'a4a' if type specific is missing.
+  const expKeys = [
+    (element.getAttribute('type') || '').toLowerCase() == 'doubleclick' ?
+      'da' : 'aa',
+    'a4a',
+  ];
+  let arg;
+  let match;
+  expKeys.forEach(key => arg = arg ||
+    ((match = new RegExp(`(?:^|,)${key}:(-?\\d+)`).exec(expParam)) &&
+      match[1]));
+  if (!arg) {
     return false;
   }
-  // In the future, we may want to specify multiple experiments in the a4a
-  // arg.  For the moment, however, assume that it's just a single flag.
-  const arg = a4aParam.split(':', 2)[1];
   const argMapping = {
     '-1': manualId,
     '0': null,
