@@ -22,12 +22,7 @@ import {
 import {VideoEvents} from '../../../src/video-interface';
 import {Services} from '../../../src/services';
 import {assertAbsoluteHttpOrHttpsUrl} from '../../../src/url';
-import {
-  removeElement,
-  fullscreenEnter,
-  fullscreenExit,
-  isFullscreenElement,
-} from '../../../src/dom';
+import {removeElement} from '../../../src/dom';
 import {getData, listen} from '../../../src/event-helper';
 
 /**

@@ -755,7 +755,6 @@ var forbiddenTermsSrcInclusive = {
       'extensions/amp-ad/0.1/amp-ad-xorigin-iframe-handler.js',
       'extensions/amp-image-lightbox/0.1/amp-image-lightbox.js',
       'extensions/amp-analytics/0.1/transport.js',
-      'extensions/amp-web-push/0.1/iframehost.js',
       'dist.3p/current/integration.js',
     ],
   },

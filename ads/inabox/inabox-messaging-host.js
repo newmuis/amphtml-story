@@ -22,6 +22,7 @@ import {
   MessageType,
 } from '../../src/3p-frame-messaging';
 import {dev} from '../../src/log';
+import {getData} from '../../src/event-helper';
 import {dict} from '../../src/utils/object';
 import {expandFrame, collapseFrame} from './frame-overlay-helper';
 
@@ -95,7 +96,7 @@ export class InaboxMessagingHost {
    * @return {boolean} true if message get successfully processed
    */
   processMessage(message) {
-    const request = deserializeMessage(message.data);
+    const request = deserializeMessage(getData(message));
     if (!request || !request['sentinel']) {
       dev().fine(TAG, 'Ignored non-AMP message:', message);
       return false;

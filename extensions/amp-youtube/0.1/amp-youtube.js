@@ -22,6 +22,7 @@ import {
   isFullscreenElement,
 } from '../../../src/dom';
 import {tryParseJson} from '../../../src/json';
+import {removeElement} from '../../../src/dom';
 import {getData, listen} from '../../../src/event-helper';
 import {isLayoutSizeDefined} from '../../../src/layout';
 import {dev, user} from '../../../src/log';
@@ -304,9 +305,9 @@ class AmpYoutube extends AMP.BaseElement {
     if (data === undefined) {
       return; // We only process valid JSON.
     }
-    if (data.event == 'infoDelivery' &&
-        data.info && data.info.playerState !== undefined) {
-      this.playerState_ = data.info.playerState;
+    if (data['event'] == 'infoDelivery' &&
+        data['info'] && data['info']['playerState'] !== undefined) {
+      this.playerState_ = data['info']['playerState'];
       if (this.playerState_ == PlayerStates.PAUSED ||
           this.playerState_ == PlayerStates.ENDED) {
         this.element.dispatchCustomEvent(VideoEvents.PAUSE);

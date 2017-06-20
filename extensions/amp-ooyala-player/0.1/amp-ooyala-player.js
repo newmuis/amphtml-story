@@ -168,7 +168,7 @@ class AmpOoyalaPlayer extends AMP.BaseElement {
       return; // We only process valid JSON.
     }
     if (data['data'] == 'playing') {
-      this.element.dispatchCustomEvent(VideoEvents.PLAYING);
+      this.element.dispatchCustomEvent(VideoEvents.PLAY);
     } else if (data['data'] == 'paused') {
       this.element.dispatchCustomEvent(VideoEvents.PAUSE);
     } else if (data['data'] == 'muted') {

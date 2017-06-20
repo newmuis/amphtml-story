@@ -26,17 +26,11 @@ import {
   toArray,
 } from '../../../src/types';
 import {
-  isObject,
-  toArray,
-  toWin,
-} from '../../../src/types';
-import {
   getData,
   listen,
 } from '../../../src/event-helper';
 import {dict} from '../../../src/utils/object';
 import {removeElement} from '../../../src/dom';
-import {startsWith} from '../../../src/string';
 import {user} from '../../../src/log';
 import {VideoEvents} from '../../../src/video-interface';
 import {Services} from '../../../src/services';
@@ -211,7 +205,11 @@ class AmpImaVideo extends AMP.BaseElement {
 
     if (isObject(eventData)) {
       const videoEvent = eventData['event'];
-      if (isEnumValue(VideoEvents, videoEvent)) {
+      if (videoEvent == VideoEvents.LOAD ||
+          videoEvent == VideoEvents.PLAY ||
+          videoEvent == VideoEvents.PAUSE ||
+          videoEvent == VideoEvents.MUTED ||
+          videoEvent == VideoEvents.UNMUTED) {
         if (videoEvent == VideoEvents.LOAD) {
           this.playerReadyResolver_(this.iframe_);
         }

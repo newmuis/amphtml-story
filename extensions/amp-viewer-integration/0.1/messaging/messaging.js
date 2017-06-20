@@ -15,6 +15,7 @@
  */
 
 import {parseJson} from '../../../../src/json';
+import {getData} from '../../../../src/event-helper';
 
 const TAG = 'amp-viewer-messaging';
 export const APP = '__AMPHTML__';
@@ -172,7 +173,7 @@ export class Messaging {
    * @private
    */
   handleMessage_(event) {
-    const message = parseMessage(event.data);
+    const message = parseMessage(getData(event));
     if (!message) {
       return;
     }

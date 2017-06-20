@@ -152,7 +152,9 @@ export class AmpAdXOriginIframeHandler {
             return;
           }
 
-          const {selector, attributes, messageId} = info;
+          const selector = info['selector'];
+          const attributes = info['attributes'];
+          const messageId = info['messageId'];
           let content = '';
 
           if (this.element_.hasAttribute('data-html-access-allowed')) {

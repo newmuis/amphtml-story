@@ -67,13 +67,6 @@ class AmpTwitter extends AMP.BaseElement {
       this.togglePlaceholder(false);
       this./*OK*/changeHeight(data['height']);
     }, /* opt_is3P */true);
-    listenFor(iframe, 'no-content', () => {
-      if (this.getFallback()) {
-        this.togglePlaceholder(false);
-        this.toggleFallback(true);
-      }
-      // else keep placeholder displayed since there's no fallback
-    }, /* opt_is3P */true);
     this.element.appendChild(iframe);
     this.iframe_ = iframe;
     return this.loadPromise(iframe);

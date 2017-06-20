@@ -124,7 +124,7 @@ export class IframeMessagingClient {
         return;
       }
 
-      const message = deserializeMessage(event.data);
+      const message = deserializeMessage(getData(event));
       if (!message || message['sentinel'] != this.sentinel_) {
         return;
       }

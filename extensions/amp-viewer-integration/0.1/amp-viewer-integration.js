@@ -25,6 +25,7 @@ import {isIframed} from '../../../src/dom';
 import {listen, listenOnce} from '../../../src/event-helper';
 import {dev} from '../../../src/log';
 import {dict} from '../../../src/utils/object';
+import {getData} from '../../../src/event-helper';
 import {getSourceUrl} from '../../../src/url';
 import {Services} from '../../../src/services';
 

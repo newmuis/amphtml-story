@@ -206,7 +206,7 @@ function registerGlobalListenerIfNeeded(parentWin) {
 
     const listenForEvents = getListenForEvents(
         parentWin,
-        data.sentinel,
+        data['sentinel'],
         event.origin,
         event.source
     );
