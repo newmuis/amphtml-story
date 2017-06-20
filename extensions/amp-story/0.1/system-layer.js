@@ -102,7 +102,7 @@ export class SystemLayer {
   }
 
   /**
-   * @return {!../../../src/vsync-impl.Vsync}
+   * @return {!../../../src/service/vsync-impl.Vsync}
    * @private
    */
   getVsync_() {

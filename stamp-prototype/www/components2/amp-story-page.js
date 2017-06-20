@@ -69,6 +69,7 @@ class AmpStoryPage extends BaseStampElement {
   validateChildren() {
     this.assertDescendents([
       'amp-story-fill-layer',
+      'amp-story-grid-layer',
       'amp-story-sequential-layer',
     ]);
   }

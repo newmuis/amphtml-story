@@ -30,6 +30,12 @@ class AmpStoryBaseLayer extends BaseStampElement {
         childEl.classList.add('i-text');
         break;
 
+      case 'amp-img':
+        const imgEl = document.createElement('img');
+        this.copyAttribute_('src', childEl, imgEl);
+        this.copyAttribute_('layout', childEl, imgEl);
+        return imgEl;
+
       case 'amp-video':
         const wrapperEl = document.createElement('stamp-video');
         const videoEl = document.createElement('video');
