@@ -16,6 +16,8 @@
 
 import {LaterpayVendor} from '../laterpay-impl';
 
+const TAG = 'amp-access-laterpay';
+
 describes.fakeWin('LaterpayVendor', {
   amp: true,
   location: 'https://pub.com/doc1',
@@ -203,7 +205,7 @@ describes.fakeWin('LaterpayVendor', {
     it('purchase option is selected', () => {
       expect(vendor.selectedPurchaseOption_).to.not.be.null;
       expect(vendor.selectedPurchaseOption_.classList
-          .contains('amp-access-laterpay-selected')).to.be.true;
+          .contains(TAG + '-selected')).to.be.true;
     });
 
   });

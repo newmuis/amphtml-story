@@ -318,7 +318,7 @@ export class LaterpayVendor {
     this.purchaseButton_ = purchaseButton;
     this.purchaseButtonListener_ = listen(purchaseButton, 'click', ev => {
       const value = this.selectedPurchaseOption_.value;
-      const purchaseType = this.selectedPurchaseOption_.dataset['purchaseType'];
+      const purchaseType = this.selectedPurchaseOption_.dataset.purchaseType;
       this.handlePurchase_(ev, value, purchaseType);
     });
     this.innerContainer_.appendChild(listContainer);
@@ -510,8 +510,7 @@ export class LaterpayVendor {
         purchaseUrl, /* useAuthData */ false);
     return urlPromise.then(url => {
       dev().fine(TAG, 'Authorization URL: ', url);
-      this.accessService_.loginWithUrl(
-          url, this.selectedPurchaseOption_.dataset.purchaseType);
+      this.accessService_.loginWithUrl(url, purchaseType);
     });
   }
 
