@@ -167,7 +167,7 @@ export class AmpStory extends AMP.BaseElement {
       return;
     }
     
-    if (activePage.nextElementSibling == this.bookend_) {
+    if (nextPage === this.bookend_) {
       this.showBookend_();
       return;
     }
