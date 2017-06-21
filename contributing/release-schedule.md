@@ -2,14 +2,20 @@
 
 We push a new release of AMP to all AMP pages every week on Tuesday.
 
-**It will typically take 1-2 weeks for a change in AMP to be live for all users.**  After a change is submitted it will be included in the next canary build cut on Mondays.  This canary build will be tested on our [Dev Channel](#amp-dev-channel) opt-in and with 1% of users for just over a week.  If no problems are found the canary build will then be pushed to all users.
+- Every Monday we create a canary build from a green release at the latest commit that passed all tests.
+- On Tuesday this canary is pushed to users of AMP who opted into the [AMP Dev Channel](#amp-dev-channel).
+- On Thursday we check error rates for opt-in users and bug reports and if everything looks fine, we push the canary to 1% of AMP pages.
+- We continue to monitor error rates and bug reports for a few days.
+- On the following Tuesday (a week after the canary was available on AMP Dev Channel) the canary is pushed to all users.
 
-You can determine what is in a given build using:
+That is, it will typically be about a week between when the canary cut is made and when it is pushed to all users.  During that week you can opt into the AMP Dev Channel to see how the next production release will affect your AMP pages.
 
 - the [releases page](https://github.com/ampproject/amphtml/releases); the release used by most users is marked as `Latest release` and the current Dev Channel release is marked as `Pre-release`
 - the [PR Use: In Canary](https://github.com/ampproject/amphtml/issues?utf8=%E2%9C%93&q=label%3A%22PR%20use%3A%20In%20Canary%22) and [PR Use: In Production](https://github.com/ampproject/amphtml/issues?utf8=%E2%9C%93&q=label%3A%22PR%20use%3A%20In%20Production%22) labels; these are added to PRs when they've made it into a canary/production build (though note there may be a delay between the build is created and when it goes live)
 
-Announcements regarding releases will be made on the [AMP Slack #release channel](https://amphtml.slack.com/messages/C4NVAR0H3/) ([sign up for Slack](https://docs.google.com/forms/d/e/1FAIpQLSd83J2IZA6cdR6jPwABGsJE8YL4pkypAbKMGgUZZriU7Qu6Tg/viewform?fbzx=4406980310789882877)).
+The [PR Use: In Canary](https://github.com/ampproject/amphtml/issues?utf8=%E2%9C%93&q=label%3A%22PR%20use%3A%20In%20Canary%22) and [PR Use: In Production](https://github.com/ampproject/amphtml/issues?utf8=%E2%9C%93&q=label%3A%22PR%20use%3A%20In%20Production%22) labels are added to PRs when they've made it into a canary/production build (though note there may be a delay between the build is created and when it goes live).
+
+Announces regarding releases will be made on the [AMP Slack #release channel](https://amphtml.slack.com/messages/C4NVAR0H3/).  (You will need to [sign up for access](https://docs.google.com/forms/d/e/1FAIpQLSd83J2IZA6cdR6jPwABGsJE8YL4pkypAbKMGgUZZriU7Qu6Tg/viewform?fbzx=4406980310789882877) to AMP on Slack if you haven't done so already].)
 
 ## Release cadence
 
