@@ -23,7 +23,6 @@ import {dev} from '../log';
 import {startsWith} from '../string';
 import {toggle, computedStyle} from '../style';
 import {AmpEvents} from '../amp-events';
-import {toWin} from '../types';
 
 const TAG = 'Resource';
 const RESOURCE_PROP_ = '__AMP__RESOURCE';
@@ -302,31 +301,27 @@ export class Resource {
    * @return {?Promise}
    */
   build() {
-    if (this.isBuilding_ ||
-        !this.element.isUpgraded() ||
-        !this.resources_.grantBuildPermission()) {
-      return null;
+    if (this.blacklisted_ || !this.element.isUpgraded()
+        || !this.resources_.grantBuildPermission()) {
+      return;
     }
-    this.isBuilding_ = true;
-    return this.element.build().then(() => {
-      this.isBuilding_ = false;
-      if (this.hasBeenMeasured()) {
-        this.state_ = ResourceState.READY_FOR_LAYOUT;
-        this.element.updateLayoutBox(this.layoutBox_);
-      } else {
-        this.state_ = ResourceState.NOT_LAID_OUT;
-      }
-      // TODO(dvoytenko): merge with the standard BUILT signal.
-      this.element.signals().signal('res-built');
-      // TODO(dvoytenko, #7389): cleanup once amp-sticky-ad signals are
-      // in PROD.
-      this.element.dispatchCustomEvent(AmpEvents.BUILT);
-    }, reason => {
-      dev().error(TAG, 'failed to build:', this.debugid, reason);
-      this.isBuilding_ = false;
-      this.element.signals().rejectSignal('res-built', reason);
-      throw reason;
-    });
+    try {
+      this.element.build();
+    } catch (e) {
+      dev().error(TAG, 'failed to build:', this.debugid, e);
+      this.blacklisted_ = true;
+      return;
+    }
+
+    if (this.hasBeenMeasured()) {
+      this.state_ = ResourceState.READY_FOR_LAYOUT;
+      this.element.updateLayoutBox(this.layoutBox_);
+    } else {
+      this.state_ = ResourceState.NOT_LAID_OUT;
+    }
+    // TODO(dvoytenko, #7389): cleanup once amp-sticky-ad signals are
+    // in PROD.
+    this.element.dispatchCustomEvent(AmpEvents.BUILT);
   }
 
   /**

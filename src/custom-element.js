@@ -38,7 +38,10 @@ import {parseSizeList} from './size-list';
 import {reportError} from './error';
 import {setStyle} from './style';
 import * as dom from './dom';
-import {toWin} from './types';
+import {setStyle, setStyles} from './style';
+import {LayoutDelayMeter} from './layout-delay-meter';
+import {ResourceState} from './service/resource';
+import {AmpEvents} from './amp-events';
 
 const TAG = 'CustomElement';
 
@@ -1292,7 +1295,7 @@ function createBaseCustomElementClass(win) {
       assertNotTemplate(this);
       dev().assert(this.isBuilt(),
           'Must be built to receive viewport events');
-      this.dispatchCustomEventForTesting('amp:load:start');
+      this.dispatchCustomEventForTesting(AmpEvents.LOAD_START);
       const isLoadEvent = (this.layoutCount_ == 0);  // First layout is "load".
       this.signals_.reset(CommonSignals.UNLOAD);
       if (isLoadEvent) {

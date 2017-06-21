@@ -30,7 +30,10 @@ import installCustomElements from
     'document-register-element/build/document-register-element.node';
 import {installDocService} from '../src/service/ampdoc-impl';
 import {installExtensionsService} from '../src/service/extensions-impl';
-import {installStylesLegacy} from '../src/style-installer';
+import {installStyles} from '../src/style-installer';
+import {resourcesForDoc} from '../src/services';
+import {AmpEvents} from '../src/amp-events';
+import {BindEvents} from '../extensions/amp-bind/0.1/bind-events';
 
 let iframeCount = 0;
 
@@ -65,14 +68,14 @@ export function createFixtureIframe(fixture, initialIframeHeight, opt_beforeLoad
   return new Promise((resolve, reject) => {
     // Counts the supported custom events.
     const events = {
-      'amp:attached': 0,
-      'amp:bind:initialize': 0,
-      'amp:bind:setState': 0,
-      'amp:bind:rescan-template': 0,
-      'amp:error': 0,
       'amp:form-service:initialize': 0,
-      'amp:load:start': 0,
-      'amp:stubbed': 0,
+      [AmpEvents.ATTACHED]: 0,
+      [BindEvents.INITIALIZE]: 0,
+      [BindEvents.SET_STATE]: 0,
+      [BindEvents.RESCAN_TEMPLATE]: 0,
+      [AmpEvents.ERROR]: 0,
+      [AmpEvents.LOAD_START]: 0,
+      [AmpEvents.STUBBED]: 0,
     };
     const messages = [];
     let html = __html__[fixture];

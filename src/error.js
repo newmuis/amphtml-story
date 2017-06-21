@@ -33,9 +33,6 @@ import {makeBodyVisible} from './style-installer';
 import {startsWith} from './string';
 import {urls} from './config';
 import {AmpEvents} from './amp-events';
-import {triggerAnalyticsEvent} from './analytics';
-import {isExperimentOn} from './experiments';
-import {Services} from './services';
 
 /**
  * @const {string}

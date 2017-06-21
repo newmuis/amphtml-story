@@ -699,7 +699,7 @@ export class AmpForm {
               container.appendChild(rendered);
               const templatedEvent = createCustomEvent(
                   this.win_,
-                  'amp:template-rendered',
+                  AmpEvents.TEMPLATE_RENDERED,
                   /* detail */ null,
                   {bubbles: true});
               container.dispatchEvent(templatedEvent);
