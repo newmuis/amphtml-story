@@ -144,9 +144,11 @@ amp-story-grid-layer[preset="fill"] > amp-video video {
 amp-story-grid-layer[preset="vertical"] {
   align-content: start;
   grid-auto-flow: row !important;
+  grid-gap: 16px;
   grid-template-columns: 100% !important;
   justify-content: stretch;
   justify-items: start;
+  padding: 32px;
 }
 
 amp-story-grid-layer[preset="vertical"] > * {
@@ -157,8 +159,10 @@ amp-story-grid-layer[preset="horizontal"] {
   align-content: stretch;
   align-items: start;
   grid-auto-flow: column !important;
+  grid-gap: 16px;
   grid-template-rows: 100% !important;
   justify-content: start;
+  padding: 32px;
 }
 
 amp-story-grid-layer[preset="thirds"] {
@@ -166,6 +170,7 @@ amp-story-grid-layer[preset="thirds"] {
   grid-template-areas: "upper-third"
                        "middle-third"
                        "lower-third" !important;
+  padding: 32px;
 }
 
 /** Bookend */
