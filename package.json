@@ -63,7 +63,7 @@
     "gulp-eslint": "3.0.1",
     "gulp-exec": "2.1.2",
     "gulp-file": "0.2.0",
-    "gulp-git": "2.3.2",
+    "gulp-git": "^2.3.2",
     "gulp-help": "1.6.1",
     "gulp-if": "2.0.0",
     "gulp-intercept": "0.1.0",
