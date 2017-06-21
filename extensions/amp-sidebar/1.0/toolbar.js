@@ -15,44 +15,59 @@
  */
 
 import {toggle} from '../../../src/style';
-import {user} from '../../../src/log';
+
+/** @const */
+const TOOLBAR_ELEMENT_CLASS = 'i-amphtml-toolbar';
 
 export class Toolbar {
   /**
   * @param {!Element} element
+  * @param {!./amp-sidebar.AmpSidebar} sidebar
   * @param {!../../../src/service/vsync-impl.Vsync} vsync
-  * @param {!../../../src/service/ampdoc-impl.AmpDoc} ampdoc
   */
-  constructor(element, vsync, ampdoc) {
+  constructor(element, sidebar, vsync) {
     /** @private {!Element} */
-    this.toolbarDomElement_ = element;
+    this.toolbarDOMElement_ = element;
 
-    /** @private {number|undefined} */
-    this.height_ = undefined;
+    /** @private {!./amp-sidebar.AmpSidebar} **/
+    this.sidebar_ = sidebar;
+
+    /** @private {!Element} */
+    this.sidebarElement_ = this.sidebar_.element;
 
     /** @const @private {!../../../src/service/vsync-impl.Vsync} */
     this.vsync_ = vsync;
 
-    /** @const @private {!../../../src/service/ampdoc-impl.AmpDoc} */
-    this.ampdoc_ = ampdoc;
-
     /** @private {!string} */
-    this.toolbarMedia_ = this.toolbarDomElement_.getAttribute('toolbar');
+    this.toolbarMedia_ = this.toolbarDOMElement_.getAttribute('toolbar');
 
     /** @private {?Element} */
     this.toolbarClone_ = null;
 
     /** @private {Element|undefined} */
-    this.toolbarTarget_ = undefined;
+    this.targetElement_ = undefined;
 
     /** @private {!boolean} **/
     this.toolbarShown_ = false;
 
-    // Default to toolbar target being hidden
-    this.toolbarDomElement_.classList
-        .add('amp-sidebar-toolbar-target-hidden');
+    /** @private {Array} */
+    this.toolbarOnlyElementsInSidebar_ = [];
 
-    this.buildCallback_();
+    this.buildToolbar_();
+
+    //Finally, find our tool-bar only elements
+    if (this.toolbarDOMElement_.hasAttribute('toolbar-only')) {
+      this.toolbarOnlyElementsInSidebar_.push(this.toolbarDOMElement_);
+    } else {
+      // Get our toolbar only elements
+      const toolbarOnlyQuery =
+        this.toolbarDOMElement_.querySelectorAll('[toolbar-only]');
+      if (toolbarOnlyQuery.length > 0) {
+        // Check the nav's children for toolbar-only
+        this.toolbarOnlyElementsInSidebar_ =
+          Array.prototype.slice.call(toolbarOnlyQuery, 0);
+      }
+    }
   }
 
   /**
@@ -61,7 +76,7 @@ export class Toolbar {
    */
   onLayoutChange(onShowCallback) {
     // Get if we match the current toolbar media
-    const matchesMedia = this.ampdoc_.win
+    const matchesMedia = this.sidebar_.win
         .matchMedia(this.toolbarMedia_).matches;
 
     // Remove and add the toolbar dynamically
@@ -77,27 +92,22 @@ export class Toolbar {
 
   /**
    * Private function to build the DOM element for the toolbar
+   * TODO: Allow specifying a target for the toolbar
    * @private
    */
-  buildCallback_() {
-    this.toolbarClone_ = this.toolbarDomElement_.cloneNode(true);
-    const targetId = user().assert(this.toolbarDomElement_
-        .getAttribute('toolbar-target'), '"toolbar-target" is required',
-        this.toolbarDomElement_);
-    // Set the target element to the toolbar clone if it exists.
-    this.ampdoc_.whenReady().then(() => {
-      const targetElement = this.ampdoc_.getElementById(targetId);
-      if (targetElement) {
-        this.toolbarTarget_ = targetElement;
-        this.toolbarClone_.classList.add('i-amphtml-toolbar');
-        toggle(this.toolbarTarget_, false);
-      } else {
-        // This error will be later rethrown as a user error and
-        // the side bar will continue to function w/o toolbar feature
-        throw new Error('Could not find the ' +
-        `toolbar-target element with an id: ${targetId}`);
-      }
-    });
+  buildToolbar_() {
+    const fragment = this.sidebarElement_
+      .ownerDocument.createDocumentFragment();
+    this.targetElement_ =
+      this.toolbarDOMElement_.ownerDocument.createElement('header');
+    //Place the elements into the target
+    this.toolbarClone_ = this.toolbarDOMElement_.cloneNode(true);
+    this.toolbarClone_.className = TOOLBAR_ELEMENT_CLASS;
+    this.targetElement_.appendChild(this.toolbarClone_);
+    toggle(this.targetElement_, false);
+    fragment.appendChild(this.targetElement_);
+    this.sidebarElement_.parentElement
+        .insertBefore(fragment, this.sidebarElement_);
   }
 
   /**
@@ -122,15 +132,13 @@ export class Toolbar {
 
     // Display the elements
     return this.vsync_.mutatePromise(() => {
-      if (this.toolbarTarget_) {
-        toggle(this.toolbarTarget_, true);
-        if (!this.toolbarTarget_.contains(this.toolbarClone_)) {
-          this.toolbarTarget_.appendChild(this.toolbarClone_);
-        }
-        this.toolbarDomElement_.classList
-            .add('amp-sidebar-toolbar-target-shown');
-        this.toolbarDomElement_.classList
-            .remove('amp-sidebar-toolbar-target-hidden');
+      if (this.targetElement_) {
+        toggle(this.targetElement_, true);
+      }
+      if (this.toolbarOnlyElementsInSidebar_) {
+        this.toolbarOnlyElementsInSidebar_.forEach(element => {
+          toggle(element, false);
+        });
       }
       this.toolbarShown_ = true;
     });
@@ -148,12 +156,13 @@ export class Toolbar {
 
     this.vsync_.mutate(() => {
       // Hide the elements
-      if (this.toolbarTarget_) {
-        toggle(this.toolbarTarget_, false);
-        this.toolbarDomElement_.classList
-            .add('amp-sidebar-toolbar-target-hidden');
-        this.toolbarDomElement_.classList
-            .remove('amp-sidebar-toolbar-target-shown');
+      if (this.targetElement_) {
+        toggle(this.targetElement_, false);
+      }
+      if (this.toolbarOnlyElementsInSidebar_) {
+        this.toolbarOnlyElementsInSidebar_.forEach(element => {
+          toggle(element, true);
+        });
       }
       this.toolbarShown_ = false;
     });
