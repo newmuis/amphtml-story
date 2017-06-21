@@ -31,15 +31,15 @@ import {
   getSourceOrigin,
   isProxyOrigin,
   parseUrl,
-} from '../../../src/url';
-import {dict} from '../../../src/utils/object';
-import {isIframed} from '../../../src/dom';
-import {getCryptoRandomBytesArray} from '../../../src/utils/bytes';
-import {viewerForDoc} from '../../../src/services';
-import {cryptoFor} from '../../../src/crypto';
-import {parseJson, tryParseJson} from '../../../src/json';
-import {timerFor} from '../../../src/services';
-import {user, rethrowAsync} from '../../../src/log';
+} from '../url';
+import {dict} from '../utils/object';
+import {isIframed} from '../dom';
+import {getCryptoRandomBytesArray} from '../utils/bytes';
+import {viewerForDoc} from '../services';
+import {cryptoFor} from '../crypto';
+import {parseJson, tryParseJson} from '../json';
+import {timerFor} from '../services';
+import {user, rethrowAsync} from '../log';
 
 const ONE_DAY_MILLIS = 24 * 3600 * 1000;
 

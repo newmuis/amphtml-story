@@ -364,7 +364,6 @@ var forbiddenTerms = {
     message: requiresReviewPrivacy,
     whitelist: [
       'src/service/cid-impl.js',
-      'src/service/cid-api.js',
       'src/cookies.js',
       'src/experiments.js',
       'tools/experiments/experiments.js',
@@ -374,7 +373,6 @@ var forbiddenTerms = {
     message: requiresReviewPrivacy,
     whitelist: [
       'src/service/cid-impl.js',
-      'src/service/cid-api.js',
       'src/cookies.js',
       'src/experiments.js',
       'tools/experiments/experiments.js',
@@ -387,7 +385,6 @@ var forbiddenTerms = {
       'src/service/viewer-cid-api.js',
       'src/inabox/inabox-viewer.js',
       'src/service/cid-impl.js',
-      'src/impression.js',
     ],
   },
   'eval\\(': {

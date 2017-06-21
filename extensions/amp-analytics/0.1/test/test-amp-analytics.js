@@ -33,7 +33,7 @@ import {
 } from '../../../../src/service';
 import {map} from '../../../../src/utils/object';
 import {cidServiceForDocForTesting} from
-    '../../../../extensions/amp-analytics/0.1/cid-impl';
+    '../../../../src/service/cid-impl';
 import {urlReplacementsForDoc} from '../../../../src/services';
 import * as sinon from 'sinon';
 

@@ -18,8 +18,7 @@ import {Services} from '../../src/services';
 import {
   cidServiceForDocForTesting,
   getProxySourceOrigin,
-  optOutOfCid,
-  isOptedOutOfCid,
+  viewerBaseCid,
 } from '../../src/service/cid-impl';
 import {installCryptoService, Crypto} from '../../src/service/crypto-impl';
 import {installDocService} from '../../src/service/ampdoc-impl';
