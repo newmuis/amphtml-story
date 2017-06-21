@@ -1,44 +1,75 @@
 <!doctype html>
-<html ⚡>
+<html ⚡ 📖>
 <head>
-  <meta charset="utf-8">
-  <link rel="canonical" href="index.html">
-  <link rel="icon" href="./media/a-favicon.png" type="image/png" />
-  <link rel="manifest" href="./manifest.json">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}} @keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
-
-  <title>Best Takeaways from NBA Finals Game 2</title>
+    <meta charset="utf-8">
+    <script async src="https://stamp-prototype.appspot.com/v0.js"></script>
+    <script async custom-element="amp-story"
+        src="https://stamp-prototype.appspot.com/v0/amp-story-0.1.js"></script>
+    <script async custom-element="amp-carousel"
+        src="https://cdn.ampproject.org/v0/amp-carousel-0.1.js"></script>
+    <script async custom-element="amp-video"
+        src="https://cdn.ampproject.org/v0/amp-video-0.1.js"></script>
+    <title>Magic Johnson bounces back to the Los Angeles Lakers</title>
+    <link rel="canonical" href="index.html" />
+    <meta name="viewport"
+        content="width=device-width,minimum-scale=1,initial-scale=1">
+    <style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}} @keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
   <style amp-custom>
     @font-face {
       font-family: 'BentonSans';
-      src: url('benton-sans.woff') format('woff');
+      src: url('./font/benton-sans.woff') format('woff');
     }
 
     @font-face {
       font-family: 'BentonSansBold';
-      src: url('benton-sans-bold.woff') format('woff');
+      src: url('./font/benton-sans-bold.woff') format('woff');
     }
 
     amp-story {
-      --accent-color: red;
-      --body-font-family: 'Times New Roman', serif;
-      --emphasized-font-family: 'BentonSansBold', Helvetica, Arial, sans-serif;
-      --headline-font-family: 'BentonSansBold', Helvetica, Arial, sans-serif;
+      font-family: 'Times New Roman', serif;
+      line-height: 1.375;
     }
 
-    [theme="light"] amp-story-background-layer {
+    h1, h2, h3, h4, h5, h6, .bold {
+      font-family: 'BentonSansBold', Helvetica, Arial, sans-serif;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      font-size: 2em;
+      line-height: 1.25;
+    }
+
+    blockquote {
+      font-style: italic;
+      font-weight: bold;
+    }
+
+    .bold {
+      font-size: 1.25em;
+      line-height: 1.3;
+    }
+
+    .dark {
+      background-color: #222;
+      color: #fff;
+    }
+
+    .light {
       background-color: #f8f8f8;
-    }
-
-    [theme="light"] amp-story-foreground-layer {
       color: #444;
     }
 
-    amp-story-page:nth-child(2) amp-story-background-layer,
-    amp-story-page:nth-child(5) amp-story-background-layer,
-    amp-story-page:nth-child(7) amp-story-background-layer,
-    amp-story-page:nth-child(11) amp-story-background-layer {
+    .bottom amp-story-grid-layer {
+      align-content: end;
+    }
+
+    .top amp-story-grid-layer {
+      align-content: start;
+    }
+
+    #chasing-stars,
+    #the-present,
+    #high-expectations {
       background-color: #fff;
     }
   </style>
@@ -47,25 +78,22 @@
   <amp-story related-articles="./related.json">
 
     <!-- Page 1: Cover -->
-    <amp-story-cover theme="dark" align="bottom">
+    <amp-story-page id="cover" class="dark bottom">
       <amp-story-grid-layer template="fill">
         <amp-img src="./media/magic.jpg" layout="fill"></amp-img>
       </amp-story-grid-layer>
       <amp-story-grid-layer template="vertical">
         <h1>Magic Johnson bounces back to the Los Angeles Lakers</h1>
         <p>The Lakers legend becomes the beleaguered club's new president</p>
-        <amp-story-citation>
-          <span slot="title">Baxter Holmes</span>
-          <span slot="subtitle">Feb 21, 2017</span>
-          <amp-img layout="fill" slot="avatar" src="./media/baxx.jpg"></amp-img>
-        </amp-story-citation>
+        <p>Baxter Holmes</p>
+        <p>Feb 21, 2017</p>
       </amp-story-grid-layer>
-    </amp-story-cover>
+    </amp-story-page>
 
     <!-- Page 2: Text and more text -->
-    <amp-story-page theme="light" align="top">
+    <amp-story-page id="chasing-stars" class="light top">
       <amp-story-grid-layer template="fill">
-        <amp-img src="./media/magic-jersey.jpg" layout="fill"></amp-img>
+        <amp-img src="./media/kobe-jersey.jpg" layout="fill"></amp-img>
       </amp-story-grid-layer>
       <amp-story-grid-layer template="vertical">
         <p>
@@ -81,7 +109,7 @@
     </amp-story-page>
 
     <!-- Page 3: Text and video card -->
-    <amp-story-page theme="dark" align="top">
+    <amp-story-page id="magic-at-the-point" class="dark top">
       <amp-story-grid-layer template="fill">
         <amp-img src="./media/on-the-court.jpg" layout="fill"></amp-img>
       </amp-story-grid-layer>
@@ -90,19 +118,14 @@
           Johnson began his Lakers career in 1979, winning five titles as a point guard for the
           team
         </p>
-        <amp-story-citation>
-          <span slot="title">NBA</span>
-          <span slot="subtitle">60 of Magic Johnson's best dimes</span>
-          <amp-img slot="avatar" layout="fill" src="./media/nba.jpg"></amp-img>
-          <amp-video slot="content" src="./media/magic.mp4" layout="responsive"
-              autoplay controls loop width="320" height="182">
-          </amp-video>
-        </amp-story-citation>
+        <amp-video src="./media/magic.mp4" layout="responsive"
+            autoplay controls loop width="320" height="182">
+        </amp-video>
       </amp-story-grid-layer>
     </amp-story-page>
 
     <!-- Page 4: Quote and carousel -->
-    <amp-story-page theme="light" align="top">
+    <amp-story-page id="magics-career" class="light top">
       <amp-story-grid-layer template="fill"></amp-story-grid-layer>
       <amp-story-grid-layer template="vertical">
         <blockquote>
@@ -110,27 +133,23 @@
           you like?' We always get together. You know me. I'll break it down for her as much as I
           can. I love the Lakers."
         </blockquote>
-        <amp-story-citation>
-          <span slot="title">ESPN</span>
-          <span slot="subtitle">Magic Johnson Lakers Career</span>
-          <amp-img slot="avatar" layout="fill" src="./media/espn.png"></amp-img>
-          <amp-carousel slot="content" layout="responsive" type="slides" autoplay delay="2000"
-              width="688" height="400">
-            <amp-img layout="responsive" src="./media/carousel_1.jpg" width="688" height="400">
-            </amp-img>
-            <amp-img layout="responsive" src="./media/carousel_2.jpg" width="688" height="400">
-            </amp-img>
-            <amp-img layout="responsive" src="./media/carousel_3.jpg" width="688" height="400">
-            </amp-img>
-            <amp-img layout="responsive" src="./media/carousel_4.jpg" width="688" height="400">
-            </amp-img>
-          </amp-carousel>
-        </amp-story-citation>
+
+        <amp-carousel layout="responsive" type="slides" autoplay delay="2000"
+            width="688" height="400">
+          <amp-img layout="responsive" src="./media/carousel_1.jpg" width="688" height="400">
+          </amp-img>
+          <amp-img layout="responsive" src="./media/carousel_2.jpg" width="688" height="400">
+          </amp-img>
+          <amp-img layout="responsive" src="./media/carousel_3.jpg" width="688" height="400">
+          </amp-img>
+          <amp-img layout="responsive" src="./media/carousel_4.jpg" width="688" height="400">
+          </amp-img>
+        </amp-carousel>
       </amp-story-grid-layer>
     </amp-story-page>
 
     <!-- Page 5: Headline, text, image -->
-    <amp-story-page theme="light" align="top">
+    <amp-story-page id="the-present" class="light top">
       <amp-story-grid-layer template="fill"></amp-story-grid-layer>
       <amp-story-grid-layer template="vertical">
         <h1>The Present</h1>
@@ -149,21 +168,23 @@
     </amp-story-page>
 
     <!-- Page 6: Headline and text -->
-    <amp-story-page theme="dark" align="bottom">
+    <amp-story-page id="the-future" class="dark">
       <amp-story-grid-layer template="fill">
         <amp-img src="./media/magic-mic.jpg" layout="fill"></amp-img>
       </amp-story-grid-layer>
-      <amp-story-grid-layer template="vertical">
-        <h1>The Future</h1>
-        <blockquote>
-          "What I'm looking to do here is to move it forward. I can't think about the past. I
-          inherited this. I knew what I was getting into."
-        </blockquote>
+      <amp-story-grid-layer template="thirds">
+        <div grid-area="lower-third">
+          <h1>The Future</h1>
+          <blockquote>
+            "What I'm looking to do here is to move it forward. I can't think about the past. I
+            inherited this. I knew what I was getting into."
+          </blockquote>
+        </div>
       </amp-story-grid-layer>
     </amp-story-page>
 
     <!-- Page 7: Tweet (full bleed) -->
-    <amp-story-page theme="light" align="top">
+    <amp-story-page id="high-expectations" class="light top">
       <amp-story-grid-layer template="fill"></amp-story-grid-layer>
       <amp-story-grid-layer template="vertical">
         <amp-twitter data-tweetid="834271110401134593" width="300" height="400" layout="fill">
@@ -172,43 +193,33 @@
     </amp-story-page>
 
     <!-- Page 8: Text and video card -->
-    <amp-story-page theme="light" align="top">
+    <amp-story-page id="risking-his-legacy" class="light top">
       <amp-story-grid-layer template="fill"></amp-story-grid-layer>
       <amp-story-grid-layer template="vertical">
         <p class="bold">
           By accepting this role, Johnson is no doubt risking his legacy. Myriad questions remain
           about Johnson's ability to lead an NBA franchise.
         </p>
-        <amp-story-citation>
-          <span slot="title">NBA</span>
-          <span slot="subtitle">Magic provides link to Jerry Buss</span>
-          <amp-img slot="avatar" layout="fill" src="./media/nba.jpg"></amp-img>
-          <amp-video slot="content" src="./media/interview.mp4" layout="responsive"
-              autoplay controls loop width="320" height="182">
-          </amp-video>
-        </amp-story-citation>
+        <amp-video src="./media/interview.mp4" layout="responsive"
+            loop width="320" height="182">
+        </amp-video>
       </amp-story-grid-layer>
     </amp-story-page>
 
     <!-- Page 9: Background video -->
-    <amp-story-page theme="dark" align="bottom">
+    <amp-story-page id="its-about-damn-time" class="dark bottom">
       <amp-story-grid-layer template="fill">
         <amp-video src="./media/abouttime.mp4" layout="fill" autoplay controls loop
             width="360" height="568">
         </amp-video>
       </amp-story-grid-layer>
-      <amp-story-grid-layer template="vertical">
-        <h1>"It's About Damn Time."</h1>
-        <amp-story-citation>
-          <span slot="title">NBA</span>
-          <span slot="subtitle">Stephen A. discussed Lakers in Magic's hands</span>
-          <amp-img slot="avatar" layout="fill" src="./media/nba.jpg"></amp-img>
-        </amp-story-citation>
+      <amp-story-grid-layer template="thirds">
+        <h1 grid-area="lower-third">"It's About Damn Time."</h1>
       </amp-story-grid-layer>
     </amp-story-page>
 
     <!-- Page 10: Text and tweet card -->
-    <amp-story-page theme="light" align="top">
+    <amp-story-page id="former-foes" class="light top">
       <amp-story-grid-layer template="fill"></amp-story-grid-layer>
       <amp-story-grid-layer template="vertical">
         <p>
