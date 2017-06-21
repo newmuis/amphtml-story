@@ -50,14 +50,14 @@ export function netletix(global, data) {
   const url = assertHttpsUrl(
       addParamsToUrl(
           NX_URL_FULL + encodeURIComponent(data.nxkey || DEFAULT_NX_KEY),
-          {
-            unit: data.nxunit || DEFAULT_NX_UNIT,
-            width: data.nxwidth || DEFAULT_NX_WIDTH,
-            height: data.nxheight || DEFAULT_NX_HEIGHT,
-            v: data.nxv || DEFAULT_NX_V,
-            site: data.nxsite || DEFAULT_NX_SITE,
-            ord: Math.round(Math.random() * 100000000),
-          }),
+          dict({
+            'unit': data.nxunit || DEFAULT_NX_UNIT,
+            'width': data.nxwidth || DEFAULT_NX_WIDTH,
+            'height': data.nxheight || DEFAULT_NX_HEIGHT,
+            'v': data.nxv || DEFAULT_NX_V,
+            'site': data.nxsite || DEFAULT_NX_SITE,
+            'ord': Math.round(Math.random() * 100000000),
+          })),
       data.ampSlotIndex);
 
   window.addEventListener('message', event => {
