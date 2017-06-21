@@ -28,10 +28,11 @@ import {AmpStoryGridLayer} from './amp-story-grid-layer';
 import {AmpStoryPage} from './amp-story-page';
 import {CSS} from '../../../build/amp-story-0.1.css';
 import {EventType} from './events';
+import {KeyCodes} from '../../../src/utils/key-codes';
 import {SystemLayer} from './system-layer';
 import {Layout} from '../../../src/layout';
 import {closest} from '../../../src/dom';
-import {dev} from '../../../src/log';
+import {dev, user} from '../../../src/log';
 import {
   exitFullScreen,
   isFullScreenSupported,
@@ -64,6 +65,9 @@ export class AmpStory extends AMP.BaseElement {
 
     /** @private {!SystemLayer} */
     this.systemLayer_ = new SystemLayer(this.win);
+
+    /** @private {!Array<!Element>} */
+    this.pageHistoryStack_ = [];
   }
 
   /** @override */
@@ -76,10 +80,20 @@ export class AmpStory extends AMP.BaseElement {
 
     this.element.addEventListener('click',
         this.maybePerformSystemNavigation_.bind(this), true);
-
     this.element.addEventListener(EventType.EXIT_FULLSCREEN, () => {
       this.exitFullScreen_(/* opt_explicitUserAction */ true);
     });
+
+    this.win.document.addEventListener('keydown', e => {
+      this.onKeyDown_(e);
+    }, true);
+
+    const firstPage = user().assertElement(
+        this.element.querySelector('amp-story-page'),
+        'Story must have at least one page.');
+
+    firstPage.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
+    this.scheduleResume(firstPage);
 
     // Mark all videos as autoplay
     const videos = this.element.querySelectorAll('amp-video');
@@ -114,17 +128,44 @@ export class AmpStory extends AMP.BaseElement {
 
 
   /**
+   * Gets the next page that the user should be advanced to, upon navigation.
+   * @return {?Element} The element representing the page that the user should
+   *     be advanced to.
+   * @private
+   */
+  getNextPage_() {
+    const activePage = this.getActivePage_();
+    const nextPageId = activePage.getAttribute('advance-to');
+
+    if (nextPageId) {
+      return user().assert(
+          this.element.querySelector(`amp-story-page#${nextPageId}`),
+          `Page "${activePage.id}" refers to page "${nextPageId}", but ` +
+          'no such page exists.');
+    }
+
+    if (activePage.nextElementSibling === this.systemLayer_.getRoot() ||
+        activePage.nextElementSibling === this.bookend_) {
+      return null;
+    }
+
+    return activePage.nextElementSibling;
+  }
+
+
+  /**
    * Advance to the next screen in the story, if there is one.
    * @private
    */
   next_() {
     const activePage = this.getActivePage_();
-    if (!activePage.nextElementSibling ||
-        activePage.nextElementSibling == this.bookend_) {
+    const nextPage = this.getNextPage_();
+    if (!nextPage) {
       return;
     }
 
-    this.switchTo_(dev().assertElement(activePage.nextElementSibling))
+    this.switchTo_(dev().assertElement(nextPage))
+        .then(() => this.pageHistoryStack_.push(activePage))
         .then(() => this.preloadNext_());
   }
 
@@ -134,12 +175,12 @@ export class AmpStory extends AMP.BaseElement {
    * @private
    */
   previous_() {
-    const activePage = this.getActivePage_();
-    if (!activePage.previousElementSibling) {
+    const previousPage = this.pageHistoryStack_.pop();
+    if (!previousPage) {
       return;
     }
 
-    this.switchTo_(dev().assertElement(activePage.previousElementSibling));
+    this.switchTo_(dev().assertElement(previousPage));
   }
 
 
@@ -171,6 +212,24 @@ export class AmpStory extends AMP.BaseElement {
       this.schedulePause(activePage);
       this.scheduleResume(page);
     });
+  }
+
+
+  /**
+   * Handles all key presses within the story.
+   * @param {!Event} e The keydown event.
+   * @private
+   */
+  onKeyDown_(e) {
+    switch(e.keyCode) {
+      // TODO(newmuis): This will need to be flipped for RTL.
+      case KeyCodes.LEFT_ARROW:
+        this.previous_();
+        break;
+      case KeyCodes.RIGHT_ARROW:
+        this.next_();
+        break;
+    }
   }
 
 
@@ -233,7 +292,7 @@ export class AmpStory extends AMP.BaseElement {
    * @private
    */
   preloadNext_() {
-    const next = this.getActivePage_().nextElementSibling;
+    const next = this.getNextPage_();
     if (!next) {
       return;
     }
