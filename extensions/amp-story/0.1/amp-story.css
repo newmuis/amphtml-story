@@ -112,7 +112,7 @@ amp-story-grid-layer {
   position: absolute !important;
   right: 0 !important;
   top: 0 !important;
-  padding-top: 68px; /* 44 + 24 */
+  padding: 68px 32px 32px; /* 44 + 24 */
 }
 
 amp-story-grid-layer * {
@@ -148,7 +148,6 @@ amp-story-grid-layer[template="vertical"] {
   grid-template-columns: 100% !important;
   justify-content: stretch;
   justify-items: start;
-  padding: 32px;
 }
 
 amp-story-grid-layer[template="vertical"] > * {
@@ -162,7 +161,6 @@ amp-story-grid-layer[template="horizontal"] {
   grid-gap: 16px;
   grid-template-rows: 100% !important;
   justify-content: start;
-  padding: 32px;
 }
 
 amp-story-grid-layer[template="thirds"] {
@@ -170,7 +168,6 @@ amp-story-grid-layer[template="thirds"] {
   grid-template-areas: "upper-third"
                        "middle-third"
                        "lower-third" !important;
-  padding: 32px;
 }
 
 /** Bookend */
