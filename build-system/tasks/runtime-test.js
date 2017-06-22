@@ -198,6 +198,7 @@ gulp.task('test', 'Runs tests', argv.nobuild ? [] : ['build'], function(done) {
     const testPaths = argv.a4a ? config.a4aTestPaths : config.basicTestPaths;
 
     var testFiles = [];
+
     for (var index in testPaths) {
       testFiles = testFiles.concat(glob.sync(testPaths[index]));
     }
@@ -312,13 +313,12 @@ gulp.task('test', 'Runs tests', argv.nobuild ? [] : ['build'], function(done) {
     'integration': '  Run only integration tests.',
     'compiled': '  Changes integration tests to use production JS ' +
         'binaries for execution',
-    'oldchrome': '  Runs test with an old chrome. Saucelabs only.',
-    'grep': '  Runs tests that match the pattern',
-    'files': '  Runs tests for specific files',
-    'randomize': '  Runs entire test suite in random order',
-    'seed': '  Seeds the test order randomization. Use with --randomize ' +
-        'or --a4a',
-    'glob': '  Explicitly expands test paths using glob before passing ' +
+    'oldchrome': 'Runs test with an old chrome. Saucelabs only.',
+    'grep': 'Runs tests that match the pattern',
+    'files': 'Runs tests for specific files',
+    'randomize': 'Runs entire test suite in random order',
+    'testlist': 'Runs tests specified in JSON by supplied file',
+    'glob': 'Explicitly expands test paths using glob before passing ' +
         'to Karma',
     'nohelp': '  Silence help messages that are printed prior to test run',
     'a4a': '  Runs all A4A tests',

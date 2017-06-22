@@ -96,23 +96,18 @@ export class AmpList extends AMP.BaseElement {
 
   /** @override */
   mutatedAttributesCallback(mutations) {
-    const src = mutations['src'];
-    const state = mutations['state'];
-
-    if (src !== undefined) {
-      const typeOfSrc = typeof src;
-      if (typeOfSrc === 'string') {
-        this.fetchList_();
-      } else if (typeOfSrc === 'object') {
-        const items = isArray(src) ? src : [src];
-        this.renderItems_(items);
-      } else {
-        this.user().error(TAG, 'Unexpected "src" type: ' + src);
-      }
-    } else if (state !== undefined) {
-      const items = isArray(state) ? state : [state];
-      this.renderItems_(items);
-      user().warn(TAG, '[state] is deprecated, please use [src] instead.');
+    const srcMutation = mutations['src'];
+    const stateMutation = mutations['state'];
+    if (srcMutation != undefined) {
+      this.populateList_();
+    } else if (stateMutation != undefined) {
+      const items = isArray(stateMutation) ? stateMutation : [stateMutation];
+      templatesFor(this.win).findAndRenderTemplateArray(
+          this.element, items).then(this.rendered_.bind(this));
+    }
+    if (srcMutation != undefined && stateMutation != undefined) {
+      user().warn('AMP-LIST', '[src] and [state] mutated simultaneously.' +
+          ' The [state] mutation will be dropped.');
     }
   }
 
