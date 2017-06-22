@@ -114,6 +114,11 @@ describes.realWin('amp-analytics', {
     });
   });
 
+  afterEach(() => {
+    windowApi.document.body.classList.remove('i-amphtml-element');
+    sandbox.restore();
+  });
+
   function getAnalyticsTag(config, attrs) {
     config = JSON.stringify(config);
     const el = doc.createElement('amp-analytics');
@@ -125,7 +130,7 @@ describes.realWin('amp-analytics', {
       el.setAttribute(k, attrs[k]);
     }
 
-    doc.body.appendChild(el);
+    windowApi.document.body.appendChild(el);
 
     el.connectedCallback();
     const analytics = new AmpAnalytics(el);
@@ -367,21 +372,6 @@ describes.realWin('amp-analytics', {
     });
   });
 
-  it('expand blacklist nested requests', () => {
-    const analytics = getAnalyticsTag({
-      'requests': {'foo':
-        'https://example.com/bar&${clientId}&baz', 'clientId': 'c1'},
-      'triggers': [{'on': 'visible', 'request': 'foo'}],
-    }, {
-      'sandbox': 'true',
-    });
-    return waitForSendRequest(analytics).then(() => {
-      expect(sendRequestSpy.calledOnce).to.be.true;
-      expect(sendRequestSpy.args[0][0])
-          .to.equal('https://example.com/bar&c1&baz');
-    });
-  });
-
   it('expands nested requests (3 levels)', function() {
     const analytics = getAnalyticsTag({
       'requests': {'foo':
@@ -446,55 +436,6 @@ describes.realWin('amp-analytics', {
     });
   });
 
-  it('should not fill blacklist variable for scoped analytics', () => {
-    const analytics = getAnalyticsTag({
-      'requests': {'foo': 'https://example.com/cid=${clientId(analytics-abc)}'},
-      'triggers': [{'on': 'visible', 'request': 'foo'}],
-    }, {
-      'sandbox': 'true',
-    });
-
-    return waitForSendRequest(analytics).then(() => {
-      expect(sendRequestSpy.calledOnce).to.be.true;
-      expect(sendRequestSpy.args[0][0]).to.equal(
-          'https://example.com/cid=CLIENT_ID(analytics-abc)');
-    });
-  });
-
-  it('should fill whitelist variable for scoped analytics', () => {
-    const analytics = getAnalyticsTag({
-      'requests': {'foo': 'https://example.com/random=${random}'},
-      'triggers': [{'on': 'visible', 'request': 'foo'}],
-    }, {
-      'sandbox': 'true',
-    });
-
-    return waitForSendRequest(analytics).then(() => {
-      expect(sendRequestSpy.calledOnce).to.be.true;
-      expect(sendRequestSpy.args[0][0]).to.match(/random=0.[0-9]/);
-      expect(sendRequestSpy.args[0][0]).to.not.equal(
-          'https://example.com/random=${random}');
-    });
-  });
-
-  it('should fill for multi whitelistd(not) variables', () => {
-    const analytics = getAnalyticsTag({
-      'requests': {'foo':
-          'https://example.com/cid=${clientId(analytics-abc)}random=RANDOM'},
-      'triggers': [{'on': 'visible', 'request': 'foo'}],
-    }, {
-      'sandbox': 'true',
-    });
-
-    return waitForSendRequest(analytics).then(() => {
-      expect(sendRequestSpy.calledOnce).to.be.true;
-      expect(sendRequestSpy.args[0][0]).to.match(/random=0.[0-9]/);
-      expect(sendRequestSpy.args[0][0]).to.not.equal(
-          'https://example.com/cid=${clientId}random=RANDOM');
-      expect(sendRequestSpy.args[0][0]).to.includes(
-          'https://example.com/cid=CLIENT_ID(analytics-abc)random=');
-    });
-  });
 
   it('merges requests correctly', function() {
     const analytics = getAnalyticsTag({
@@ -786,31 +727,6 @@ describes.realWin('amp-analytics', {
           'https://example.com/test1=x&' +
           'test2=http%3A%2F%2Flocalhost%3A9876%2Fcontext.html' +
           '&title=Test%20Title');
-    });
-  });
-
-  it('expands url-replacements vars for scoped analytics', () => {
-    const analytics = getAnalyticsTag({
-      'requests': {
-        'pageview': 'https://example.com/VIEWER&AMP_VERSION&' +
-        'test1=${var1}&test2=${var2}&test3=${var3}&url=AMPDOC_URL'},
-      'triggers': [{
-        'on': 'visible',
-        'request': 'pageview',
-        'vars': {
-          'var1': 'x',
-          'var2': 'AMPDOC_URL',
-          'var3': 'CLIENT_ID',
-        },
-      }]}, {
-        'sandbox': 'true',
-      });
-    return waitForSendRequest(analytics).then(() => {
-      expect(sendRequestSpy.calledOnce).to.be.true;
-      expect(sendRequestSpy.args[0][0]).to.equal(
-          'https://example.com/VIEWER&%24internalRuntimeVersion%24' +
-        '&test1=x&test2=about%3Asrcdoc&test3=CLIENT_ID' +
-        '&url=about%3Asrcdoc');
     });
   });
 
@@ -1515,11 +1431,11 @@ describes.realWin('amp-analytics', {
     beforeEach(() => {
       // Unfortunately need to fake sandbox analytics element's parent
       // to an AMP element
-      doc.body.classList.add('i-amphtml-element');
+      windowApi.document.body.classList.add('i-amphtml-element');
     });
 
     afterEach(() => {
-      doc.body.classList.remove('i-amphtml-element');
+      windowApi.document.body.classList.remove('i-amphtml-element');
     });
 
     it('should not fetch remote config', () => {
@@ -1704,7 +1620,7 @@ describes.realWin('amp-analytics', {
         'sandbox': 'true',
       }, true);
 
-      const urlReplacements = Services.urlReplacementsForDoc(analytics.element);
+      const urlReplacements = urlReplacementsForDoc(analytics.element);
       sandbox.stub(urlReplacements.getVariableSource(), 'get').returns(0);
       sandbox.stub(crypto, 'uniform')
           .withArgs('0').returns(Promise.resolve(0.005))

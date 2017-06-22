@@ -40,8 +40,9 @@ import {
   registerServiceBuilderForDoc,
 } from '../../../src/service';
 import {isEnumValue} from '../../../src/types';
-import {startsWith} from '../../../src/string';
-import {Services} from '../../../src/services';
+import {timerFor} from '../../../src/services';
+import {viewerForDoc} from '../../../src/services';
+import {viewportForDoc} from '../../../src/services';
 
 const SCROLL_PRECISION_PERCENT = 5;
 const VAR_H_SCROLL_BOUNDARY = 'horizontalScrollBoundary';
@@ -92,11 +93,6 @@ const EVENT_TRACKERS = {
     name: 'ini-load',
     allowedFor: ALLOWED_FOR_ALL,
     klass: IniLoadTracker,
-  },
-  'timer': {
-    name: 'timer',
-    allowedFor: ALLOWED_FOR_ALL,
-    klass: TimerEventTracker,
   },
   'visible': {
     name: 'visible',
@@ -270,6 +266,10 @@ export class InstrumentationService {
         relayoutAll: false,
         velocity: 0,  // Hack for typing.
       });
+    } else if (eventType === AnalyticsEventType.TIMER) {
+      if (this.isTimerSpecValid_(config['timerSpec'])) {
+        this.createTimerListener_(listener, config['timerSpec']);
+      }
     }
   }
 
@@ -283,58 +283,6 @@ export class InstrumentationService {
     // TODO(dvoytenko): Remove when Tracker migration is complete.
     return new AnalyticsEvent(
         this.ampdocRoot_.getRootElement(), type, opt_vars);
-  }
-
-  /**
-   * Creates listeners for visibility conditions or calls the callback if all
-   * the conditions are met.
-   * @param {function(!AnalyticsEvent)} callback The callback to call when the
-   *   event occurs.
-   * @param {!JsonObject} config Configuration for instrumentation.
-   * @param {AnalyticsEventType} eventType Event type for which the callback is triggered.
-   * @param {!Element} analyticsElement The element assoicated with the
-   *   config.
-   * @private
-   */
-  createVisibilityListener_(callback, config, eventType, analyticsElement) {
-    dev().assert(eventType == AnalyticsEventType.VISIBLE ||
-        eventType == AnalyticsEventType.HIDDEN,
-        'createVisibilityListener should be called with visible or hidden ' +
-        'eventType');
-    const shouldBeVisible = eventType == AnalyticsEventType.VISIBLE;
-    /** @const {!JsonObject} */
-    const spec = config['visibilitySpec'];
-    if (spec) {
-      if (!isVisibilitySpecValid(config)) {
-        return;
-      }
-
-      this.visibility_.listenOnce(spec, vars => {
-        const el = getElement(this.ampdoc, spec['selector'],
-            analyticsElement, spec['selectionMethod']);
-        if (el) {
-          const attr = getDataParamsFromAttributes(el, undefined,
-              VARIABLE_DATA_ATTRIBUTE_KEY);
-          for (const key in attr) {
-            vars[key] = attr[key];
-          }
-        }
-        callback(this.createEventDepr_(eventType, vars));
-      }, shouldBeVisible, analyticsElement);
-    } else {
-      if (this.viewer_.isVisible() == shouldBeVisible) {
-        callback(this.createEventDepr_(eventType));
-        config['called'] = true;
-      } else {
-        this.viewer_.onVisibilityChanged(() => {
-          if (!config['called'] &&
-              this.viewer_.isVisible() == shouldBeVisible) {
-            callback(this.createEventDepr_(eventType));
-            config['called'] = true;
-          }
-        });
-      }
-    }
   }
 
   /**
@@ -544,12 +492,7 @@ export class AnalyticsGroup {
    * @param {function(!AnalyticsEvent)} handler
    */
   addTrigger(config, handler) {
-    let eventType = dev().assertString(config['on']);
-    // TODO(dvoytenko, #8121): Cleanup visibility-v3 experiment.
-    if ((eventType == 'visible' || eventType == 'hidden')
-        && this.visibilityV3_) {
-      eventType += '-v3';
-    }
+    const eventType = dev().assertString(config['on']);
     let trackerProfile = EVENT_TRACKERS[eventType];
     if (!trackerProfile && !isEnumValue(AnalyticsEventType, eventType)) {
       trackerProfile = EVENT_TRACKERS['custom'];
