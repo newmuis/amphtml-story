@@ -51,7 +51,9 @@ function serve() {
       'NODE_ENV': 'development',
       'SERVE_PORT': port,
       'SERVE_HOST': host,
-      'SERVE_USEHTTPS': useHttps},
+      'SERVE_USEHTTPS': useHttps,
+      'SERVE_PROCESS_ID': process.pid
+    },
   })
   .once('exit', function () {
     util.log(util.colors.green('Shutting down server'));
