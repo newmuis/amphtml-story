@@ -112,7 +112,7 @@ amp-story-grid-layer {
   position: absolute !important;
   right: 0 !important;
   top: 0 !important;
-  padding-top: 68px; /* 44 + 24 */
+  padding: 68px 32px 32px; /* 44 + 24 */
 }
 
 amp-story-grid-layer * {
@@ -120,11 +120,11 @@ amp-story-grid-layer * {
   margin: 0 !important;
 }
 
-amp-story-grid-layer[preset="fill"] > :not(:first-child) {
+amp-story-grid-layer[template="fill"] > :not(:first-child) {
   display: none !important;
 }
 
-amp-story-grid-layer[preset="fill"] > :first-child {
+amp-story-grid-layer[template="fill"] > :first-child {
   bottom: 0 !important;
   display: block !important;
   height: auto !important;
@@ -135,42 +135,39 @@ amp-story-grid-layer[preset="fill"] > :first-child {
   width: auto !important;
 }
 
-amp-story-grid-layer[preset="fill"] > amp-anim img,
-amp-story-grid-layer[preset="fill"] > amp-img img,
-amp-story-grid-layer[preset="fill"] > amp-video video {
+amp-story-grid-layer[template="fill"] > amp-anim img,
+amp-story-grid-layer[template="fill"] > amp-img img,
+amp-story-grid-layer[template="fill"] > amp-video video {
   object-fit: cover !important;
 }
 
-amp-story-grid-layer[preset="vertical"] {
+amp-story-grid-layer[template="vertical"] {
   align-content: start;
   grid-auto-flow: row !important;
   grid-gap: 16px;
   grid-template-columns: 100% !important;
   justify-content: stretch;
   justify-items: start;
-  padding: 32px;
 }
 
-amp-story-grid-layer[preset="vertical"] > * {
+amp-story-grid-layer[template="vertical"] > * {
   width: 100%;
 }
 
-amp-story-grid-layer[preset="horizontal"] {
+amp-story-grid-layer[template="horizontal"] {
   align-content: stretch;
   align-items: start;
   grid-auto-flow: column !important;
   grid-gap: 16px;
   grid-template-rows: 100% !important;
   justify-content: start;
-  padding: 32px;
 }
 
-amp-story-grid-layer[preset="thirds"] {
+amp-story-grid-layer[template="thirds"] {
   grid-template-rows: repeat(3, auto) !important;
   grid-template-areas: "upper-third"
                        "middle-third"
                        "lower-third" !important;
-  padding: 32px;
 }
 
 /** Bookend */

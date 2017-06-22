@@ -4,6 +4,10 @@
   <meta charset="utf-8">
   <link rel="canonical" href="index.html">
   <link rel="manifest" href="./manifest.json">
+  <script async src="https://cdn.ampproject.org/v0.js"></script>
+  <script async custom-element="amp-twitter" src="https://cdn.ampproject.org/v0/amp-twitter-0.1.js"></script>
+  <script async custom-element="amp-video" src="https://cdn.ampproject.org/v0/amp-video-0.1.js"></script>
+  <script async src="//stamp-prototype.appspot.com/v0/amp-story-0.1.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}} @keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
 
@@ -118,10 +122,10 @@
 
     <!-- Cover -->
     <amp-story-page id="cover" active>
-      <amp-story-grid-layer preset="fill">
+      <amp-story-grid-layer template="fill">
         <amp-img src="media/curry.jpg" alt="Steph Curry celebrating" width="720" height="1280"></amp-img>
       </amp-story-grid-layer>
-      <amp-story-grid-layer preset="vertical" id="contentLayer">
+      <amp-story-grid-layer template="vertical" id="contentLayer">
         <amp-img id="logo" src="media/nba-finals.png" alt="The Finals" width="482" height="140" layout="responsive" style="grid-row-start: 1"></amp-img>
         <div class="score" style="grid-row-start: 2">
           <p class="caption">GS Leads series 2-0</p>
@@ -135,7 +139,7 @@
 
     <!-- At The Half -->
     <amp-story-page id="at-the-half">
-      <amp-story-grid-layer preset="fill">
+      <amp-story-grid-layer template="fill">
         <amp-img src="media/showdown.jpg" width="720" height="1280"></amp-img>
       </amp-story-grid-layer>
       <amp-story-grid-layer class="foreground">
@@ -149,15 +153,15 @@
 
     <!-- Curry Highlight -->
     <amp-story-page id="curry-highlight">
-      <amp-story-grid-layer preset="vertical" class="full-bleed-layer" id="curry-highlight-layer">
+      <amp-story-grid-layer template="vertical" class="full-bleed-layer" id="curry-highlight-layer">
         <amp-video layout="responsive" src="media/curry.mp4" width="632" height="720" muted autoplay loop></amp-video>
       </amp-story-grid-layer>
-      <amp-story-grid-layer preset="vertical" class="full-bleed-layer" id="curry-text-layer">
+      <amp-story-grid-layer template="vertical" class="full-bleed-layer" id="curry-text-layer">
         <div class="bottom">
           <p>Steph Curry shows off his handles against King James</p>
         </div>
       </amp-story-grid-layer>
-      <amp-story-grid-layer preset="thirds">
+      <amp-story-grid-layer template="thirds">
         <div class="score" style="grid-area: upper-third">
           <p class="caption">Q4 4:50</p>
           <span>GS 110</span>
@@ -169,10 +173,10 @@
 
     <!-- Tweet -->
     <amp-story-page id="paul-pierce-reacts">
-      <amp-story-grid-layer preset="vertical" class="full-bleed-layer">
+      <amp-story-grid-layer template="vertical" class="full-bleed-layer">
         <amp-img layout="responsive" src="media/durant.jpg" width="720" height="576"></amp-img>
       </amp-story-grid-layer>
-      <amp-story-grid-layer preset="vertical" id="kd-layer">
+      <amp-story-grid-layer template="vertical" id="kd-layer">
         <blockquote>&ldquo;It's Kevin Durant's World.&rdquo;</blockquote>
         <amp-twitter width="300" height="400"
             layout="responsive"
@@ -182,9 +186,5 @@
       </amp-story-grid-layer>
     </amp-story-page>
   </amp-story>
-
-  <script async src="https://cdn.ampproject.org/v0.js"></script>
-  <script async custom-element="amp-twitter" src="https://cdn.ampproject.org/v0/amp-twitter-0.1.js"></script>
-  <script async src="//stamp-prototype.appspot.com/v0/amp-story-0.1.js"></script>
 </body>
 </html>
