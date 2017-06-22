@@ -233,7 +233,7 @@ export function getPlacementsFromConfigObj(ampdoc, configObj) {
 /**
  * Validates that the placementObj represents a valid placement and if so
  * constructs and returns an instance of the Placement class for it.
- * @param {!../../../src/service/ampdoc-impl.AmpDoc} ampdoc
+ * @param {!Window} win
  * @param {!JsonObject} placementObj
  * @param {!Array<!Placement>} placements
  */

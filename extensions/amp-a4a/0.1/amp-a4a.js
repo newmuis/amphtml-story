@@ -107,8 +107,12 @@ const SHARED_IFRAME_PROPERTIES = dict({
   'marginheight': '0',
 });
 
-/** @typedef {{width: number, height: number}} */
-export let SizeInfoDef;
+/** @typedef {{
+ *    creative: ArrayBuffer,
+ *    signature: ?Uint8Array,
+ *    size: ?{width: number, height: number}
+ *  }} */
+export let AdResponseDef;
 
 /** @typedef {{
       minifiedCreative: string,
@@ -1512,12 +1516,9 @@ export class AmpA4A extends AMP.BaseElement {
    * @private
    */
   renderViaCachedContentIframe_(adUrl) {
-    this.protectedEmitLifecycleEvent_('renderCrossDomainStart', {
-      'isAmpCreative': this.isVerifiedAmpCreative_,
-      'releaseType': this.releaseType_,
-    });
+    this.protectedEmitLifecycleEvent_('renderCrossDomainStart');
     return this.iframeRenderHelper_(dict({
-      'src': Services.xhrFor(this.win).getCorsUrl(this.win, adUrl),
+      'src': xhrFor(this.win).getCorsUrl(this.win, adUrl),
       'name': JSON.stringify(
           getContextMetadata(this.win, this.element, this.sentinel)),
     }));
@@ -1572,7 +1573,7 @@ export class AmpA4A extends AMP.BaseElement {
         name = `${this.safeframeVersion_};${creative.length};${creative}` +
             `${contextMetadata}`;
       }
-      return this.iframeRenderHelper_(dict({'src': srcPath, 'name': name}));
+      return this.iframeRenderHelper_(dict({'src': srcPath, name}));
     });
   }
 

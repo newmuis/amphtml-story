@@ -55,7 +55,7 @@ export class AmpAutoAds extends AMP.BaseElement {
         return;
       }
 
-      const placements = getPlacementsFromConfigObj(ampdoc, configObj);
+      const placements = getPlacementsFromConfigObj(this.win, configObj);
       const attributes = /** @type {!JsonObject} */ (
           Object.assign(adNetwork.getAttributes(),
               getAttributesFromConfigObj(configObj)));
