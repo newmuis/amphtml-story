@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import {getData, listen, listenOncePromise} from '../../src/event-helper';
-import {Services} from '../../src/services';
+import {listenOncePromise} from '../../src/event-helper';
+import {timerFor} from '../../src/services';
 import {removeElement} from '../../src/dom';
 import {toggleExperiment} from '../../src/experiments';
 import {
@@ -349,8 +349,8 @@ export function runVideoPlayerIntegrationTests(
         if (opt_experiment) {
           toggleExperiment(fixtureGlobal.win, opt_experiment, false);
         }
-        fixtureGlobal.doc.body.removeChild(videoGlobal);
-        fixtureGlobal.iframe.remove();
+        removeElement(videoGlobal);
+        removeElement(fixtureGlobal.iframe);
       }
     } catch (e) {}
   }
