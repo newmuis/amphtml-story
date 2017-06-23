@@ -17,4 +17,7 @@ typings
 typings.json
 build-system/runner/TESTS-TestSuites.xml
 /test/manual/amp-ad.adtech.html
-test/coverage
+stamp-prototype/www
+!stamp-prototype/www/index.html
+!stamp-prototype/www/manifest.json
+!stamp-prototype/www/robots.txt
