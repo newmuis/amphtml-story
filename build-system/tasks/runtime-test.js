@@ -192,10 +192,22 @@ gulp.task('test', 'Runs tests', argv.nobuild ? [] : ['build'], function(done) {
     c.mochaReporter.output = argv.saucelabs ? 'minimal' : 'full';
   } else if (argv.integration) {
     c.files = config.integrationTestPaths;
-  } else if (argv.unit) {
-    c.files = config.unitTestPaths;
   } else if (argv.randomize || argv.glob || argv.a4a) {
-    const testPaths = argv.a4a ? config.a4aTestPaths : config.basicTestPaths;
+    /** Randomize the order of the test running */
+    var testPaths;
+    if (argv.a4a) {
+      testPaths = [
+        'extensions/amp-a4a/**/test/**/*.js',
+        'extensions/amp-ad-network-*/**/test/**/*.js',
+        'ads/google/a4a/test/*.js'
+      ];
+    } else {
+      testPaths = [
+        'test/**/*.js',
+        'ads/**/test/test-*.js',
+        'extensions/**/test/**/*.js',
+      ];
+    }
 
     var testFiles = [];
 
