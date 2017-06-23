@@ -287,6 +287,10 @@ export class AmpStory extends AMP.BaseElement {
    * @private
    */
   showBookend_() {
+    if (this.isBookendActive_) {
+      return;
+    }
+
     dev().assert(this.bookend_.isBuilt());
 
     this.exitFullScreen_();
