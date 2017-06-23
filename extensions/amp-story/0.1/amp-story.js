@@ -47,6 +47,19 @@ const NEXT_SCREEN_AREA_RATIO = 0.75;
 /** @private @const {string} */
 const ACTIVE_PAGE_ATTRIBUTE_NAME = 'active';
 
+
+/**
+ * @param {!Element} el
+ * @return {boolean}
+ */
+function hasTapAction(el) {
+  // There are better ways to determine this, but they're all bound to action
+  // service race conditions. This is good enough for our use case.
+  return el.hasAttribute('on') &&
+      el.getAttribute('on').match(/(^|;)\s*tap\s*:/);
+}
+
+
 export class AmpStory extends AMP.BaseElement {
   /** @param {!AmpElement} element */
   constructor(element) {
@@ -350,9 +363,9 @@ export class AmpStory extends AMP.BaseElement {
    */
   isNavigationalClick_(e) {
     return !closest(e.target, el => {
-      // TODO(newmuis): Check to see if currentElement listens for `tap` event.
       return el === this.systemLayer_.getRoot() ||
-          el === this.bookend_.getRoot();
+          el === this.bookend_.getRoot() ||
+          hasTapAction(el);
     }, /* opt_stopAt */ this.element);
   }
 
