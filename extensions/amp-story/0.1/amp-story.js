@@ -269,6 +269,11 @@ export class AmpStory extends AMP.BaseElement {
       return;
     }
 
+    if (nextPage === this.bookend_) {
+      this.showBookend_();
+      return;
+    }
+
     this.switchTo_(dev().assertElement(nextPage))
         .then(() => this.pageHistoryStack_.push(activePage))
         .then(() => this.preloadNext_());
@@ -435,6 +440,10 @@ export class AmpStory extends AMP.BaseElement {
 
     this.exitFullScreen_();
     this.systemLayer_.toggleCloseBookendButton(true);
+<<<<<<< HEAD
+=======
+    this.element.classList.add('i-amp-story-bookend-active');
+>>>>>>> 36a12172... Allow to close bookend (#47)
     this.isBookendActive_ = true;
 
     this.getVsync().mutate(() => {
@@ -450,6 +459,10 @@ export class AmpStory extends AMP.BaseElement {
    */
   hideBookend_() {
     this.systemLayer_.toggleCloseBookendButton(false);
+<<<<<<< HEAD
+=======
+    this.element.classList.remove('i-amp-story-bookend-active');
+>>>>>>> 36a12172... Allow to close bookend (#47)
     this.isBookendActive_ = false;
 
     this.getVsync().mutate(() => {
