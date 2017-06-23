@@ -21,8 +21,9 @@ import {Services} from '../../../src/services';
 import {isExperimentOn} from '../../../src/experiments';
 import {Layout} from '../../../src/layout';
 import {user, dev} from '../../../src/log';
+import {extensionsFor} from '../../../src/services';
 import {toggle, setStyle} from '../../../src/style';
-import {getData, listen} from '../../../src/event-helper';
+import {listen} from '../../../src/event-helper';
 import {LightboxManager} from './service/lightbox-manager-impl';
 import {Animation} from '../../../src/animation';
 import {numeric} from '../../../src/transition';
@@ -215,9 +216,10 @@ export class AmpLightboxViewer extends AMP.BaseElement {
 
     this.descriptionTextArea_ = this.win.document.createElement('div');
     this.descriptionTextArea_.classList.add('i-amphtml-lbv-desc-text');
-    this.descriptionTextArea_.classList.add('non-expanded');
     this.descriptionBox_.appendChild(this.descriptionTextArea_);
 
+    const toggleDescription = this.toggleDescriptionBox_.bind(this);
+    listen(this.container_, 'click', toggleDescription);
     this.descriptionBox_.addEventListener('click', event => {
       this.toggleDescriptionOverflow_();
       event.stopPropagation();
@@ -253,6 +255,32 @@ export class AmpLightboxViewer extends AMP.BaseElement {
       this.descriptionBox_.classList.toggle('hide', opt_display);
     } else {
       this.descriptionBox_.classList.add('hide');
+    }
+  }
+
+  /**
+   * Toggle the overflow state of description box
+   * @private
+   */
+  toggleDescriptionOverflow_() {
+    if (this.descriptionBox_.classList.contains('standard')) {
+      this.descriptionBox_.classList.remove('standard');
+      this.descriptionBox_.classList.add('overflow');
+      this.vsync_.run({
+        measure: state => {
+          state.descBoxHeight = this.descriptionTextArea_./*OK*/scrollHeight;
+          state.descTextAreaHeight = this.descriptionBox_./*OK*/clientHeight;
+        },
+        mutate: state => {
+          if (state.descBoxHeight > state.descTextAreaHeight) {
+            setStyle(this.descriptionTextArea_, 'bottom', 'auto');
+          }
+        },
+      }, {});
+    } else if (this.descriptionBox_.classList.contains('overflow')) {
+      this.descriptionBox_.classList.remove('overflow');
+      this.descriptionBox_.classList.add('standard');
+      setStyle(this.descriptionTextArea_, 'bottom', '');
     }
   }
 

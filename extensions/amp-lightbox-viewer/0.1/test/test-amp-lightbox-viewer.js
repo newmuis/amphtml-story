@@ -82,6 +82,10 @@ describes.realWin('amp-lightbox-viewer', {
         const descriptionBox = viewer.querySelector('.i-amphtml-lbv-desc-box');
         expect(descriptionBox).to.exist;
 
+        const descriptionTextArea = viewer.querySelector(
+            '.i-amphtml-lbv-desc-text');
+        expect(descriptionTextArea).to.exist;
+
         const carousel = viewer.querySelector('amp-carousel');
         expect(carousel).to.exist;
       });
