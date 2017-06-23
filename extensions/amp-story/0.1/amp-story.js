@@ -351,7 +351,8 @@ export class AmpStory extends AMP.BaseElement {
   isNavigationalClick_(e) {
     return !closest(e.target, el => {
       // TODO(newmuis): Check to see if currentElement listens for `tap` event.
-      return el === this.systemLayer_.getRoot() || el === this.bookend_;
+      return el === this.systemLayer_.getRoot() ||
+          el === this.bookend_.getRoot();
     }, /* opt_stopAt */ this.element);
   }
 
