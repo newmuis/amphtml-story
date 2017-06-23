@@ -10,11 +10,7 @@
     "start": "node app.js || nodejs app.js"
   },
   "dependencies": {
-    "cheerio": "0.22.0",
     "express": "4.14.1",
-    "express-force-https": "1.0.0",
-    "json-stringify-safe": "5.0.1",
-    "node-fetch": "1.6.3",
-    "promise": "7.1.1"
+    "express-force-https": "1.0.0"
   }
 }
