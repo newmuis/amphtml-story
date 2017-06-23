@@ -32,13 +32,26 @@ const TEMPLATE =
           <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>
         </svg>
       </div>
-      <div div role="button" class="i-amp-story-bookend-close" hidden>
+      <div div role="button" class="i-amp-story-bookend-close i-amp-story-button" hidden>
         <svg fill="#FFFFFF" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
           <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
           <path d="M0 0h24v24H0z" fill="none"/>
         </svg>
       </div role="button">
     </nav>`;
+
+
+/**
+ * @param {!Element} el
+ * @param {boolean} isHidden
+ */
+function toggleHiddenAttribute(el, isHidden) {
+  if (isHidden) {
+    el.setAttribute('hidden', 'hidden');
+  } else {
+    el.removeAttribute('hidden');
+  }
+}
 
 
 /**
@@ -65,6 +78,9 @@ export class SystemLayer {
     this.exitFullScreenBtn_ = null;
 
     /** @private {?Element} */
+    this.closeBookendBtn_ = null;
+
+    /** @private {?Element} */
     this.progressEl_ = null;
   }
 
@@ -85,6 +101,9 @@ export class SystemLayer {
     this.exitFullScreenBtn_ =
         this.root_.querySelector('.i-amp-story-exit-fullscreen');
 
+    this.closeBookendBtn_ =
+        this.root_.querySelector('.i-amp-story-bookend-close');
+
     this.progressEl_ = this.root_.querySelector('.i-amp-story-progress-value');
 
     this.addEventHandlers_();
@@ -99,6 +118,9 @@ export class SystemLayer {
     // TODO(alanorozco): Listen to tap event properly (i.e. fastclick)
     this.exitFullScreenBtn_.addEventListener(
         'click', e => this.onExitFullScreenClick_(e));
+
+    this.closeBookendBtn_.addEventListener(
+        'click', e => this.onCloseBookendClick_(e));
   }
 
   /**
@@ -131,11 +153,20 @@ export class SystemLayer {
    */
   toggleExitFullScreenBtn_(isEnabled) {
     this.getVsync_().mutate(() => {
-      if (isEnabled) {
-        this.exitFullScreenBtn_.removeAttribute('hidden');
-      } else {
-        this.exitFullScreenBtn_.setAttribute('hidden', 'hidden');
-      }
+      toggleHiddenAttribute(
+          dev().assertElement(this.exitFullScreenBtn_),
+          /* opt_isHidden */ !isEnabled);
+    });
+  }
+
+  /**
+   * @param {boolean} isEnabled
+   */
+  toggleCloseBookendButton(isEnabled) {
+    this.getVsync_().mutate(() => {
+      toggleHiddenAttribute(
+          dev().assertElement(this.closeBookendBtn_),
+          /* opt_isHidden */ !isEnabled);
     });
   }
 
@@ -144,9 +175,28 @@ export class SystemLayer {
    * @private
    */
   onExitFullScreenClick_(e) {
-    e.stopPropagation();
+    this.dispatch_(EventType.EXIT_FULLSCREEN, e);
+  }
 
-    dispatch(this.getRoot(), EventType.EXIT_FULLSCREEN, /* opt_bubbles */ true);
+  /**
+   * @param {!Event} e
+   * @private
+   */
+  onCloseBookendClick_(e) {
+    this.dispatch_(EventType.CLOSE_BOOKEND, e);
+  }
+
+  /**
+   * @param {string} eventType
+   * @param {!Event=} opt_event
+   * @private
+   */
+  dispatch_(eventType, opt_event) {
+    if (opt_event) {
+      dev().assert(opt_event).stopPropagation();
+    }
+
+    dispatch(this.getRoot(), eventType, /* opt_bubbles */ true);
   }
 
   /**

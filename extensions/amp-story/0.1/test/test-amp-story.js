@@ -144,6 +144,17 @@ describes.realWin('amp-story', {
         .to.have.been.calledWith(/* opt_explicitUserAction */ true);
   });
 
+  it('should hide bookend when CLOSE_BOOKEND is triggered', () => {
+    const hideBookendStub = sandbox.stub(
+        element.implementation_, 'hideBookend_', NOOP);
+
+    element.build();
+
+    element.dispatchEvent(new Event(EventType.CLOSE_BOOKEND));
+
+    expect(hideBookendStub).to.have.been.calledOnce;
+  });
+
   it('should return a valid page count', () => {
     const count = 5;
 
