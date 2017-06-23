@@ -14,11 +14,11 @@
 </head>
 <body>
 
-  <button on="tap:AMP.setState({src:'/list/fruit-data/get'})">Show Fruit</button>
-  <button on="tap:AMP.setState({src:'/list/vegetable-data/get'})">Show Vegetables</button>
+  <button on="tap:AMP.setState({listSrc:'/list/fruit-data/get'})">Show Fruit</button>
+  <button on="tap:AMP.setState({listSrc:'/list/vegetable-data/get'})">Show Vegetables</button>
 
   <button on="tap:AMP.setState({
-    src: [{
+    localState: [{
       name: 'pizza',
       quantity: 1976,
       unitPrice: 3.50

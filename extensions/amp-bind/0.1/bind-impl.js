@@ -99,11 +99,6 @@ export class Bind {
    * @param {!Window=} opt_win
    */
   constructor(ampdoc, opt_win) {
-    // Allow integration test to access this class in testing mode.
-    /** @const @private {boolean} */
-    this.enabled_ = isBindEnabledFor(ampdoc.win);
-    user().assert(this.enabled_, `Experiment "${TAG}" is disabled.`);
-
     /** @const {!../../../src/service/ampdoc-impl.AmpDoc} */
     this.ampdoc = ampdoc;
 
@@ -241,11 +236,6 @@ export class Bind {
    * @return {!Promise}
    */
   setStateWithExpression(expression, scope) {
-    this.setStatePromise_ = this.evaluateExpression_(expression, scope)
-        .then(result => this.setState(result));
-    return this.setStatePromise_;
-  }
-
     this.setStatePromise_ = this.initializePromise_.then(() => {
       // Allow expression to reference current scope in addition to event scope.
       Object.assign(scope, this.scope_);
