@@ -291,8 +291,12 @@ export class AmpStory extends AMP.BaseElement {
 
     this.exitFullScreen_();
     this.systemLayer_.toggleCloseBookendButton(true);
-    this.element.classList.add('i-amp-story-bookend-active');
     this.isBookendActive_ = true;
+
+    this.getVsync().mutate(() => {
+      this.element.classList.add('i-amp-story-bookend-active');
+      this.bookend_.getRoot()./*OK*/scrollTop = 0;
+    });
   }
 
 
@@ -302,8 +306,11 @@ export class AmpStory extends AMP.BaseElement {
    */
   hideBookend_() {
     this.systemLayer_.toggleCloseBookendButton(false);
-    this.element.classList.remove('i-amp-story-bookend-active');
     this.isBookendActive_ = false;
+
+    this.getVsync().mutate(() => {
+      this.element.classList.remove('i-amp-story-bookend-active');
+    });
   }
 
 
