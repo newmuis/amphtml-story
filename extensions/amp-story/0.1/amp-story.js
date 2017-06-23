@@ -66,6 +66,9 @@ export class AmpStory extends AMP.BaseElement {
     /** @private {!SystemLayer} */
     this.systemLayer_ = new SystemLayer(this.win);
 
+    /** @private {boolean} */
+    this.isBookendActive_ = false;
+
     /** @private {!Array<!Element>} */
     this.pageHistoryStack_ = [];
   }
@@ -165,6 +168,11 @@ export class AmpStory extends AMP.BaseElement {
     const activePage = this.getActivePage_();
     const nextPage = this.getNextPage_();
     if (!nextPage) {
+      return;
+    }
+    
+    if (nextPage === this.bookend_) {
+      this.showBookend_();
       return;
     }
 

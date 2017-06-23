@@ -112,7 +112,7 @@ amp-story-grid-layer {
   position: absolute !important;
   right: 0 !important;
   top: 0 !important;
-  padding-top: 68px; /* 44 + 24 */
+  padding: 68px 32px 32px; /* 44 + 24 */
 }
 
 amp-story-grid-layer * {
@@ -144,6 +144,7 @@ amp-story-grid-layer[template="fill"] > amp-video video {
 amp-story-grid-layer[template="vertical"] {
   align-content: start;
   grid-auto-flow: row !important;
+  grid-gap: 16px;
   grid-template-columns: 100% !important;
   justify-content: stretch;
   justify-items: start;
@@ -157,6 +158,7 @@ amp-story-grid-layer[template="horizontal"] {
   align-content: stretch;
   align-items: start;
   grid-auto-flow: column !important;
+  grid-gap: 16px;
   grid-template-rows: 100% !important;
   justify-content: start;
 }
