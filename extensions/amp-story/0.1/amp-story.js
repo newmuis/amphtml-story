@@ -66,6 +66,9 @@ export class AmpStory extends AMP.BaseElement {
     /** @private {!SystemLayer} */
     this.systemLayer_ = new SystemLayer(this.win);
 
+    /** @private {boolean} */
+    this.isBookendActive_ = false;
+
     /** @private {!Array<!Element>} */
     this.pageHistoryStack_ = [];
   }
@@ -133,8 +136,7 @@ export class AmpStory extends AMP.BaseElement {
           'no such page exists.');
     }
 
-    if (activePage.nextElementSibling === this.systemLayer_.getRoot() ||
-        activePage.nextElementSibling === this.bookend_) {
+    if (activePage.nextElementSibling === this.systemLayer_.getRoot()) {
       return null;
     }
 
@@ -150,6 +152,11 @@ export class AmpStory extends AMP.BaseElement {
     const activePage = this.getActivePage_();
     const nextPage = this.getNextPage_();
     if (!nextPage) {
+      return;
+    }
+    
+    if (nextPage === this.bookend_) {
+      this.showBookend_();
       return;
     }
 
@@ -180,14 +187,15 @@ export class AmpStory extends AMP.BaseElement {
    */
   // TODO: Update history state
   switchTo_(page) {
+    if (this.isBookendActive_) {
+      // Disallow switching pages while the bookend is active.
+      return;
+    }
+
     const activePage = this.getActivePage_();
 
-    if (isFullScreenSupported(this.element)) {
-      if (page === this.bookend_) {
-        this.exitFullScreen_();
-      } else if (this.isAutoFullScreenEnabled_) {
-        this.enterFullScreen_();
-      }
+    if (isFullScreenSupported(this.element) && this.isAutoFullScreenEnabled_) {
+      this.enterFullScreen_();
     }
 
     // first page is not counted as part of the progress
@@ -248,6 +256,27 @@ export class AmpStory extends AMP.BaseElement {
 
     this.systemLayer_.setInFullScreen(false);
     exitFullScreen(this.element);
+  }
+
+
+  /**
+   * Shows the bookend overlay.
+   * @private
+   */
+  showBookend_() {
+    this.exitFullScreen_();
+    this.element.classList.add('i-amp-story-bookend-active');
+    this.isBookendActive_ = true;
+  }
+
+
+  /**
+   * Hides the bookend overlay.
+   * @private
+   */
+  hideBookend_() {
+    this.element.classList.remove('i-amp-story-bookend-active');
+    this.isBookendActive_ = false;
   }
 
 
