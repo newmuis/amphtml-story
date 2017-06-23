@@ -231,7 +231,7 @@ Technically the `<amp-ad>` tag loads an iframe to a generic bootstrap URL that k
 
 Access to a publishers 1st party cookies may be achieved through a custom ad bootstrap file. See ["Running ads from a custom domain"](../extensions/amp-ad/amp-ad.md#running-ads-from-a-custom-domain) in the ad documentation for details.
 
-If the publisher would like to add custom JavaScript in the `remote.html` file that wants to read or write to the publisher owned cookies, then the publisher needs to ensure that the `remote.html` file is hosted on a sub-domain of the publisher URL. e.g. if the publisher hosts a webpage on `https://nytimes.com`, then the remote file should be hosted on something similar to `https://sub-domain.nytimes.com` for the custom JavaScript to have the ability to read or write cookies for nytimes.com.
+If the publisher would like to add custom JavaScript in the `remote.html` file that wants to read or write to the publisher owned cookies, then the publisher needs to ensure that the `remote.html` file is hosted on a sub-domain of the publisher URL. e.g. if the publisher hosts a webpage on `https://nytimes.com`, then the remote file should be hosted on something similar to `https://sub-domain.nytimes.com` for the custom JavaScript to have the abiity to read or write cookies for nytimes.com.
 
 ## Developer guidelines for a pull request
 
@@ -277,7 +277,5 @@ To speed up the review process, please run `gulp lint` and `gulp check-types`, t
 
 - Please consider implementing the `render-start` and `no-content-available` APIs (see [Available APIs](#available-apis)), which helps AMP to provide user a much better ad loading experience.
 - [CLA](../CONTRIBUTING.md#contributing-code): for anyone who has trouble to pass the automatic CLA check in a pull request, try to follow the guidelines provided by the CLA Bot. Common mistakes are 1) used a different email address in git commit; 2) didn't provide the exact company name in the PR thread.
-
-## Developer announcements for ads related API changes 
 
 For any major Ads API related changes that introduce new functionality or cause backwards compatible changes, we will notify the [amp-ads-announce@googlgroups.com](https://groups.google.com/d/forum/amp-ads-announce) at least 2 weeks in advance to make sure you have enough time to absorb those changes. 
