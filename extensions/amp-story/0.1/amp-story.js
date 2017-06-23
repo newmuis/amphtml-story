@@ -26,6 +26,7 @@
  */
 import {AmpStoryGridLayer} from './amp-story-grid-layer';
 import {AmpStoryPage} from './amp-story-page';
+import {Bookend} from './bookend';
 import {CSS} from '../../../build/amp-story-0.1.css';
 import {EventType} from './events';
 import {KeyCodes} from '../../../src/utils/key-codes';
@@ -60,8 +61,8 @@ export class AmpStory extends AMP.BaseElement {
     /** @const @private {!../../../src/service/vsync-impl.Vsync} */
     this.vsync_ = this.getVsync();
 
-    /** @private {?Element} */
-    this.bookend_ = null;
+    /** @private {!Bookend} */
+    this.bookend_ = new Bookend(this.win);
 
     /** @private {!SystemLayer} */
     this.systemLayer_ = new SystemLayer(this.win);
@@ -75,10 +76,8 @@ export class AmpStory extends AMP.BaseElement {
 
   /** @override */
   buildCallback() {
-    this.bookend_ = this.win.document.createElement('section');
-    this.bookend_.classList.add('i-amp-story-bookend');
-    this.bookend_.textContent = 'bookend goes here';
-    this.element.appendChild(this.bookend_);
+    // TODO(alanorozco): Lazy-instantiate bookend
+    this.element.appendChild(this.bookend_.build());
     this.element.appendChild(this.systemLayer_.build());
 
     this.element.addEventListener('click',
@@ -170,8 +169,8 @@ export class AmpStory extends AMP.BaseElement {
     if (!nextPage) {
       return;
     }
-    
-    if (nextPage === this.bookend_) {
+
+    if (nextPage === this.bookend_.getRoot()) {
       this.showBookend_();
       return;
     }
@@ -352,7 +351,8 @@ export class AmpStory extends AMP.BaseElement {
   isNavigationalClick_(e) {
     return !closest(e.target, el => {
       // TODO(newmuis): Check to see if currentElement listens for `tap` event.
-      return el === this.systemLayer_.getRoot() || el === this.bookend_;
+      return el === this.systemLayer_.getRoot() ||
+          el === this.bookend_.getRoot();
     }, /* opt_stopAt */ this.element);
   }
 

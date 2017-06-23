@@ -180,8 +180,101 @@ amp-story-grid-layer[template="thirds"] {
   position: absolute;
   right: 0 !important;
   top: 0 !important;
+  padding: 44px 32px 32px;
+  overflow: auto;
 }
 
 .i-amp-story-bookend-active .i-amp-story-bookend {
   display: block !important;
+}
+
+.i-amp-story-bookend-heading {
+  text-transform: uppercase;
+  font-size: 10px;
+  padding: 0 0 8px;
+  margin: 16px 0 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.54);
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.83px;
+  line-height: 1;
+}
+
+.i-amp-story-bookend-article-meta {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 300;
+  font-size: 10px;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.54);
+}
+
+.i-amp-story-bookend-article-set > article {
+  margin: 24px 0;
+  overflow: hidden;
+}
+
+.i-amp-story-bookend-article-set:last-child > article:last-child {
+  margin-bottom: 0; /* bottom of bookend has padding > article margin */
+}
+
+.i-amp-story-bookend-article-heading {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 300;
+  font-size: 16px;
+  color: #ffff;
+  line-height: 1.4;
+  margin: 0 0 8px;
+}
+
+.i-amp-story-bookend-article-image {
+  width: 116px;
+  height: 116px;
+  float: right;
+  margin-left: 16px;
+}
+
+.i-amp-story-bookend-article-set:first-child {
+  border-top: none;
+}
+
+.i-amp-story-bookend-article-set {
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.i-amp-story-bookend-share-icon > svg {
+  fill: #fff;
+}
+
+.i-amp-story-bookend-share {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.i-amp-story-bookend-share-icon {
+  box-sizing: border-box;
+
+  /* setting to 44px with padding and negative margin to meet touch target
+  size criteria in material design */
+  padding: 6px;
+  margin: -6px;
+  width: 44px;
+  height: 44px;
+}
+
+.i-amp-story-bookend-share > li {
+  margin: 16px 0;
+  display: flex;
+  flex-basis: 33.333%;
+}
+
+.i-amp-story-bookend-share > li:nth-child(3n + 2) {
+  justify-content: center;
+}
+
+.i-amp-story-bookend-share > li:nth-child(3n + 3) {
+  justify-content: flex-end;
 }
