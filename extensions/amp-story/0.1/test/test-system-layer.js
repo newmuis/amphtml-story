@@ -36,6 +36,19 @@ describes.fakeWin('amp-story system layer', {}, env => {
         .and(sandbox.match.has('bubbles', bubbles));
   }
 
+  function expectEventTransform(eventHandler, expectedEventType) {
+    const dispatchEvent = sandbox.spy();
+    const stopPropagation = sandbox.spy();
+
+    sandbox.stub(systemLayer, 'getRoot').returns({dispatchEvent});
+
+    eventHandler({stopPropagation});
+
+    expect(stopPropagation).to.be.calledOnce;
+    expect(dispatchEvent).to.have.been.calledWith(
+        matchEvent(expectedEventType, /* bubbles */ true));
+  }
+
   beforeEach(() => {
     win = env.win;
 
@@ -66,29 +79,37 @@ describes.fakeWin('amp-story system layer', {}, env => {
     const onExitFullScreenClick =
         sandbox.stub(systemLayer, 'onExitFullScreenClick_');
 
+    const onCloseBookendClick =
+        sandbox.stub(systemLayer, 'onCloseBookendClick_');
+
     const exitFullScreenBtnMock = {
       addEventListener: sandbox.spy(),
     };
 
+    const closeBookendBtnMock = {
+      addEventListener: sandbox.spy(),
+    };
+
     sandbox.stub(systemLayer, 'exitFullScreenBtn_', exitFullScreenBtnMock);
+    sandbox.stub(systemLayer, 'closeBookendBtn_', closeBookendBtnMock);
 
     systemLayer.addEventHandlers_();
 
     expect(exitFullScreenBtnMock.addEventListener).to.have.been.calledWith(
         'click', matchEventHandlerThatExecutes(onExitFullScreenClick));
+
+    expect(closeBookendBtnMock.addEventListener).to.have.been.calledWith(
+        'click', matchEventHandlerThatExecutes(onCloseBookendClick));
   });
 
   it('should dispatch EXIT_FULLSCREEN when button is clicked', () => {
-    const dispatchEvent = sandbox.spy();
-    const stopPropagation = sandbox.spy();
+    expectEventTransform(
+        e => systemLayer.onExitFullScreenClick_(e), EventType.EXIT_FULLSCREEN);
+  });
 
-    sandbox.stub(systemLayer, 'getRoot').returns({dispatchEvent});
-
-    systemLayer.onExitFullScreenClick_({stopPropagation});
-
-    expect(stopPropagation).to.be.calledOnce;
-    expect(dispatchEvent).to.have.been.calledWith(
-        matchEvent(EventType.EXIT_FULLSCREEN, /* bubbles */ true));
+  it('should dispatch CLOSE_BOOKEND when button is clicked', () => {
+    expectEventTransform(
+        e => systemLayer.onCloseBookendClick_(e), EventType.CLOSE_BOOKEND);
   });
 
   it('should hide exit fullscreen button when not in fullscreen', () => {

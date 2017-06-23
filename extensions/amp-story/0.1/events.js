@@ -19,6 +19,9 @@
 export const EventType = {
   // Triggered when the user clicks the exit full screen button
   EXIT_FULLSCREEN: 'ampstory:exitfullscreen',
+
+  // Triggered when the user clicks the close bookend button
+  CLOSE_BOOKEND: 'ampstory:closebookend',
 };
 
 

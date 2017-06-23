@@ -80,8 +80,13 @@ export class AmpStory extends AMP.BaseElement {
 
     this.element.addEventListener('click',
         this.maybePerformSystemNavigation_.bind(this), true);
+
     this.element.addEventListener(EventType.EXIT_FULLSCREEN, () => {
       this.exitFullScreen_(/* opt_explicitUserAction */ true);
+    });
+
+    this.element.addEventListener(EventType.CLOSE_BOOKEND, () => {
+      this.hideBookend_();
     });
 
     this.win.document.addEventListener('keydown', e => {
@@ -144,8 +149,7 @@ export class AmpStory extends AMP.BaseElement {
           'no such page exists.');
     }
 
-    if (activePage.nextElementSibling === this.systemLayer_.getRoot() ||
-        activePage.nextElementSibling === this.bookend_) {
+    if (activePage.nextElementSibling === this.systemLayer_.getRoot()) {
       return null;
     }
 
@@ -161,6 +165,11 @@ export class AmpStory extends AMP.BaseElement {
     const activePage = this.getActivePage_();
     const nextPage = this.getNextPage_();
     if (!nextPage) {
+      return;
+    }
+
+    if (nextPage === this.bookend_) {
+      this.showBookend_();
       return;
     }
 
@@ -191,14 +200,15 @@ export class AmpStory extends AMP.BaseElement {
    */
   // TODO: Update history state
   switchTo_(page) {
+    if (this.isBookendActive_) {
+      // Disallow switching pages while the bookend is active.
+      return;
+    }
+
     const activePage = this.getActivePage_();
 
-    if (isFullScreenSupported(this.element)) {
-      if (page === this.bookend_) {
-        this.exitFullScreen_();
-      } else if (this.isAutoFullScreenEnabled_) {
-        this.enterFullScreen_();
-      }
+    if (isFullScreenSupported(this.element) && this.isAutoFullScreenEnabled_) {
+      this.enterFullScreen_();
     }
 
     // first page is not counted as part of the progress
@@ -259,6 +269,29 @@ export class AmpStory extends AMP.BaseElement {
 
     this.systemLayer_.setInFullScreen(false);
     exitFullScreen(this.element);
+  }
+
+
+  /**
+   * Shows the bookend overlay.
+   * @private
+   */
+  showBookend_() {
+    this.exitFullScreen_();
+    this.systemLayer_.toggleCloseBookendButton(true);
+    this.element.classList.add('i-amp-story-bookend-active');
+    this.isBookendActive_ = true;
+  }
+
+
+  /**
+   * Hides the bookend overlay.
+   * @private
+   */
+  hideBookend_() {
+    this.systemLayer_.toggleCloseBookendButton(false);
+    this.element.classList.remove('i-amp-story-bookend-active');
+    this.isBookendActive_ = false;
   }
 
 
