@@ -147,8 +147,7 @@ export class AmpStory extends AMP.BaseElement {
           'no such page exists.');
     }
 
-    if (activePage.nextElementSibling === this.systemLayer_.getRoot() ||
-        activePage.nextElementSibling === this.bookend_) {
+    if (activePage.nextElementSibling === this.systemLayer_.getRoot()) {
       return null;
     }
 
