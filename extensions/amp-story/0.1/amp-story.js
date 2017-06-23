@@ -89,8 +89,6 @@ export class AmpStory extends AMP.BaseElement {
 
   /** @override */
   buildCallback() {
-    // TODO(alanorozco): Lazy-instantiate bookend
-    this.element.appendChild(this.bookend_.build());
     this.element.appendChild(this.systemLayer_.build());
 
     this.element.addEventListener('click',
@@ -164,7 +162,8 @@ export class AmpStory extends AMP.BaseElement {
           'no such page exists.');
     }
 
-    if (activePage.nextElementSibling === this.systemLayer_.getRoot()) {
+    if (activePage.nextElementSibling === this.systemLayer_.getRoot() ||
+        this.isBookend_(activePage.nextElementSibling)) {
       return null;
     }
 
@@ -180,15 +179,6 @@ export class AmpStory extends AMP.BaseElement {
     const activePage = this.getActivePage_();
     const nextPage = this.getNextPage_();
     if (!nextPage) {
-      return;
-    }
-
-    if (nextPage === this.bookend_.getRoot()) {
-      this.showBookend_();
-      return;
-    }
-
-    if (nextPage === this.bookend_) {
       this.showBookend_();
       return;
     }
@@ -297,6 +287,12 @@ export class AmpStory extends AMP.BaseElement {
    * @private
    */
   showBookend_() {
+    if (this.isBookendActive_) {
+      return;
+    }
+
+    dev().assert(this.bookend_.isBuilt());
+
     this.exitFullScreen_();
     this.systemLayer_.toggleCloseBookendButton(true);
     this.isBookendActive_ = true;
@@ -354,9 +350,19 @@ export class AmpStory extends AMP.BaseElement {
   preloadNext_() {
     const next = this.getNextPage_();
     if (!next) {
+      this.buildBookend_();
+    } else {
+      this.schedulePreload(next);
+    }
+  }
+
+
+  /** @private */
+  buildBookend_() {
+    if (this.bookend_.isBuilt()) {
       return;
     }
-    this.schedulePreload(next);
+    this.element.appendChild(this.bookend_.build());
   }
 
 
@@ -371,9 +377,18 @@ export class AmpStory extends AMP.BaseElement {
   isNavigationalClick_(e) {
     return !closest(e.target, el => {
       return el === this.systemLayer_.getRoot() ||
-          el === this.bookend_.getRoot() ||
+          this.isBookend_(el) ||
           hasTapAction(el);
     }, /* opt_stopAt */ this.element);
+  }
+
+
+  /**
+   * @param {!Element} el
+   * @return {boolean}
+   */
+  isBookend_(el) {
+    return this.bookend_.isBuilt() && el === this.bookend_.getRoot();
   }
 
 

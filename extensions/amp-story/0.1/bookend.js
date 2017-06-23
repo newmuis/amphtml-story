@@ -114,6 +114,13 @@ export class Bookend {
   }
 
   /**
+   * @retun {boolean}
+   */
+  isBuilt() {
+    return this.isBuilt_;
+  }
+
+  /**
    * @param {!Array<Object>} articleSet
    * @return {!Element}
    */
