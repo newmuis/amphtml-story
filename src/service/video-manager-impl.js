@@ -16,6 +16,7 @@
  */
 
 import {ActionTrust} from '../action-trust';
+import {removeElement} from '../dom.js';
 import {listen, listenOncePromise} from '../event-helper';
 import {dev} from '../log';
 import {getMode} from '../mode';
@@ -746,23 +747,11 @@ class VideoEntry {
       this.userInteractedWithAutoPlay_ = true;
       this.video.showControls();
       this.video.unmute();
-      unlisteners.forEach(unlistener => {
-        unlistener();
-      });
+      unlistenInteraction();
+      unlistenPause();
+      unlistenPlay();
       removeElement(animation);
       removeElement(mask);
-    }
-
-    function adStart() {
-      setStyles(mask, {
-        'display': 'none',
-      });
-    }
-
-    function adEnd() {
-      setStyles(mask, {
-        'display': 'block',
-      });
     }
   }
 
