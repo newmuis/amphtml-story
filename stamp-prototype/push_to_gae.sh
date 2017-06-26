@@ -9,8 +9,11 @@ cd "`git rev-parse --show-toplevel`/stamp-prototype"
 # Build AMP and extensions.
 gulp dist
 
-# Copy files to the stamp-prototype/www/ directory.
+# Copy runtime and extension files to the stamp-prototype/www/ directory.
 cp -a -v ../dist/* ./www
+
+# Copy examples to the stamp-prototype/www/ directory.
+cp -a -v ../examples/stamp/* ./www
 
 # Deploy the app to App Engine.
 gcloud app deploy app.yaml --no-promote --quiet --project=stamp-prototype
