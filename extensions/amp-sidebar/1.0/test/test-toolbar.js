@@ -16,12 +16,17 @@
  */
 
  import {adopt} from '../../../../src/runtime';
- import {AmpDocSingle} from '../../../../src/service/ampdoc-impl';
  import {createIframePromise} from '../../../../testing/iframe';
- import {Services} from '../../../../src/services';
- import {toArray} from '../../../../src/types';
+ import {timerFor, vsyncFor} from '../../../../src/services';
  import * as sinon from 'sinon';
  import {Toolbar} from '../toolbar';
+
+ /** @const */
+ const DEFAULT_TOOLBAR_MEDIA = '(min-width: 768px)';
+
+ /** @const */
+ const TOOLBAR_CLASS = 'i-amphtml-toolbar';
+
 
  adopt(window);
 
@@ -33,15 +38,11 @@
    function getToolbars(options) {
      options = options || {};
      return createIframePromise().then(iframe => {
-       vsync = Services.vsyncFor(iframe.win);
-       timer = Services.timerFor(iframe.win);
-       const ampdoc = new AmpDocSingle(iframe.win);
-
-       // Create toolbar elements
-       const toolbarContainerElement =
-        ampdoc.win.document.createElement('div');
+       const toolbarContainerElement = iframe.doc.createElement('div');
        const toolbars = [];
-       ampdoc.win.document.body.appendChild(toolbarContainerElement);
+       iframe.win.document.body.appendChild(toolbarContainerElement);
+       vsync = vsyncFor(iframe.win);
+       timer = timerFor(iframe.win);
        // Stub our toolbar operations, doing this here as it will
        // Ease testing our media queries
        sandbox.stub(vsync,
@@ -59,38 +60,29 @@
 
        // Create our individual toolbars
        options.forEach(toolbarObj => {
-         const navToolbar = ampdoc.win.document.createElement('nav');
+         const navToolbar = iframe.doc.createElement('nav');
          if (toolbarObj.media) {
            navToolbar.setAttribute('toolbar', toolbar.media);
          } else {
-           navToolbar.setAttribute('toolbar', '(min-width: 768px)');
+           navToolbar.setAttribute('toolbar', DEFAULT_TOOLBAR_MEDIA);
          }
          if (toolbarObj.toolbarOnlyOnNav) {
            navToolbar.setAttribute('toolbar-only', '');
          }
-         const toolbarTarget = ampdoc.win.document.createElement('div');
-         if (toolbarObj.toolbarTarget) {
-           toolbarTarget.setAttribute('id', toolbarObj.toolbarTarget);
-           navToolbar.setAttribute('toolbar-target', toolbarObj.toolbarTarget);
-         } else if (toolbarObj.toolbarTargetError) {
-           navToolbar.setAttribute('target', 'toolbar-target');
-         } else {
-           toolbarTarget.setAttribute('id', 'toolbar-target');
-           navToolbar.setAttribute('toolbar-target', 'toolbar-target');
-         }
-         ampdoc.win.document.body.appendChild(toolbarTarget);
-         const toolbarList = ampdoc.win.document.createElement('ul');
+         const toolbarList = iframe.doc.createElement('ul');
          for (let i = 0; i < 3; i++) {
-           const li = ampdoc.win.document.createElement('li');
+           const li = iframe.doc.createElement('li');
            li.innerHTML = 'Toolbar item ' + i;
            toolbarList.appendChild(li);
          }
          navToolbar.appendChild(toolbarList);
          toolbarContainerElement.appendChild(navToolbar);
-         toolbars.push(new Toolbar(navToolbar, vsync, ampdoc));
+         const toolbar = new Toolbar(navToolbar, iframe.win, vsync);
+         toolbarContainerElement.appendChild(toolbar.build());
+         toolbars.push(toolbar);
        });
 
-       return {iframe, ampdoc, toolbarContainerElement, toolbars};
+       return {iframe, toolbarContainerElement, toolbars};
      });
    }
 
@@ -109,126 +101,45 @@
      sandbox.restore();
    });
 
-   it('toolbar header should error if target element \
-   could not be found as it is required.', () => {
-     return getToolbars([{
-       targetError: true,
-     }]).then(() => {
-       expect(false).to.be.equal(true, 'Toolbar \
-       should not be created when the target element is not found');
-     }).catch(() => {
-       expect(true).to.be.ok;
-     });
-   });
-
    it('toolbar header should be hidden for a \
-   non-matching window size for (min-width: 768px)', () => {
+   non-matching window size for DEFAULT_TOOLBAR_MEDIA', () => {
      return getToolbars([{}]).then(obj => {
        const toolbars = obj.toolbars;
-       resizeIframeToWidth(obj.iframe, '1024px', () => {
+       const toolbarElements = Array.prototype
+              .slice.call(obj.toolbarContainerElement.ownerDocument
+              .getElementsByClassName(TOOLBAR_CLASS), 0);
+       resizeIframeToWidth(obj.iframe, '1px', () => {
+         expect(toolbarElements.length).to.be.above(0);
          toolbars.forEach(toolbar => {
            toolbar.onLayoutChange();
          });
-         const toolbarElements =
-                toArray(obj.ampdoc.getRootNode()
-                .getElementsByClassName('i-amphtml-toolbar'));
-         resizeIframeToWidth(obj.iframe, '1px', () => {
-           toolbars.forEach(toolbar => {
-             toolbar.onLayoutChange();
-           });
-           expect(toolbarElements.length).to.be.above(0);
-           expect(toolbarElements[0].parentElement.style.display)
-               .to.be.equal('none');
-         });
+         expect(toolbarElements[0].parentElement.style.display)
+             .to.be.equal('none');
        });
      });
    });
 
    it('toolbar header should be shown for a \
-   matching window size for (min-width: 768px)', () => {
+   matching window size for DEFAULT_TOOLBAR_MEDIA', () => {
      return getToolbars([{}]).then(obj => {
        const toolbars = obj.toolbars;
+       const toolbarElements = Array.prototype
+              .slice.call(obj.toolbarContainerElement
+              .getElementsByClassName(TOOLBAR_CLASS), 0);
        resizeIframeToWidth(obj.iframe, '4000px', () => {
+         expect(toolbarElements.length).to.be.above(0);
          toolbars.forEach(toolbar => {
            toolbar.onLayoutChange();
          });
-         const toolbarElements =
-                toArray(obj.ampdoc.getRootNode()
-                .getElementsByClassName('i-amphtml-toolbar'));
-         expect(toolbarElements.length).to.be.above(0);
          expect(toolbarElements[0].parentElement.style.display)
              .to.be.equal('');
        });
      });
    });
 
-   it('toolbar should be placed into a target, with the \
-   target attrbiute', () => {
-     const targetId = 'toolbar-target';
-     return getToolbars([{
-       'toolbar-target': targetId,
-     }]).then(obj => {
-       const toolbars = obj.toolbars;
-       resizeIframeToWidth(obj.iframe, '1024px', () => {
-         toolbars.forEach(toolbar => {
-           toolbar.onLayoutChange();
-         });
-         const toolbarQuery = `#${targetId} > nav[toolbar]`;
-         const toolbarTargetElements =
-                toArray(obj.ampdoc.getRootNode()
-                .querySelectorAll(toolbarQuery));
-         expect(toolbars.length).to.be.equal(1);
-         expect(toolbarTargetElements.length).to.be.equal(1);
-       });
-     });
-   });
-
-   it('toolbar should be placed into a target, and shown for a \
-   matching window size for (min-width: 768px)', () => {
-     const targetId = 'toolbar-target';
-     return getToolbars([{
-       'toolbar-target': targetId,
-     }]).then(obj => {
-       const toolbars = obj.toolbars;
-       const toolbarTargets =
-                toArray(obj.ampdoc.getRootNode()
-               .querySelectorAll(`#${targetId}`));
-       resizeIframeToWidth(obj.iframe, '4000px', () => {
-         toolbars.forEach(toolbar => {
-           toolbar.onLayoutChange();
-         });
-         expect(toolbars.length).to.be.equal(1);
-         expect(toolbarTargets.length).to.be.equal(1);
-         expect(toolbarTargets[0].style.display)
-             .to.be.equal('');
-       });
-     });
-   });
-
-   it('toolbar should be placed into a target, and hidden for a \
-   non-matching window size for (min-width: 768px)', () => {
-     const targetId = 'toolbar-target';
-     return getToolbars([{
-       'toolbar-target': targetId,
-     }]).then(obj => {
-       const toolbars = obj.toolbars;
-       const toolbarTargets =
-                toArray(obj.ampdoc.getRootNode()
-               .querySelectorAll(`#${targetId}`));
-       resizeIframeToWidth(obj.iframe, '200px', () => {
-         toolbars.forEach(toolbar => {
-           toolbar.onLayoutChange();
-         });
-         expect(toolbars.length).to.be.equal(1);
-         expect(toolbarTargets.length).to.be.equal(1);
-         expect(toolbarTargets[0].style.display)
-             .to.be.equal('none');
-       });
-     });
-   });
-
-   it('should add the "amp-sidebar-toolbar-target-shown" state class, \
-   for matching window size of (min-width: 768px)', () => {
+   it('should hide <nav toolbar> elements with toolbar-only, \
+   inside the sidebar, but not inside the toolbar, for a matching \
+   window size for DEFAULT_TOOLBAR_MEDIA', () => {
      return getToolbars([{
        toolbarOnlyOnNav: true,
      }]).then(obj => {
@@ -237,33 +148,14 @@
          toolbars.forEach(toolbar => {
            toolbar.onLayoutChange();
          });
-         const toolbarNavElementsWithState =
-                toArray(obj.ampdoc.getRootNode()
-                .querySelectorAll(
-                    'nav[toolbar].amp-sidebar-toolbar-target-shown'
-                ));
-         expect(toolbarNavElementsWithState.length).to.be.equal(1);
-         expect(toolbars.length).to.be.equal(1);
-       });
-     });
-   });
-
-   it('should add the "amp-sidebar-toolbar-target-hidden" state class, \
-   for non-matching window size of (min-width: 768px)', () => {
-     return getToolbars([{
-       toolbarOnlyOnNav: true,
-     }]).then(obj => {
-       const toolbars = obj.toolbars;
-       resizeIframeToWidth(obj.iframe, '0px', () => {
-         toolbars.forEach(toolbar => {
-           toolbar.onLayoutChange();
-         });
-         const toolbarNavElementsWithState =
-                toArray(obj.ampdoc.getRootNode()
-                .querySelectorAll(
-                    'nav[toolbar].amp-sidebar-toolbar-target-hidden'
-                ));
-         expect(toolbarNavElementsWithState.length).to.be.equal(1);
+         const toolbarNavElements = Array.prototype
+                .slice.call(obj.toolbarContainerElement.ownerDocument
+                .querySelectorAll('nav[toolbar]'), 0);
+         const hiddenToolbarNavElements = Array.prototype
+                .slice.call(obj.toolbarContainerElement.ownerDocument
+                .querySelectorAll('nav[style]'), 0);
+         expect(toolbarNavElements.length).to.be.equal(2);
+         expect(hiddenToolbarNavElements.length).to.be.equal(1);
          expect(toolbars.length).to.be.equal(1);
        });
      });
