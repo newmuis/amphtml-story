@@ -164,7 +164,7 @@ amp-story-grid-layer[template="horizontal"] {
 }
 
 amp-story-grid-layer[template="thirds"] {
-  grid-template-rows: repeat(3, auto) !important;
+  grid-template-rows: repeat(3, 1fr) !important;
   grid-template-areas: "upper-third"
                        "middle-third"
                        "lower-third" !important;
