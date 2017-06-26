@@ -222,45 +222,6 @@ describe('Platform', () => {
     testStandalone(userAgent, isStandalone);
   });
 
-  it('Opera android', () => {
-    isOpera = true;
-    majorVersion = 42;
-    isAndroid = true;
-    isWebKit = true;
-    userAgent = 'Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MTC19T)' +
-        ' AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.91 Mobile' +
-        ' Safari/537.36 OPR/42.7.2246.114996';
-    testUserAgent(userAgent);
-    testStandalone(userAgent, isStandalone);
-  });
-
-  it('Opera ios', () => {
-    isIos = true;
-    isOpera = true;
-    isWebKit = true;
-    majorVersion = 14;
-    iosVersion = '10.3.2';
-    iosMajorVersion = 10;
-    isStandalone = true;
-    userAgent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 10_3_2 like Mac OS X)' +
-        ' AppleWebKit/603.2.4 (KHTML, like Gecko) OPiOS/14.0.0.104835' +
-        ' Mobile/14F89 Safari/9537.53';
-    testUserAgent(userAgent);
-    testStandalone(userAgent, isStandalone);
-  });
-
-  it('Firefox ios', () => {
-    isIos = true;
-    isFirefox = true;
-    isWebKit = true;
-    majorVersion = 7;
-    iosVersion = '10.3.1';
-    iosMajorVersion = 10;
-    testUserAgent('Mozilla/5.0 (iPhone; CPU iPhone OS 10_3_1 like Mac OS X)' +
-        ' AppleWebKit/603.1.30 (KHTML, like Gecko) FxiOS/7.5b3349' +
-        ' Mobile/14E304 Safari/603.1.30');
-  });
-
   it('IE', () => {
     isIe = true;
     majorVersion = 10;
