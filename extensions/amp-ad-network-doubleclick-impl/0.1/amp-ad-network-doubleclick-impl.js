@@ -215,10 +215,13 @@ export class AmpAdNetworkDoubleclickImpl extends AmpA4A {
     this.adKey_ = 0;
 
     // TODO(keithwrightbos) - how can pub enable?
-    /** @private @const {boolean} */
-    this.useSra_ = (getMode().localDev && /(\?|&)force_sra=true(&|$)/.test(
-        this.win.location.search)) ||
+    /** @protected @const {boolean} */
+    this.useSra = getMode().localDev && /(\?|&)force_sra=true(&|$)/.test(
+        this.win.location.search) ||
+        !!this.win.document.querySelector(
+            'meta[name=amp-ad-doubleclick-sra]') ||
         experimentFeatureEnabled(this.win, DOUBLECLICK_EXPERIMENT_FEATURE.SRA);
+
 
     const sraInitializer = this.initializeSraPromise_();
     /** @protected {?function(?../../../src/service/xhr-impl.FetchResponse)} */
@@ -334,7 +337,7 @@ export class AmpAdNetworkDoubleclickImpl extends AmpA4A {
   /** @override */
   getAdUrl() {
     if (this.iframe) {
-      dev().warn(TAG, `Frame already exists, sra: ${this.useSra_}`);
+      dev().warn(TAG, `Frame already exists, sra: ${this.useSra}`);
       return '';
     }
     // TODO(keithwrightbos): SRA blocks currently unnecessarily generate full
@@ -408,8 +411,8 @@ export class AmpAdNetworkDoubleclickImpl extends AmpA4A {
   }
 
   /** @override */
-  tearDownSlot() {
-    super.tearDownSlot();
+  unlayoutCallback() {
+    super.unlayoutCallback();
     this.element.setAttribute('data-amp-slot-index',
         this.win.ampAdSlotIdCounter++);
     this.lifecycleReporter_ = this.initLifecycleReporter();
@@ -511,7 +514,7 @@ export class AmpAdNetworkDoubleclickImpl extends AmpA4A {
 
   /** @override */
   sendXhrRequest(adUrl) {
-    if (!this.useSra_) {
+    if (!this.useSra) {
       return super.sendXhrRequest(adUrl);
     }
     // Wait for SRA request which will call response promise when this block's

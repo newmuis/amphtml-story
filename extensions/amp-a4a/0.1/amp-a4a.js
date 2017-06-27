@@ -1012,7 +1012,7 @@ export class AmpA4A extends AMP.BaseElement {
 
   /** @override  */
   unlayoutCallback() {
-    if (this.friendlyIframeEmbed_) {
+    if (this.friendlyIframeEmbed_ && !this.shouldUnlayoutAmpCreatives()) {
       return false;
     }
     this.tearDownSlot();
