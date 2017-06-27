@@ -24,6 +24,7 @@ amp-story, amp-story-page, amp-story-grid-layer {
 amp-story {
   height: 100% !important;
   position: relative !important;
+  text-rendering: geometricPrecision !important;
   width: 100% !important;
 }
 
