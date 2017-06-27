@@ -62,6 +62,33 @@ describes.realWin('amp-ad-network-adsense-impl', {
   let impl;
   let element;
 
+  /**
+   * Creates an iframe promise, and instantiates element and impl, adding the
+   * former to the document of the iframe.
+   * @param {!{width, height, type}} config
+   * @return The iframe promise.
+   */
+  function createImplTag(config) {
+    config.type = 'adsense';
+    return createIframePromise().then(fixture => {
+      setupForAdTesting(fixture);
+      element = createElementWithAttributes(fixture.doc, 'amp-ad', config);
+      // To trigger CSS styling.
+      element.setAttribute('data-a4a-upgrade-type',
+          'amp-ad-network-adsense-impl');
+      // Used to test styling which is targetted at first iframe child of
+      // amp-ad.
+      const iframe = fixture.doc.createElement('iframe');
+      element.appendChild(iframe);
+      document.body.appendChild(element);
+      impl = new AmpAdNetworkAdsenseImpl(element);
+      impl.buildCallback();
+      impl.iframe = iframe;
+      return fixture;
+    });
+  }
+
+
   beforeEach(() => {
     win = env.win;
     doc = win.document;

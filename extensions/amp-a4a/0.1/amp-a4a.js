@@ -299,12 +299,7 @@ export class AmpA4A extends AMP.BaseElement {
      * cause promise chain to reject.
      * @private {?function(string, !Object=)}
      */
-    this.protectedEmitLifecycleEvent_ = protectFunctionWrapper(
-        this.emitLifecycleEvent, this,
-        (err, varArgs) => {
-          dev().error(TAG, this.element.getAttribute('type'),
-              'Error on emitLifecycleEvent', err, varArgs) ;
-        });
+    this.protectedEmitLifecycleEvent_ = null;
 
     /** @const {string} */
     this.sentinel = generateSentinel(window);
@@ -356,6 +351,17 @@ export class AmpA4A extends AMP.BaseElement {
 
   /** @override */
   buildCallback() {
+    this.creativeSize_ = {
+      width: this.element.getAttribute('width'),
+      height: this.element.getAttribute('height'),
+    };
+    this.protectedEmitLifecycleEvent_ = protectFunctionWrapper(
+        this.emitLifecycleEvent, this,
+        (err, varArgs) => {
+          dev().error(TAG, this.element.getAttribute('type'),
+              'Error on emitLifecycleEvent', err, varArgs) ;
+        });
+
     this.uiHandler = new AMP.AmpAdUIHandler(this);
 
     const verifier = signatureVerifierFor(this.win);

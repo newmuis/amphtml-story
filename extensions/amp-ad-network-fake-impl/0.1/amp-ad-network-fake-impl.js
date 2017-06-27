@@ -32,6 +32,8 @@ export class AmpAdNetworkFakeImpl extends AmpA4A {
    */
   constructor(element) {
     super(element);
+    user().assert(TextEncoder, '<amp-ad type="fake"> requires browser'
+        + ' support for TextEncoder() function.');
   }
 
   /** @override */

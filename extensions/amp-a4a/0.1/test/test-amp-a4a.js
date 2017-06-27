@@ -252,17 +252,21 @@ describe('amp-a4a', () => {
     let a4aElement;
     let a4a;
     let fixture;
-    beforeEach(() => createIframePromise().then(f => {
-      fixture = f;
-      setupForAdTesting(fixture);
-      fetchMock.getOnce(
-          TEST_URL + '&__amp_source_origin=about%3Asrcdoc', () => adResponse,
-          {name: 'ad'});
-      a4aElement = createA4aElement(fixture.doc);
-      a4a = new MockA4AImpl(a4aElement);
-      a4a.releaseType_ = '0';
-      return fixture;
-    }));
+    beforeEach(() => {
+      xhrMock.withArgs(TEST_URL, {
+        mode: 'cors',
+        method: 'GET',
+        credentials: 'include',
+      }).onFirstCall().returns(Promise.resolve(mockResponse));
+      return createIframePromise().then(f => {
+        fixture = f;
+        setupForAdTesting(fixture);
+        a4aElement = createA4aElement(fixture.doc);
+        a4a = new MockA4AImpl(a4aElement);
+        a4a.buildCallback();
+        return fixture;
+      });
+    });
 
     it('for SafeFrame rendering case', () => {
       // Make sure there's no signature, so that we go down the 3p iframe path.
@@ -1665,6 +1669,11 @@ describe('amp-a4a', () => {
         const a4aElement = createA4aElement(doc);
         const a4a = new MockA4AImpl(a4aElement);
         a4a.buildCallback();
+        xhrMock.withArgs(TEST_URL, {
+          mode: 'cors',
+          method: 'GET',
+          credentials: 'include',
+        }).returns(Promise.resolve(mockResponse));
         return a4a.onLayoutMeasure(() => {
           expect(a4a.adPromise_).to.not.be.null;
           expect(a4a.element.children).to.have.lengthOf(1);
@@ -1682,6 +1691,11 @@ describe('amp-a4a', () => {
         const a4aElement = createA4aElement(doc);
         const a4a = new MockA4AImpl(a4aElement);
         a4a.buildCallback();
+        xhrMock.withArgs(TEST_URL, {
+          mode: 'cors',
+          method: 'GET',
+          credentials: 'include',
+        }).returns(Promise.resolve(mockResponse));
         a4a.onLayoutMeasure();
         const attemptChangeSizeStub =
           sandbox.stub(AMP.BaseElement.prototype, 'attemptChangeSize');
@@ -1777,6 +1791,7 @@ describe('amp-a4a', () => {
           setupForAdTesting(fixture);
           const a4aElement = createA4aElement(fixture.doc);
           a4a = new MockA4AImpl(a4aElement);
+          a4a.buildCallback();
           stubVerifySignature =
               sandbox.stub(a4a.signatureVerifier_, 'verifySignature');
         });
