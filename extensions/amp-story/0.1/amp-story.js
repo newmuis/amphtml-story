@@ -39,6 +39,9 @@ import {
   isFullScreenSupported,
   requestFullScreen,
 } from './fullscreen';
+import {
+  toggleExperiment,
+} from '../../../src/experiments';
 
 
 /** @private @const {number} */
