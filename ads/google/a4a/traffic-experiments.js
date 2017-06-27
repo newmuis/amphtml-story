@@ -47,9 +47,6 @@ export let A4aExperimentBranches;
 /** @type {!string} @private */
 export const MANUAL_EXPERIMENT_ID = '117152632';
 
-/** @type {!string} @private */
-const EXTERNALLY_SELECTED_ID = '2088461';
-
 
 /**
  * Check whether Google Ads supports the A4A rendering pathway for a given ad
@@ -94,8 +91,7 @@ export function googleAdsIsA4AEnabled(win, element, experimentName,
       opt_sfgInternalBranches ? opt_sfgInternalBranches.experiment : null,
       MANUAL_EXPERIMENT_ID);
   if (!isSetFromUrl) {
-    const experimentInfoMap =
-        /** @type {!Object<string, !ExperimentInfo>} */ ({});
+    const experimentInfoMap = {};
     const branches = [
       internalBranches.control,
       internalBranches.experiment,
@@ -148,7 +144,7 @@ export function googleAdsIsA4AEnabled(win, element, experimentName,
  * @return {?string} experiment extracted from page url.
  */
 export function extractUrlExperimentId(win, element) {
-  const expParam = Services.viewerForDoc(element).getParam('exp') ||
+  const expParam = viewerForDoc(element).getParam('exp') ||
     parseQueryString(win.location.search)['exp'];
   if (!expParam) {
     return null;
@@ -206,26 +202,6 @@ export function extractUrlExperimentId(win, element) {
 function maybeSetExperimentFromUrl(win, element, experimentName,
      controlBranchId, treatmentBranchId, delayedControlId,
      delayedTreatmentBrandId, sfgControlId, sfgTreatmentId, manualId) {
-  const expParam = viewerForDoc(element).getParam('exp') ||
-    parseQueryString(win.location.search)['exp'];
-  if (!expParam) {
-    return false;
-  }
-  // Allow for per type experiment control with Doubleclick key set for 'da'
-  // and AdSense using 'aa'.  Fallbsck to 'a4a' if type specific is missing.
-  const expKeys = [
-    (element.getAttribute('type') || '').toLowerCase() == 'doubleclick' ?
-      'da' : 'aa',
-    'a4a',
-  ];
-  let arg;
-  let match;
-  expKeys.forEach(key => arg = arg ||
-    ((match = new RegExp(`(?:^|,)${key}:(-?\\d+)`).exec(expParam)) &&
-      match[1]));
-  if (!arg) {
-    return false;
-  }
   const argMapping = {
     '-1': manualId,
     '0': null,

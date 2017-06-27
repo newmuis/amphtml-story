@@ -24,6 +24,22 @@ import {
   RANDOM_NUMBER_GENERATORS,
   toggleExperiment,
 } from '../../../../src/experiments';
+import {installPlatformService} from '../../../../src/service/platform-impl';
+import {installViewerServiceForDoc} from '../../../../src/service/viewer-impl';
+import {
+  registerServiceBuilder,
+  resetServiceForTesting,
+} from '../../../../src/service';
+import {
+  installDocumentStateService,
+} from '../../../../src/service/document-state';
+import {
+  ADSENSE_A4A_EXTERNAL_EXPERIMENT_BRANCHES_PRE_LAUNCH,
+  ADSENSE_A4A_INTERNAL_EXPERIMENT_BRANCHES_PRE_LAUNCH,
+  ADSENSE_A4A_EXTERNAL_EXPERIMENT_BRANCHES_POST_LAUNCH,
+  ADSENSE_A4A_INTERNAL_EXPERIMENT_BRANCHES_POST_LAUNCH,
+  ADSENSE_A4A_EXTERNAL_DELAYED_EXPERIMENT_BRANCHES_PRE_LAUNCH,
+} from '../../../../extensions/amp-ad-network-adsense-impl/0.1/adsense-a4a-config.js'; // eslint-disable-line
 import {EXPERIMENT_ATTRIBUTE} from '../utils';
 
 describe('all-traffic-experiments-tests', () => {
@@ -86,38 +102,6 @@ describe('all-traffic-experiments-tests', () => {
       expect(isInExperiment(element, '34')).to.be.true;
       expect(isInExperiment(element, '56')).to.be.false;
       expect(isInExperiment(element, '78')).to.be.false;
-    });
-
-    it('should use AdSense specific A4A experiment from URL', () => {
-      element.setAttribute('type', 'adsense');
-      const externalBranches = {control: '12', experiment: '34'};
-      const internalBranches = {control: '56', experiment: '78'};
-      const externalDelayedBranches = {control: '90', experiment: '13'};
-
-      sandbox.win.location.search = '?exp=a4a:1,aa:2,da:0';
-
-      const renderViaA4a = googleAdsIsA4AEnabled(
-          sandbox.win, element, 'exp_name', externalBranches, internalBranches,
-          externalDelayedBranches);
-      expect(renderViaA4a).to.be.true;
-      expect(isInExperiment(element, '12')).to.be.false;
-      expect(isInExperiment(element, '34')).to.be.true;
-    });
-
-    it('should use Doubleclick specific A4A experiment from URL', () => {
-      element.setAttribute('type', 'doubleclick');
-      const externalBranches = {control: '12', experiment: '34'};
-      const internalBranches = {control: '56', experiment: '78'};
-      const externalDelayedBranches = {control: '90', experiment: '13'};
-
-      sandbox.win.location.search = '?exp=a4a:0,aa:1,da:2';
-
-      const renderViaA4a = googleAdsIsA4AEnabled(
-          sandbox.win, element, 'exp_name', externalBranches, internalBranches,
-          externalDelayedBranches);
-      expect(renderViaA4a).to.be.true;
-      expect(isInExperiment(element, '12')).to.be.false;
-      expect(isInExperiment(element, '34')).to.be.true;
     });
 
     it('should use AdSense specific A4A experiment from URL', () => {
@@ -357,14 +341,14 @@ describe('all-traffic-experiments-tests', () => {
 
     function expectCorrectBranchOnly(element, expectedBranchId) {
       const branchIds = [
-        DOUBLECLICK_A4A_EXTERNAL_EXPERIMENT_BRANCHES_PRE_LAUNCH.control,
-        DOUBLECLICK_A4A_EXTERNAL_EXPERIMENT_BRANCHES_PRE_LAUNCH.experiment,
-        DOUBLECLICK_A4A_EXTERNAL_EXPERIMENT_BRANCHES_POST_LAUNCH.control,
-        DOUBLECLICK_A4A_EXTERNAL_EXPERIMENT_BRANCHES_POST_LAUNCH.experiment,
-        DOUBLECLICK_A4A_INTERNAL_EXPERIMENT_BRANCHES_PRE_LAUNCH.control,
-        DOUBLECLICK_A4A_INTERNAL_EXPERIMENT_BRANCHES_PRE_LAUNCH.experiment,
-        DOUBLECLICK_A4A_INTERNAL_EXPERIMENT_BRANCHES_POST_LAUNCH.control,
-        DOUBLECLICK_A4A_INTERNAL_EXPERIMENT_BRANCHES_POST_LAUNCH.experiment,
+        ADSENSE_A4A_EXTERNAL_EXPERIMENT_BRANCHES_PRE_LAUNCH.control,
+        ADSENSE_A4A_EXTERNAL_EXPERIMENT_BRANCHES_PRE_LAUNCH.experiment,
+        ADSENSE_A4A_EXTERNAL_EXPERIMENT_BRANCHES_POST_LAUNCH.control,
+        ADSENSE_A4A_EXTERNAL_EXPERIMENT_BRANCHES_POST_LAUNCH.experiment,
+        ADSENSE_A4A_INTERNAL_EXPERIMENT_BRANCHES_PRE_LAUNCH.control,
+        ADSENSE_A4A_INTERNAL_EXPERIMENT_BRANCHES_PRE_LAUNCH.experiment,
+        ADSENSE_A4A_INTERNAL_EXPERIMENT_BRANCHES_POST_LAUNCH.control,
+        ADSENSE_A4A_INTERNAL_EXPERIMENT_BRANCHES_POST_LAUNCH.experiment,
       ];
       for (const bId in branchIds) {
         expect(isInExperiment(element, bId)).to.equal(bId === expectedBranchId);
@@ -385,7 +369,7 @@ describe('all-traffic-experiments-tests', () => {
         hasLaunched: false,
         shouldServeFastFetch: false,
         branchId:
-          DOUBLECLICK_A4A_EXTERNAL_EXPERIMENT_BRANCHES_PRE_LAUNCH.control,
+          ADSENSE_A4A_EXTERNAL_EXPERIMENT_BRANCHES_PRE_LAUNCH.control,
       },
       {
         branchType: 'experiment',
@@ -393,7 +377,7 @@ describe('all-traffic-experiments-tests', () => {
         hasLaunched: false,
         shouldServeFastFetch: true,
         branchId:
-          DOUBLECLICK_A4A_EXTERNAL_EXPERIMENT_BRANCHES_PRE_LAUNCH.experiment,
+          ADSENSE_A4A_EXTERNAL_EXPERIMENT_BRANCHES_PRE_LAUNCH.experiment,
       },
       {
         adType: 'doubleclick',
@@ -408,7 +392,7 @@ describe('all-traffic-experiments-tests', () => {
         shouldServeFastFetch: true,
         branchType: 'control',
         branchId:
-          DOUBLECLICK_A4A_EXTERNAL_EXPERIMENT_BRANCHES_POST_LAUNCH.control,
+          ADSENSE_A4A_EXTERNAL_EXPERIMENT_BRANCHES_POST_LAUNCH.control,
       },
       {
         adType: 'doubleclick',
@@ -416,7 +400,7 @@ describe('all-traffic-experiments-tests', () => {
         shouldServeFastFetch: false,
         branchType: 'experiment',
         branchId:
-          DOUBLECLICK_A4A_EXTERNAL_EXPERIMENT_BRANCHES_POST_LAUNCH.experiment,
+          ADSENSE_A4A_EXTERNAL_EXPERIMENT_BRANCHES_POST_LAUNCH.experiment,
       },
       {
         adType: 'doubleclick',
@@ -433,7 +417,7 @@ describe('all-traffic-experiments-tests', () => {
         urlParam: '?exp=a4a:1',
         branchType: 'control',
         branchId:
-          DOUBLECLICK_A4A_EXTERNAL_EXPERIMENT_BRANCHES_PRE_LAUNCH.control,
+          ADSENSE_A4A_EXTERNAL_EXPERIMENT_BRANCHES_PRE_LAUNCH.control,
       },
       {
         adType: 'doubleclick',
@@ -442,7 +426,7 @@ describe('all-traffic-experiments-tests', () => {
         urlParam: '?exp=a4a:2',
         branchType: 'experiment',
         branchId:
-          DOUBLECLICK_A4A_EXTERNAL_EXPERIMENT_BRANCHES_PRE_LAUNCH.experiment,
+          ADSENSE_A4A_EXTERNAL_EXPERIMENT_BRANCHES_PRE_LAUNCH.experiment,
       },
       {
         adType: 'doubleclick',
@@ -459,7 +443,7 @@ describe('all-traffic-experiments-tests', () => {
         urlParam: '?exp=a4a:1',
         branchType: 'control',
         branchId:
-          DOUBLECLICK_A4A_EXTERNAL_EXPERIMENT_BRANCHES_POST_LAUNCH.control,
+          ADSENSE_A4A_EXTERNAL_EXPERIMENT_BRANCHES_POST_LAUNCH.control,
       },
       {
         adType: 'doubleclick',
@@ -468,7 +452,7 @@ describe('all-traffic-experiments-tests', () => {
         urlParam: '?exp=a4a:2',
         branchType: 'experiment',
         branchId:
-          DOUBLECLICK_A4A_EXTERNAL_EXPERIMENT_BRANCHES_POST_LAUNCH.experiment,
+          ADSENSE_A4A_EXTERNAL_EXPERIMENT_BRANCHES_POST_LAUNCH.experiment,
       },
       // TODO(jonkeller): Need AdSense tests also
     ];
@@ -490,14 +474,14 @@ describe('all-traffic-experiments-tests', () => {
           forceExperimentBranch(win, 'expDoubleclickA4A', test.branchId);
         }
         const external = test.hasLaunched ?
-          DOUBLECLICK_A4A_EXTERNAL_EXPERIMENT_BRANCHES_POST_LAUNCH :
-          DOUBLECLICK_A4A_EXTERNAL_EXPERIMENT_BRANCHES_PRE_LAUNCH;
+          ADSENSE_A4A_EXTERNAL_EXPERIMENT_BRANCHES_POST_LAUNCH :
+          ADSENSE_A4A_EXTERNAL_EXPERIMENT_BRANCHES_PRE_LAUNCH;
         const internal = test.hasLaunched ?
-          DOUBLECLICK_A4A_INTERNAL_EXPERIMENT_BRANCHES_POST_LAUNCH :
-          DOUBLECLICK_A4A_INTERNAL_EXPERIMENT_BRANCHES_PRE_LAUNCH;
+          ADSENSE_A4A_INTERNAL_EXPERIMENT_BRANCHES_POST_LAUNCH :
+          ADSENSE_A4A_INTERNAL_EXPERIMENT_BRANCHES_PRE_LAUNCH;
         expect(googleAdsIsA4AEnabled(win, element, 'expDoubleclickA4A',
             external, internal,
-            DOUBLECLICK_A4A_EXTERNAL_DELAYED_EXPERIMENT_BRANCHES_PRE_LAUNCH))
+            ADSENSE_A4A_EXTERNAL_DELAYED_EXPERIMENT_BRANCHES_PRE_LAUNCH))
             .to.equal(test.shouldServeFastFetch);
         expectCorrectBranchOnly(element, test.branchId);
         expect(win.document.cookie).to.be.null;

@@ -25,14 +25,10 @@ import {
   extractUrlExperimentId,
   addExperimentIdToElement,
 } from '../../../ads/google/a4a/traffic-experiments';
-import {isGoogleAdsA4AValidEnvironment} from '../../../ads/google/a4a/utils';
-import {
-  /* eslint no-unused-vars: 0 */ ExperimentInfo,
-  getExperimentBranch,
-  forceExperimentBranch,
-  randomlySelectUnsetExperiments,
-} from '../../../src/experiments';
-import {dev} from '../../../src/log';
+import {isExperimentOn} from '../../../src/experiments';
+
+/** @const {!string}  @private */
+export const ADSENSE_A4A_EXPERIMENT_NAME = 'expAdsenseA4A';
 
 /** @const {!string} @visibleForTesting */
 export const ADSENSE_A4A_EXPERIMENT_NAME = 'expAdsenseA4A';

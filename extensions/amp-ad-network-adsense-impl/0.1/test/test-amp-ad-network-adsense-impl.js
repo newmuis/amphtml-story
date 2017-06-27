@@ -42,11 +42,7 @@ import {
   ADSENSE_AMP_AUTO_ADS_HOLDOUT_EXPERIMENT_NAME,
   AdSenseAmpAutoAdsHoldoutBranches,
 } from '../../../../ads/google/adsense-amp-auto-ads';
-// Need the following side-effect import because in actual production code,
-// Fast Fetch impls are always loaded via an AmpAd tag, which means AmpAd is
-// always available for them. However, when we test an impl in isolation,
-// AmpAd is not loaded already, so we need to load it separately.
-import '../../../amp-ad/0.1/amp-ad';
+import {EXPERIMENT_ATTRIBUTE} from '../../../../ads/google/a4a/utils';
 
 function createAdsenseImplElement(attributes, doc, opt_tag) {
   const tag = opt_tag || 'amp-ad';
@@ -693,211 +689,24 @@ describes.realWin('amp-ad-network-adsense-impl', {
         });
   });
 
-  describe('#buildCallback', () => {
-
-    const VIEWPORT_WIDTH = 375;
-    const VIEWPORT_HEIGHT = 667;
-
-    let iframe;
-
-    function constructImpl(config) {
-      iframe = env.win.document.createElement('iframe');
-
-      config.type = 'adsense';
-      element = createElementWithAttributes(doc, 'amp-ad', config);
-      element.appendChild(iframe);
-      document.body.appendChild(element);
-      impl = new AmpAdNetworkAdsenseImpl(element);
-      impl.element.style.display = 'block';
-      impl.element.style.position = 'relative';
-      impl.element.style.top = '101vh';
-
-      // Fix the viewport to a consistent size to that the test doesn't depend
-      // on the actual browser window opened.
-      impl.getViewport().getSize =
-          () => ({width: VIEWPORT_WIDTH, height: VIEWPORT_HEIGHT});
-    }
-
-    it('should do nothing for non-responsive', () => {
-      constructImpl({
-        width: '320',
-        height: '150',
-      });
-      expect(impl.buildCallback()).to.be.undefined;
-    });
-
-    it('should schedule a resize for responsive', () => {
-      constructImpl({
-        width: '100vw',
-        height: '100',
-        'data-auto-format': 'rspv',
-      });
-
-      const callback = impl.buildCallback();
-      expect(callback).to.not.be.undefined;
-
-      // The returned promise fails for some reason.
-      return callback.then(() => {
-        expect(element.offsetHeight).to.equal(300);
-        expect(element.offsetWidth).to.equal(VIEWPORT_WIDTH);
-      });
-    });
-  });
-
-  describe('#onLayoutMeasure', () => {
-
-    const VIEWPORT_WIDTH = 375;
-    const VIEWPORT_HEIGHT = 667;
-
-    // Nested elements to contain the ad. (container contains the ad, and
-    // containerContainer contains that container.)
-    let containerContainer, container;
-    let iframe;
-
-    function buildImpl(config) {
-      // Create an element with horizontal margins for the ad to break out of.
-      containerContainer.style.marginLeft = '5px';
-      containerContainer.style.marginRight = '9px';
-
-      // Create an element with horizontal margins for the ad to break out of.
-      container.style.marginLeft = '19px';
-      container.style.marginRight = '25px';
-
-      config.type = 'adsense';
-      config['data-ad-client'] = 'ca-pub-1234';
-
-      element = createElementWithAttributes(doc, 'amp-ad', config);
-      iframe = doc.createElement('iframe');
-
-      element.appendChild(iframe);
-      container.appendChild(element);
-      containerContainer.appendChild(container);
-      doc.body.appendChild(containerContainer);
-
-      impl = new AmpAdNetworkAdsenseImpl(element);
-      impl.element.style.display = 'block';
-      impl.element.style.position = 'relative';
-      impl.element.style.top = '150vh';
-
-      // Stub out vsync tasks to run immediately.
-      impl.getVsync().run = (vsyncTaskSpec, vsyncState) => {
-        vsyncTaskSpec.measure(vsyncState);
-        vsyncTaskSpec.mutate(vsyncState);
-      };
-
-      // Fix the viewport to a consistent size to that the test doesn't depend
-      // on the actual browser window opened.
-      impl.getViewport().getSize =
-          () => ({width: VIEWPORT_WIDTH, height: VIEWPORT_HEIGHT});
-
-      return impl.buildCallback();
-    }
-
-    beforeEach(() => {
-      viewer.toggleRuntime();  // Turn runtime on for these tests.
-    });
-
-    afterEach(() => {
-      viewer.toggleRuntime();  // Turn runtime off again.
-
-      if (containerContainer != null && containerContainer.parentNode != null) {
-        containerContainer.parentNode.removeChild(containerContainer);
-      }
-      doc.body.style.direction = '';
-    });
-
-    it('should change left margin for responsive', () => {
-      containerContainer = doc.createElement('div');
-      container = doc.createElement('div');
-      return buildImpl({
-        width: '100vw',
-        height: '150',
-        'data-auto-format': 'rspv',
-      }).then(() => {
-        impl.onLayoutMeasure();
-        // Left margin is 19px from container and 5px from body.
-        expect(element.style.marginLeft).to.be.equal('-24px');
-        expect(element.style.marginRight).to.be.equal('');
-      });
-    });
-
-    it('should change right margin for responsive in RTL', () => {
-      containerContainer = doc.createElement('div');
-      container = doc.createElement('div');
-      doc.body.style.direction = 'rtl'; // todo: revert
-
-      return buildImpl({
-        width: '100vw',
-        height: '150',
-        'data-auto-format': 'rspv',
-      }).then(() => {
-        impl.onLayoutMeasure();
-        // Right margin is 9px from containerContainer and 25px from container.
-        // TODO(charliereams): In the test harness it is also offset by 15px due
-        // to strange scrollbar behaviour. Figure out how to disable this.
-        expect(element.style.marginRight).to.be.equal('-49px');
-        expect(element.style.marginLeft).to.be.equal('');
-      });
-    });
-  });
-
-  describe('#getResponsiveHeightForContext', () => {
-    it('should request 100px height for very small viewports', () => {
-      expect(
-          AmpAdNetworkAdsenseImpl.getResponsiveHeightForContext_(
-              {width: 100, height: 667}))
-          .to.be.equal(100);
-    });
-
-    it('should request 6:5 aspect ratio for normal viewport (iPhone 5)', () => {
-      expect(
-          AmpAdNetworkAdsenseImpl.getResponsiveHeightForContext_(
-              {width: 320, height: 568}))
-          .to.be.equal(267);
-    });
-
-    it('should request 300px height for wide viewports', () => {
-      expect(
-          AmpAdNetworkAdsenseImpl.getResponsiveHeightForContext_(
-              {width: 500, height: 667}))
-          .to.be.equal(300);
-    });
-  });
-
   describe('#delayAdRequestEnabled', () => {
     let impl;
     beforeEach(() => {
-      impl = new AmpAdNetworkAdsenseImpl(
-        createElementWithAttributes(doc, 'amp-ad', {
-          type: 'adsense',
-        }));
-    });
-
-    [
-      [ADSENSE_EXPERIMENT_FEATURE.DELAYED_REQUEST_EXTERNAL_CONTROL, {
-        layer: ADSENSE_A4A_EXPERIMENT_NAME,
-        result: false,
-      }],
-      [ADSENSE_EXPERIMENT_FEATURE.DELAYED_REQUEST_EXTERNAL, {
-        layer: ADSENSE_A4A_EXPERIMENT_NAME,
-        result: true,
-      }],
-      [INTERNAL_FAST_FETCH_DELAY_REQUEST_EXP.CONTROL, {
-        layer: FF_DR_EXP_NAME,
-        result: false,
-      }],
-      [INTERNAL_FAST_FETCH_DELAY_REQUEST_EXP.EXPERIMENT, {
-        layer: FF_DR_EXP_NAME,
-        result: true,
-      }],
-    ].forEach(item => {
-      it(`should return ${item[1].result} if in ${item[0]} experiment`, () => {
-        forceExperimentBranch(impl.win, item[1].layer, item[0]);
-        expect(impl.delayAdRequestEnabled()).to.equal(item[1].result);
+      return createIframePromise().then(f => {
+        setupForAdTesting(f);
+        impl = new AmpAdNetworkAdsenseImpl(
+          createElementWithAttributes(f.doc, 'amp-ad', {
+            type: 'adsense',
+          }));
       });
     });
 
-    it('should return false if not in any experiments', () => {
+    it('should return true if in experiment', () => {
+      impl.element.setAttribute(EXPERIMENT_ATTRIBUTE, '117152655');
+      expect(impl.delayAdRequestEnabled()).to.be.true;
+    });
+
+    it('should return false if not in experiment', () => {
       expect(impl.delayAdRequestEnabled()).to.be.false;
     });
   });

@@ -61,7 +61,6 @@ import {A4AVariableSource} from './a4a-variable-source';
 // TODO(tdrl): Temporary.  Remove when we migrate to using amp-analytics.
 import {getTimingDataAsync} from '../../../src/service/variable-source';
 import {getContextMetadata} from '../../../src/iframe-attributes';
-import {isInExperiment} from '../../../ads/google/a4a/traffic-experiments';
 
 /** @type {string} */
 const METADATA_STRING = '<script type="application/json" amp-ad-metadata>';
@@ -332,22 +331,8 @@ export class AmpA4A extends AMP.BaseElement {
      */
     this.fromResumeCallback = false;
 
-
-    /**
-     * @protected {boolean} Indicates whether the ad is currently in the
-     *    process of being refreshed.
-     */
-    this.isRefreshing = false;
-
-    /** @protected {boolean} */
-    this.isRelayoutNeededFlag = false;
-
-    /**
-     * Used as a signal in some of the CSI pings.
-     * @private @const {string}
-     */
-    this.releaseType_ = getBinaryTypeNumericalCode(getBinaryType(this.win)) ||
-        '-1';
+    /** @private {string} */
+    this.safeframeVersion_ = DEFAULT_SAFEFRAME_VERSION;
   }
 
   /** @override */
@@ -404,6 +389,14 @@ export class AmpA4A extends AMP.BaseElement {
    */
   isValidElement() {
     return true;
+  }
+
+  /**
+   * @return {boolean} whether ad request should be delayed until
+   *    renderOutsideViewport is met.
+   */
+  delayAdRequestEnabled() {
+    return false;
   }
 
   /**
@@ -596,10 +589,7 @@ export class AmpA4A extends AMP.BaseElement {
         /** @return {!Promise<?string>} */
         .then(() => {
           checkStillCurrent();
-          if (this.delayRequestEnabled_) {
-            dev().info(TAG, 'ad request being built');
-          }
-          return /** @type {!Promise<?string>} */ (this.getAdUrl());
+          return /** @type {!Promise<?string>} */(this.getAdUrl());
         })
         // This block returns the (possibly empty) response to the XHR request.
         /** @return {!Promise<?Response>} */

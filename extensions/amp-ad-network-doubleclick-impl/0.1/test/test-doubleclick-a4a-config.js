@@ -18,11 +18,9 @@ import {
   doubleclickIsA4AEnabled,
   BETA_ATTRIBUTE,
   BETA_EXPERIMENT_ID,
-  DFP_CANONICAL_FF_EXPERIMENT_NAME,
   DOUBLECLICK_A4A_EXPERIMENT_NAME,
   DOUBLECLICK_EXPERIMENT_FEATURE,
   URL_EXPERIMENT_MAPPING,
-  DoubleclickA4aEligibility,
 } from '../doubleclick-a4a-config';
 import {
   isInExperiment,
@@ -68,7 +66,8 @@ describe('doubleclick-a4a-config', () => {
       const elem = testFixture.doc.createElement('div');
       testFixture.doc.body.appendChild(elem);
       expect(doubleclickIsA4AEnabled(mockWin, elem)).to.be.true;
-      expect(elem.getAttribute(EXPERIMENT_ATTRIBUTE)).to.not.be.ok;
+      expect(elem.getAttribute(EXPERIMENT_ATTRIBUTE)).to.equal(
+          BETA_EXPERIMENT_ID);
     });
 
     it('should enable a4a when native crypto is supported', () => {
@@ -96,7 +95,7 @@ describe('doubleclick-a4a-config', () => {
       testFixture.doc.body.appendChild(elem);
       expect(doubleclickIsA4AEnabled(mockWin, elem)).to.be.true;
       expect(elem.getAttribute(EXPERIMENT_ATTRIBUTE)).to.equal(
-          DOUBLECLICK_EXPERIMENT_FEATURE.CANONICAL_EXPERIMENT);
+          BETA_EXPERIMENT_ID);
     });
 
     it('should return false if no canonical AMP experiment branch', () => {
@@ -158,6 +157,17 @@ describe('doubleclick-a4a-config', () => {
           BETA_EXPERIMENT_ID);
     });
 
+    it('should honor beta over url experiment id', () => {
+      mockWin.location = parseUrl(
+          'https://cdn.ampproject.org/some/path/to/content.html?exp=a4a:2');
+      const elem = testFixture.doc.createElement('div');
+      elem.setAttribute(BETA_ATTRIBUTE, 'true');
+      testFixture.doc.body.appendChild(elem);
+      expect(doubleclickIsA4AEnabled(mockWin, elem)).to.be.true;
+      expect(elem.getAttribute(EXPERIMENT_ATTRIBUTE)).to.equal(
+          BETA_EXPERIMENT_ID);
+    });
+
     Object.keys(URL_EXPERIMENT_MAPPING).forEach(expFlagValue => {
       it(`exp flag=${expFlagValue} should set eid attribute`, () => {
         mockWin.location = parseUrl(
@@ -165,9 +175,9 @@ describe('doubleclick-a4a-config', () => {
             String(expFlagValue));
         const elem = testFixture.doc.createElement('div');
         testFixture.doc.body.appendChild(elem);
-        // Enabled for all but holdback & sfg.
+        // Enabled for all but holdback.
         expect(doubleclickIsA4AEnabled(mockWin, elem)).to.equal(
-            !['2', '5', '6'].includes(expFlagValue));
+            expFlagValue != 2);
         if (expFlagValue == 0) {
           expect(elem.getAttribute(EXPERIMENT_ATTRIBUTE)).to.not.be.ok;
         } else {

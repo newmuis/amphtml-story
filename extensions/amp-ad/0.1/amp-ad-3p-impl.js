@@ -91,9 +91,6 @@ export class AmpAd3PImpl extends AMP.BaseElement {
 
     /** @type {!../../../ads/google/a4a/performance.BaseLifecycleReporter} */
     this.lifecycleReporter = googleLifecycleReporterFactory(this);
-
-    /** @private {string|undefined} */
-    this.type_ = undefined;
   }
 
   /** @override */

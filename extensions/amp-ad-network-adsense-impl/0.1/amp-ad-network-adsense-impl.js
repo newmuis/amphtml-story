@@ -26,6 +26,7 @@ import {fastFetchDelayedRequestEnabled} from './adsense-a4a-config';
 import {
   addExperimentIdToElement,
   isInManualExperiment,
+  isInExperiment,
 } from '../../../ads/google/a4a/traffic-experiments';
 import {getExperimentBranch, isExperimentOn} from '../../../src/experiments';
 import {
@@ -128,31 +129,7 @@ export class AmpAdNetworkAdsenseImpl extends AmpA4A {
 
   /** @override */
   delayAdRequestEnabled() {
-    return fastFetchDelayedRequestEnabled(this.win);
-  }
-
-  /** @override */
-  buildCallback() {
-    super.buildCallback();
-
-    this.autoFormat_ =
-        this.element.getAttribute('data-auto-format') || '';
-
-    const verifierEid = getExperimentBranch(this.win, VERIFIER_EXP_NAME);
-    if (verifierEid) {
-      addExperimentIdToElement(verifierEid, this.element);
-    }
-
-    if (this.isResponsive_()) {
-      // Attempt to resize to the correct height. The width should already be
-      // 100vw, but is fixed here so that future resizes of the viewport don't
-      // affect it.
-      const viewportSize = this.getViewport().getSize();
-      return this.attemptChangeSize(
-          AmpAdNetworkAdsenseImpl.getResponsiveHeightForContext_(
-              viewportSize),
-          viewportSize.width);
-    }
+    return isInExperiment(this.element, '117152655');
   }
 
   /** @override */
