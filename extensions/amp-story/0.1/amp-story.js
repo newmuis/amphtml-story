@@ -45,6 +45,7 @@ import {
   isFullScreenSupported,
   requestFullScreen,
 } from './fullscreen';
+<<<<<<< HEAD
 import {once} from '../../../src/utils/function';
 import {
   toggleExperiment,
@@ -54,6 +55,11 @@ import {urlReplacementsForDoc} from '../../../src/services';
 import {xhrFor} from '../../../src/services';
 import {isFiniteNumber} from '../../../src/types';
 import {AudioManager} from './audio';
+=======
+import {
+  toggleExperiment,
+} from '../../../src/experiments';
+>>>>>>> 960b6ae6... Allow amp-google-vrview-image and put fallback content behind vrview.
 
 
 /** @private @const {number} */
