@@ -16,7 +16,7 @@
 
 import {isLayoutSizeDefined} from '../../../src/layout';
 import {srcsetFromElement} from '../../../src/srcset';
-import {dev} from '../../../src/log';
+import {dev, user} from '../../../src/log';
 import * as st from '../../../src/style';
 
 const TAG = 'amp-anim';
