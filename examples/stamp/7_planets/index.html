@@ -2,22 +2,18 @@
 <html ⚡ 📖>
 <head>
   <meta charset="utf-8">
-  <script async src="https://cdn.ampproject.org/v0.js"></script>
+  <script async src="https://stamp-prototype.appspot.com/v0.js"></script>
   <script async custom-element="amp-story"
-      src="https://cdn.ampproject.org/v0/amp-story-0.1.js"></script>
+      src="https://stamp-prototype.appspot.com/v0/amp-story-0.1.js"></script>
   <script async custom-element="amp-video"
-      src="https://cdn.ampproject.org/v0/amp-video-0.1.js"></script>
+      src="https://stamp-prototype.appspot.com/v0/amp-video-0.1.js"></script>
   <script async custom-element="amp-google-vrview-image"
-      src="https://cdn.ampproject.org/v0/amp-google-vrview-image-0.1.js">
+      src="https://stamp-prototype.appspot.com/v0/amp-google-vrview-image-0.1.js">
   </script>
   <title>Star power: NASA discovers 7 Earth-size planets</title>
   <link rel="canonical" href="index.html" />
   <meta name="viewport"
       content="width=device-width,minimum-scale=1,initial-scale=1">
-  <script>
-    // NOTE: For demo purposes.
-    AMP.toggleExperiment('amp-google-vrview-image', true);
-  </script>
   <style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}} @keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
   <style amp-custom>
       @font-face {
@@ -42,7 +38,7 @@
 
       .has-graphic {
         align-content: end !important;
-        padding-bottom: 120px;
+        padding-bottom: 80px;
       }
 
       .intro-title, .heavy, blockquote {
@@ -62,7 +58,7 @@
       }
 
       .heavy, blockquote {
-        font-size: 24px;
+        font-size: 28px;
         font-weight: 100;
         line-height: 1.3;
         opacity: 1;
@@ -90,7 +86,7 @@
       </amp-story-grid-layer>
       <amp-story-grid-layer template="vertical" class="has-graphic">
         <h1 class="intro-title">
-          Star power: NASA discovers 7 Earth-size planets
+          Star power:<br />NASA discovers 7 Earth-size planets
         </h1>
         <p class="intro-description">
           It's the first time astronomers have detected so many terrestrial
@@ -121,7 +117,7 @@
     <amp-story-page id="scaled-down-version">
       <amp-story-grid-layer template="fill">
         <amp-video src="./media/2-1-intro-bg-video-muted.mp4" layout="fill"
-            loop muted>
+            loop muted poster="./media/2-1-intro-bg.jpg">
         </amp-video>
       </amp-story-grid-layer>
       <amp-story-grid-layer template="vertical" class="has-graphic">
@@ -162,7 +158,7 @@
     <amp-story-page id="seven-planets">
       <amp-story-grid-layer template="fill">
         <amp-video src="./media/4-1-intro-bg-video-muted.mp4" layout="fill"
-            loop muted>
+            loop muted poster="./media/4-1-intro-bg.jpg">
         </amp-video>
       </amp-story-grid-layer>
       <amp-story-grid-layer template="vertical" class="has-graphic">
@@ -177,7 +173,7 @@
     <amp-story-page id="the-habitable-zone">
       <amp-story-grid-layer template="fill">
         <amp-video src="./media/5-1-intro-bg-video-muted.mp4" layout="fill"
-            loop muted>
+            loop muted poster="./media/5-1-intro-bg.jpg">
         </amp-video>
       </amp-story-grid-layer>
       <amp-story-grid-layer template="vertical" class="has-graphic">
@@ -230,7 +226,7 @@
     <amp-story-page id="how-solar-systems-work">
       <amp-story-grid-layer template="fill">
         <amp-video src="./media/8-1-intro-bg-video-muted.mp4" layout="fill"
-            loop muted>
+            loop muted poster="./media/8-1-intro-bg.jpg">
         </amp-video>
       </amp-story-grid-layer>
       <amp-story-grid-layer template="vertical" class="has-graphic">
@@ -244,30 +240,6 @@
           have a slightly different perspective on the same story,&rdquo; he
           said, &ldquo;the story of this solar system.&rdquo;
         </p>
-      </amp-story-grid-layer>
-    </amp-story-page>
-
-    <!-- Page 10: Tour TRAPPIST-1 -->
-    <amp-story-page id="tour-trappist-1">
-      <amp-story-grid-layer template="fill">
-        <amp-video src="./media/9-1-intro-bg-video-muted.mp4" layout="fill"
-            loop muted>
-        </amp-video>
-      </amp-story-grid-layer>
-      <amp-story-grid-layer template="fill">
-        <amp-google-vrview-image
-            src="https://stamp-prototype.appspot.com/7_planets/media/trappist1d.jpg"
-            layout="fill" stereo>
-        </amp-google-vrview-image>
-      </amp-story-grid-layer>
-      <amp-story-grid-layer template="vertical" class="has-graphic">
-        <p class="heavy">
-          Get a tour of TRAPPIST-1
-        </p>
-        <p>
-          NASA VR: On the Surface of Planet TRAPPIST-1d (360 view)
-        </p>
-        <p class="caption">NASA Jet Propulsion Laboratory</p>
       </amp-story-grid-layer>
     </amp-story-page>
 
