@@ -235,7 +235,7 @@ amp-story-grid-layer[template="thirds"] {
   margin-left: 16px;
 }
 
-.i-amp-story-bookend-article-set:first-child {
+.i-amp-story-bookend-heading + .i-amp-story-bookend-article-set {
   border-top: none;
 }
 

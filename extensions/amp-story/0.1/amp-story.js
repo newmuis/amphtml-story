@@ -32,6 +32,8 @@ import {EventType} from './events';
 import {KeyCodes} from '../../../src/utils/key-codes';
 import {SystemLayer} from './system-layer';
 import {Layout} from '../../../src/layout';
+import {assertHttpsUrl} from '../../../src/url';
+import {buildFromJson} from './related-articles';
 import {closest} from '../../../src/dom';
 import {dev, user} from '../../../src/log';
 import {
@@ -39,9 +41,12 @@ import {
   isFullScreenSupported,
   requestFullScreen,
 } from './fullscreen';
+import {once} from '../../../src/utils/function';
 import {
   toggleExperiment,
 } from '../../../src/experiments';
+import {urlReplacementsForDoc} from '../../../src/services';
+import {xhrFor} from '../../../src/services';
 
 
 /** @private @const {number} */
@@ -49,6 +54,9 @@ const NEXT_SCREEN_AREA_RATIO = 0.75;
 
 /** @private @const {string} */
 const ACTIVE_PAGE_ATTRIBUTE_NAME = 'active';
+
+/** @private @const {string} */
+const RELATED_ARTICLES_ATTRIBUTE_NAME = 'related-articles';
 
 
 /**
@@ -88,6 +96,13 @@ export class AmpStory extends AMP.BaseElement {
 
     /** @private {!Array<!Element>} */
     this.pageHistoryStack_ = [];
+
+    /**
+     * @private @const {
+     *   !function():!Promise<?Array<!./related-articles.RelatedArticleSet>
+     * }
+     */
+    this.loadRelatedArticles_ = once(() => this.loadRelatedArticlesImpl_());
   }
 
   /** @override */
@@ -365,9 +380,50 @@ export class AmpStory extends AMP.BaseElement {
     if (this.bookend_.isBuilt()) {
       return;
     }
+
     this.element.appendChild(this.bookend_.build());
+
+    this.loadRelatedArticles_().then(articleSets => {
+      if (articleSets === null) {
+        return;
+      }
+      this.bookend_.setRelatedArticles(dev().assert(articleSets));
+    });
   }
 
+
+  /**
+   * @return {!Promise<?Array<!./related-articles.RelatedArticleSet>>}
+   * @private
+   */
+  loadRelatedArticlesImpl_() {
+    const rawUrl = this.getRelatedArticlesUrlOptional_();
+
+    if (rawUrl === null) {
+      return Promise.resolve(null);
+    }
+
+    return urlReplacementsForDoc(this.getAmpDoc())
+        .expandAsync(user().assertString(rawUrl))
+        .then(url => xhrFor(this.win).fetchJson(url))
+        .then(response => {
+          user().assert(response.ok, 'Invalid HTTP response');
+          return response.json();
+        })
+        .then(buildFromJson);
+  }
+
+
+  /**
+   * @return {?string}
+   * @private
+   */
+  getRelatedArticlesUrlOptional_() {
+    if (!this.element.hasAttribute(RELATED_ARTICLES_ATTRIBUTE_NAME)) {
+      return null;
+    }
+    return this.element.getAttribute(RELATED_ARTICLES_ATTRIBUTE_NAME);
+  }
 
   /**
    * Determines whether a click should be used for navigation.  Navigate should
