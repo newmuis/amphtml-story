@@ -85,7 +85,8 @@ import {waitForBodyPromise} from './dom';
 import * as config from './config';
 
 initLogConstructor();
-setReportError(reportErrorForWin.bind(null, self));
+setReportError(reportError);
+
 
 /** @const @private {string} */
 const TAG = 'runtime';

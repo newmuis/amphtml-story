@@ -749,6 +749,12 @@ function appendToCompiledFile(srcFilename, destFilePath) {
 function compileJs(srcDir, srcFilename, destDir, options) {
   options = options || {};
   if (options.minify) {
+    if (argv.minimal_set
+        && !(/integration|babel|amp-ad|lightbox|sidebar|analytics|app-banner/
+            .test(srcFilename))) {
+      logBuildStep('Skipping because of --minimal_set', srcFilename);
+      return Promise.resolve();
+    }
     logBuildStep('Minifying', srcFilename);
     return closureCompile(
         srcDir + srcFilename, destDir, options.minifiedName, options)

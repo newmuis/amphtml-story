@@ -27,6 +27,32 @@
 function JsonObject() {}
 
 /**
+ * - n is the name.
+ * - f is the function body of the extension.
+ * - p is the priority. Only supported value is "high".
+ *   high means, that the extension is not subject to chunking.
+ *   This should be used for work, that should always happen
+ *   as early as possible. Currently this is primarily used
+ *   for viewer communication setup.
+ * - v is the release version
+ * @constructor @struct
+ */
+function ExtensionPayload() {}
+
+/** @type {string} */
+ExtensionPayload.prototype.n;
+
+/** @type {function(!Object)} */
+ExtensionPayload.prototype.f;
+
+/** @type {string|undefined} */
+ExtensionPayload.prototype.p;
+
+/** @type {string} */
+ExtensionPayload.prototype.v;
+
+
+/**
  * @typedef {?JsonObject|undefined|string|number|!Array<JsonValue>}
  */
 var JsonValue;
