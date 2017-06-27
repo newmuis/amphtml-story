@@ -153,15 +153,20 @@ export class ViewportBindingInabox {
 
   /** @private */
   listenForPosition_() {
+    if (nativeIntersectionObserverSupported(this.win)) {
+      // Using native IntersectionObserver, no position data needed
+      // from host doc.
+      return;
+    }
 
     this.iframeClient_.makeRequest(
         MessageType.SEND_POSITIONS, MessageType.POSITION,
         data => {
           dev().fine(TAG, 'Position changed: ', data);
           const oldViewportRect = this.viewportRect_;
-          this.viewportRect_ = data.viewportRect;
+          this.viewportRect_ = data.viewport;
 
-          this.updateBoxRect_(data.targetRect);
+          this.updateBoxRect_(data.target);
 
           if (isResized(this.viewportRect_, oldViewportRect)) {
             this.resizeObservable_.fire();
@@ -211,17 +216,13 @@ export class ViewportBindingInabox {
   }
 
   /**
-   * @param {?../layout-rect.LayoutRectDef|undefined} positionRect
+   * @param {!../layout-rect.LayoutRectDef|undefined} boxRect
    * @private
    */
-  updateBoxRect_(positionRect) {
-    if (!positionRect) {
+  updateBoxRect_(boxRect) {
+    if (!boxRect) {
       return;
     }
-
-    const boxRect = moveLayoutRect(positionRect, this.viewportRect_.left,
-        this.viewportRect_.top);
-
     if (isChanged(boxRect, this.boxRect_)) {
       dev().fine(TAG, 'Updating viewport box rect: ', boxRect);
 
@@ -239,117 +240,12 @@ export class ViewportBindingInabox {
    * @visibleForTesting
    */
   getChildResources() {
-    return Services.resourcesForDoc(this.win.document).get();
+    return resourcesForDoc(this.win.document).get();
   }
 
   /** @private */
   remeasureAllElements_() {
     this.getChildResources().forEach(resource => resource.measure());
-  }
-
-  /** @override */
-  updateLightboxMode(lightboxMode) {
-    if (lightboxMode) {
-      return this.tryToEnterOverlayMode_();
-    }
-    return this.leaveOverlayMode_();
-  }
-
-  /** @override */
-  getRootClientRectAsync() {
-    if (!this.requestPositionPromise_) {
-      this.requestPositionPromise_ = new Promise(resolve => {
-        this.iframeClient_.requestOnce(
-            MessageType.SEND_POSITIONS, MessageType.POSITION,
-            data => {
-              this.requestPositionPromise_ = null;
-              dev().assert(data.targetRect, 'Host should send targetRect');
-              resolve(data.targetRect);
-            }
-        );
-      });
-    }
-    return this.requestPositionPromise_;
-  }
-
-
-  /**
-   * @return {!Promise}
-   * @private
-   */
-  tryToEnterOverlayMode_() {
-    return this.prepareBodyForOverlay_()
-        .then(() => this.requestFullOverlayFrame_());
-  }
-
-  /**
-   * @return {!Promise}
-   * @private
-   */
-  leaveOverlayMode_() {
-    return this.requestCancelFullOverlayFrame_()
-        .then(() => this.resetBodyForOverlay_());
-  }
-
-  /**
-   * Prepares the "fixed" container before expanding frame.
-   * @return {!Promise}
-   * @private
-   */
-  prepareBodyForOverlay_() {
-    return prepareBodyForOverlay(this.win, this.getBodyElement());
-  }
-
-  /**
-   * Resets the "fixed" container to its original position after collapse.
-   * @return {!Promise}
-   * @private
-   */
-  resetBodyForOverlay_() {
-    return resetBodyForOverlay(this.win, this.getBodyElement());
-  }
-
-  /**
-   * @return {!Promise}
-   * @private
-   */
-  requestFullOverlayFrame_() {
-    return new Promise((resolve, reject) => {
-      const unlisten = this.iframeClient_.makeRequest(
-          MessageType.FULL_OVERLAY_FRAME,
-          MessageType.FULL_OVERLAY_FRAME_RESPONSE,
-          response => {
-            unlisten();
-            if (response.success) {
-              this.updateBoxRect_(response.boxRect);
-              resolve();
-            } else {
-              reject('Request to open lightbox rejected by host document');
-            }
-          });
-    });
-  }
-
-  /**
-   * @return {!Promise}
-   * @private
-   */
-  requestCancelFullOverlayFrame_() {
-    return new Promise(resolve => {
-      const unlisten = this.iframeClient_.makeRequest(
-          MessageType.CANCEL_FULL_OVERLAY_FRAME,
-          MessageType.CANCEL_FULL_OVERLAY_FRAME_RESPONSE,
-          response => {
-            unlisten();
-            this.updateBoxRect_(response.boxRect);
-            resolve();
-          });
-    });
-  }
-
-  /** @visibleForTesting */
-  getBodyElement() {
-    return dev().assertElement(this.win.document.body);
   }
 
   /** @override */
@@ -417,11 +313,13 @@ export class ViewportBindingInabox {
    */
   requestFullOverlayFrame_() {
     return new Promise((resolve, reject) => {
-      this.iframeClient_.makeRequest(
+      const unlisten = this.iframeClient_.makeRequest(
           MessageType.FULL_OVERLAY_FRAME,
           MessageType.FULL_OVERLAY_FRAME_RESPONSE,
           response => {
+            unlisten();
             if (response.success) {
+              this.updateBoxRect_(response.boxRect);
               resolve();
             } else {
               reject('Request to open lightbox rejected by host document');
@@ -436,10 +334,14 @@ export class ViewportBindingInabox {
    */
   requestCancelFullOverlayFrame_() {
     return new Promise(resolve => {
-      this.iframeClient_.makeRequest(
+      const unlisten = this.iframeClient_.makeRequest(
           MessageType.CANCEL_FULL_OVERLAY_FRAME,
           MessageType.CANCEL_FULL_OVERLAY_FRAME_RESPONSE,
-          resolve);
+          response => {
+            unlisten();
+            this.updateBoxRect_(response.boxRect);
+            resolve();
+          });
     });
   }
 
