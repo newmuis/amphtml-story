@@ -14,17 +14,24 @@
  * limitations under the License.
  */
 
+import * as lolex from 'lolex';
 import {AmpEvents} from '../../src/amp-events';
 import {BaseElement} from '../../src/base-element';
 import {ElementStub} from '../../src/element-stub';
 import {LOADING_ELEMENTS_, Layout} from '../../src/layout';
 import {ResourceState} from '../../src/service/resource';
-import {Services} from '../../src/services';
-import {createAmpElementProtoForTesting} from '../../src/custom-element';
-import {poll} from '../../testing/iframe';
-import * as lolex from 'lolex';
-import {AmpEvents} from '../../src/amp-events';
-
+import {resourcesForDoc} from '../../src/services';
+import {vsyncFor} from '../../src/services';
+import {
+  copyElementToChildWindow,
+  createAmpElementProto,
+  getElementClassForTesting,
+  registerElement,
+  resetScheduledElementForTesting,
+  stubElementIfNotKnown,
+  stubElements,
+  upgradeOrRegisterElement,
+} from '../../src/custom-element';
 
 describes.realWin('CustomElement', {amp: true}, env => {
   let win, doc, ampdoc;
@@ -1921,5 +1928,140 @@ describes.realWin('CustomElement Overflow Element', {amp: true}, env => {
 
     expect(overflowElement.onclick).to.not.exist;
     expect(overflowElement).to.not.have.class('amp-visible');
+  });
+
+  describe('no body', () => {
+
+    let elements;
+    let doc;
+    let win;
+    let elem1;
+    let setIntervalCallback;
+
+    beforeEach(() => {
+      elements = [];
+
+      doc = {
+        registerElement: sandbox.spy(),
+        documentElement: {
+          ownerDocument: doc,
+        },
+        head: {
+          querySelectorAll: selector => {
+            if (selector == 'script[custom-element]') {
+              return elements;
+            }
+            return [];
+          },
+        },
+        body: {},
+      };
+
+      elem1 = {
+        getAttribute: name => {
+          if (name == 'custom-element') {
+            return 'amp-test1';
+          }
+        },
+        ownerDocument: doc,
+      };
+      elements.push(elem1);
+
+      win = {
+        document: doc,
+        Object: {
+          create: proto => Object.create(proto),
+        },
+        HTMLElement,
+        setInterval: callback => {
+          setIntervalCallback = callback;
+        },
+        clearInterval: () => {
+        },
+        ampExtendedElements: {},
+      };
+      doc.defaultView = win;
+    });
+
+    afterEach(() => {
+      resetScheduledElementForTesting(win, 'amp-test1');
+      resetScheduledElementForTesting(win, 'amp-test2');
+    });
+
+    it('should be stub elements when body available', () => {
+      stubElements(win);
+
+      expect(win.ampExtendedElements).to.exist;
+      expect(win.ampExtendedElements['amp-test1']).to.equal(ElementStub);
+      expect(win.ampExtendedElements['amp-test2']).to.be.undefined;
+      expect(doc.registerElement).to.be.calledOnce;
+      expect(doc.registerElement.firstCall.args[0]).to.equal('amp-test1');
+      expect(setIntervalCallback).to.be.undefined;
+    });
+
+    it('should repeat stubbing when body is not available', () => {
+      doc.body = null;  // Body not available
+
+      stubElements(win);
+
+      expect(win.ampExtendedElements).to.exist;
+      expect(win.ampExtendedElements['amp-test1']).to.equal(ElementStub);
+      expect(win.ampExtendedElements['amp-test2']).to.be.undefined;
+      expect(doc.registerElement).to.be.calledOnce;
+      expect(doc.registerElement.firstCall.args[0]).to.equal('amp-test1');
+      expect(setIntervalCallback).to.exist;
+
+      // Add more elements
+      const elem2 = {
+        getAttribute: name => {
+          if (name == 'custom-element') {
+            return 'amp-test2';
+          }
+        },
+        ownerDocument: doc,
+      };
+      elements.push(elem2);
+      doc.body = {};
+      setIntervalCallback();
+
+      expect(win.ampExtendedElements['amp-test1']).to.equal(ElementStub);
+      expect(win.ampExtendedElements['amp-test2']).to.equal(ElementStub);
+      expect(doc.registerElement).to.have.callCount(2);
+      expect(doc.registerElement.getCall(1).args[0]).to.equal('amp-test2');
+    });
+
+    it('should stub element when not stubbed yet', () => {
+      // First stub is allowed.
+      stubElementIfNotKnown(win, 'amp-test1');
+
+      expect(win.ampExtendedElements).to.exist;
+      expect(win.ampExtendedElements['amp-test1']).to.equal(ElementStub);
+      expect(doc.registerElement).to.be.calledOnce;
+      expect(doc.registerElement.firstCall.args[0]).to.equal('amp-test1');
+
+      // Second stub is ignored.
+      stubElementIfNotKnown(win, 'amp-test1');
+      expect(doc.registerElement).to.be.calledOnce;
+    });
+
+    it('should copy or stub element definitions in a child window', () => {
+      stubElementIfNotKnown(win, 'amp-test1');
+
+      const registerElement = sandbox.spy();
+      const childWin = {Object, HTMLElement, document: {registerElement}};
+
+      copyElementToChildWindow(win, childWin, 'amp-test1');
+      expect(childWin.ampExtendedElements['amp-test1']).to.equal(ElementStub);
+      const firstCallCount = registerElement.callCount;
+      expect(firstCallCount).to.equal(1);
+      expect(registerElement.getCall(firstCallCount - 1).args[0])
+          .to.equal('amp-test1');
+
+      copyElementToChildWindow(win, childWin, 'amp-test2');
+      expect(childWin.ampExtendedElements['amp-test1']).to.equal(ElementStub);
+      expect(registerElement.callCount > firstCallCount).to.be.true;
+      expect(registerElement.getCall(registerElement.callCount - 1).args[0])
+          .to.equal('amp-test2');
+    });
   });
 });
