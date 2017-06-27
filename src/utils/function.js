@@ -21,7 +21,6 @@
  * @param {!function():(T|undefined)} fn
  * @return {!function():(T|undefined)}
  * @template T
- * @suppress {checkTypes} Compiler complains about "fn = null" for GC.
  */
 export function once(fn) {
   let evaluated = false;
@@ -30,7 +29,6 @@ export function once(fn) {
     if (!evaluated) {
       retValue = fn();
       evaluated = true;
-      fn = null; // GC
     }
     return retValue;
   };
