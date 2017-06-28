@@ -63,7 +63,7 @@ export function getElementServiceIfAvailable(win, id, extension, opt_element) {
   if (s) {
     return /** @type {!Promise<?Object>} */ (s);
   }
-  return elementServicePromiseOrNull(win, id, extension, opt_element);
+  return getElementServicePromiseOrNull(win, id, extension, opt_element);
 }
 
 /**
@@ -175,10 +175,17 @@ export function getElementServiceIfAvailableForDocInEmbedScope(
   if (s) {
     return /** @type {!Promise<?Object>} */ (Promise.resolve(s));
   }
+  // Return embed-scope element service promise if scheduled.
   if (nodeOrDoc.nodeType) {
     const win = /** @type {!Document} */ (
         nodeOrDoc.ownerDocument || nodeOrDoc).defaultView;
-    return elementServicePromiseOrNull(win, id, extension);
+    const topWin = getTopWindow(win);
+    // In embeds, doc-scope services are window-scope. But make sure to
+    // only do this for embeds (not the top window), otherwise we'd grab
+    // a promise from the wrong service holder which would never resolve.
+    if (win !== topWin) {
+      return getElementServicePromiseOrNull(win, id, extension);
+    }
   }
   return /** @type {!Promise<?Object>} */ (Promise.resolve(null));
 }
@@ -209,7 +216,7 @@ function assertService(service, id, extension) {
  * @return {!Promise<Object>}
  * @private
  */
-function elementServicePromiseOrNull(win, id, extension, opt_element) {
+function getElementServicePromiseOrNull(win, id, extension, opt_element) {
   // Microtask is necessary to ensure that window.ampExtendedElements has been
   // initialized.
   return Promise.resolve().then(() => {

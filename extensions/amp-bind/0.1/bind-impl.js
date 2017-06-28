@@ -108,7 +108,8 @@ export class Bind {
     /**
      * The window containing the document to scan.
      * May differ from the `ampdoc`'s window e.g. in FIE.
-     * @const @private {!Window} */
+     * @const @private {!Window}
+     */
     this.localWin_ = opt_win || ampdoc.win;
 
     /** @private {!Array<BoundElementDef>} */
@@ -161,17 +162,19 @@ export class Bind {
             .then(() => dev().assertElement(opt_win.document.body))
         : ampdoc.whenBodyAvailable();
 
-    /**
+    const bodyPromise = (opt_win)
+        ? waitForBodyPromise(opt_win.document)
+            .then(() => dev().assertElement(opt_win.document.body))
+        : ampdoc.whenBodyAvailable();
+
+    /**c.
      * Resolved when the service finishes scanning the document for bindings.
      * @const @private {Promise}
      */
-    this.initializePromise_ = Promise.all([
-      waitForBodyPromise(this.localWin_.document), // Wait for body.
-      this.viewer_.whenFirstVisible(), // Don't initialize in prerender mode.
-    ]).then(() => {
-      const rootNode = dev().assertElement(this.localWin_.document.body);
-      return this.initialize_(rootNode);
-    });
+    this.initializePromise_ =
+        this.viewer_.whenFirstVisible().then(() => bodyPromise).then(body => {
+          return this.initialize_(body);
+        });
 
     /** @const @private {!Function} */
     this.boundOnTemplateRendered_ = this.onTemplateRendered_.bind(this);
@@ -292,7 +295,6 @@ export class Bind {
       rootNode.addEventListener(
           AmpEvents.TEMPLATE_RENDERED, this.boundOnTemplateRendered_);
     });
-    // Check default values against initial expression results in development.
     if (getMode().development) {
       // Check default values against initial expression results.
       promise = promise.then(() =>
