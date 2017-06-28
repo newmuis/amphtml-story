@@ -57,7 +57,8 @@ export function accessServiceForDocOrNull(nodeOrDoc) {
  */
 export function actionServiceForDoc(nodeOrDoc) {
   return /** @type {!./service/action-impl.ActionService} */ (
-      getExistingServiceForDocInEmbedScope(nodeOrDoc, 'action'));
+      getExistingServiceForDocInEmbedScope(
+          nodeOrDoc, 'action', /* opt_fallbackToTopWin */ true));
 }
 
 /**
@@ -242,7 +243,8 @@ export function timerFor(window) {
  */
 export function urlReplacementsForDoc(nodeOrDoc) {
   return /** @type {!./service/url-replacements-impl.UrlReplacements} */ (
-      getExistingServiceForDocInEmbedScope(nodeOrDoc, 'url-replace'));
+      getExistingServiceForDocInEmbedScope(
+          nodeOrDoc, 'url-replace', /* opt_fallbackToTopWin */ true));
 }
 
 /**
