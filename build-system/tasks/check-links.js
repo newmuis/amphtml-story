@@ -151,6 +151,9 @@ function filterWhitelistedLinks(markdown) {
   filteredMarkdown =
       filteredMarkdown.replace(/https:\/\/cdn.ampproject.org(?!\/)/g, '');
 
+  // Links inside a <code> block (illustrative, and not always valid)
+  filteredMarkdown = filteredMarkdown.replace(/<code>(.*?)<\/code>/g, '');
+
   return filteredMarkdown;
 }
 
