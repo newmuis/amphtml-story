@@ -37,6 +37,9 @@ import {
   toggleExperiment,
 } from '../../../src/experiments';
 
+/** @const {string} */
+const AMP_SIGNATURE_HEADER = 'X-AmpAdSignature';
+
 /** @type {string}  */
 const AMP_ANALYTICS_HEADER = 'X-AmpAnalytics';
 
@@ -284,10 +287,20 @@ export function truncAndTimeUrl(baseUrl, parameters, startTime) {
  * @param {number} startTime
  * @return {string}
  */
-export function truncAndTimeUrl(baseUrl, parameters, startTime) {
-  return buildUrl(
-      baseUrl, parameters, MAX_URL_LENGTH - 10, TRUNCATION_PARAM)
-    + '&dtd=' + elapsedTimeWithCeiling(Date.now(), startTime);
+export function extractGoogleAdCreativeAndSignature(
+    creative, responseHeaders) {
+  let signature = null;
+  try {
+    if (responseHeaders.has(AMP_SIGNATURE_HEADER)) {
+      signature =
+        base64UrlDecodeToBytes(dev().assertString(
+            responseHeaders.get(AMP_SIGNATURE_HEADER)));
+    }
+  } finally {
+    return Promise.resolve(/** @type {
+          !../../../extensions/amp-a4a/0.1/amp-a4a.AdResponseDef} */ (
+          {creative, signature}));
+  }
 }
 
 /**

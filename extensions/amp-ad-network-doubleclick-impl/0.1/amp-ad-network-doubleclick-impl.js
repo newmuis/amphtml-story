@@ -364,33 +364,21 @@ export class AmpAdNetworkDoubleclickImpl extends AmpA4A {
       this.extensions_./*OK*/installExtensionForDoc(
           this.getAmpDoc(), 'amp-analytics');
     }
-    this.fireDelayedImpressions(responseHeaders.get('X-AmpImps'));
-    this.fireDelayedImpressions(responseHeaders.get('X-AmpRSImps'), true);
+    return extractGoogleAdCreativeAndSignature(responseText, responseHeaders);
+  }
+
+  /** @override */
+  extractSize(responseHeaders) {
     // If the server returned a size, use that, otherwise use the size that we
     // sent in the ad request.
     let size = super.extractSize(responseHeaders);
     if (size) {
-      this.returnedSize_ = size;
-      this.handleResize_(size.width, size.height);
+      this.size_ = size;
     } else {
-      size = this.getSlotSize();
+      size = this.size_;
     }
+    this.handleResize_(size.width, size.height);
     return size;
-  }
-
-  /**
-   * Returns the width and height of the slot as defined by the width and height
-   * attributes, or the dimensions as computed by
-   * getIntersectionElementLayoutBox.
-   * @return {{width: number, height: number}|../../../src/layout-rect.LayoutRectDef}
-   */
-  getSlotSize() {
-    const width = Number(this.element.getAttribute('width'));
-    const height = Number(this.element.getAttribute('height'));
-    return width && height
-        ? {width, height}
-        // width/height could be 'auto' in which case we fallback to measured.
-        : this.getIntersectionElementLayoutBox();
   }
 
   /** @override */
