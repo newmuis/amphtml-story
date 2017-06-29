@@ -27,7 +27,6 @@ import {toggle} from '../../../src/style';
 import {isEnumValue} from '../../../src/types';
 import {parseJson} from '../../../src/json';
 import {Activity} from './activity-impl';
-import {Cid} from '../../../src/service/cid-impl';
 import {
     InstrumentationService,
     instrumentationServicePromiseForDoc,
@@ -41,7 +40,12 @@ import {
 import {ANALYTICS_CONFIG} from './vendors';
 import {SANDBOX_AVAILABLE_VARS} from './sandbox-vars-whitelist';
 
-const TAG = 'amp-analytics';
+// Register doc-service factory.
+AMP.registerServiceForDoc(
+    'amp-analytics-instrumentation', InstrumentationService);
+AMP.registerServiceForDoc('activity', Activity);
+
+installVariableService(AMP.win);
 
 const MAX_REPLACES = 16; // The maximum number of entries in a extraUrlParamsReplaceMap
 

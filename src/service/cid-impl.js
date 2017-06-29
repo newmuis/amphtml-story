@@ -454,24 +454,6 @@ function getEntropy(win) {
 }
 
 /**
- * Produces an external CID for use in a cookie.
- * @param {!Window} win
- * @return {!Promise<string>} The cid
- */
-function getNewCidForCookie(win) {
-  const entropy = getEntropy(win);
-  if (typeof entropy == 'string') {
-    return Services.cryptoFor(win).sha384Base64(entropy);
-  } else {
-    // If our entropy is a pure random number, we can just directly turn it
-    // into base 64
-    return Promise.resolve(base64UrlEncodeFromBytes(entropy)
-        // Remove trailing padding
-        .replace(/\.+$/, ''));
-  }
-}
-
-/**
  * @param {!./ampdoc-impl.AmpDoc} ampdoc
  */
 export function installCidService(ampdoc) {
