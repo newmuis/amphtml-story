@@ -51,12 +51,6 @@ describes.realWin('amp-ad-3p-impl', {
   const whenFirstVisible = Promise.resolve();
 
   beforeEach(() => {
-    registryBackup = Object.create(null);
-    Object.keys(adConfig).forEach(k => {
-      registryBackup[k] = adConfig[k];
-      delete adConfig[k];
-    });
-    adConfig['_ping_'] = Object.assign({}, registryBackup['_ping_']);
     sandbox = env.sandbox;
     win = env.win;
     ad3p = createAmpAd(win);
@@ -65,13 +59,6 @@ describes.realWin('amp-ad-3p-impl', {
     // Turn the doc to visible so prefetch will be proceeded.
     stubService(sandbox, win, 'viewer', 'whenFirstVisible')
         .returns(whenFirstVisible);
-  });
-
-  afterEach(() => {
-    Object.keys(registryBackup).forEach(k => {
-      adConfig[k] = registryBackup[k];
-    });
-    registryBackup = null;
   });
 
   describe('layoutCallback', () => {
@@ -313,7 +300,8 @@ describes.realWin('amp-ad-3p-impl', {
       expect(ad3p2.renderOutsideViewport()).to.equal(false);
 
       // load ad one a time
-      yield layoutPromise;
+      yield layoutPromise; // wait for iframe load
+      yield macroTask(); // yield to promise resolution after iframe load
       expect(ad3p2.renderOutsideViewport()).to.equal(3);
     });
   });
