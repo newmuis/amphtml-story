@@ -24,7 +24,9 @@ import {
 const TIMEOUT = window.ampTestRuntimeConfig.mochaTimeout;
 
 describe.configure().retryOnSaucelabs().run('error page', function() {
-  this.timeout(TIMEOUT);
+  const timeout = 5000;
+
+  this.timeout(timeout);
 
   let fixture;
   beforeEach(() => {
@@ -43,13 +45,13 @@ describe.configure().retryOnSaucelabs().run('error page', function() {
       }, () => {
         return new Error('Failed to find errors. HTML\n' +
             fixture.doc.documentElement./*TEST*/innerHTML);
-      }, TIMEOUT);
+      }, timeout);
     });
   });
 
   it.configure().skipFirefox().skipEdge()
       .run('should show the body in error test', () => {
-        return expectBodyToBecomeVisible(fixture.win);
+        return expectBodyToBecomeVisible(fixture.win, timeout);
       });
 
   function shouldFail(id) {
