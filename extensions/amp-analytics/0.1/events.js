@@ -24,6 +24,7 @@ import {
 import {dev, user} from '../../../src/log';
 import {getData} from '../../../src/event-helper';
 import {getDataParamsFromAttributes} from '../../../src/dom';
+import {user} from '../../../src/log';
 import {startsWith} from '../../../src/string';
 
 const MIN_TIMER_INTERVAL_SECONDS = 0.5;
