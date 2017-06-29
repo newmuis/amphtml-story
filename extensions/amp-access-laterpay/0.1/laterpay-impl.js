@@ -163,8 +163,8 @@ export class LaterpayVendor {
       (getMode().localDev || getMode().development) &&
       this.laterpayConfig_['configUrl']
     ) {
-      return this.laterpayConfig_['configUrl'];
-    } else if (this.laterpayConfig_['sandbox']) {
+      return this.laterpayConfig_.configUrl;
+    } else if (this.laterpayConfig_.sandbox) {
       return SANDBOX_CONFIG_URL;
     } else {
       return CONFIG_URL;
@@ -297,6 +297,9 @@ export class LaterpayVendor {
     const dialogContainer = this.getContainer_();
     this.innerContainer_ = this.createElement_('div');
     this.innerContainer_.className = TAG + '-container';
+    if (this.laterpayConfig_.sandbox) {
+      this.renderTextBlock_('sandbox');
+    }
     this.renderTextBlock_('header');
     const listContainer = this.createElement_('ul');
     this.purchaseConfig_['premiumcontent']['tp_title'] =
