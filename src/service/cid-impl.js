@@ -134,33 +134,16 @@ export class Cid {
     return consent.then(() => {
       return Services.viewerForDoc(this.ampdoc).whenFirstVisible();
     }).then(() => {
-      // Check if user has globally opted out of CID, we do this after
-      // consent check since user can optout during consent process.
-      return isOptedOutOfCid(this.ampdoc);
-    }).then(optedOut => {
-      if (optedOut) {
-        return '';
-      }
       const cidPromise = this.getExternalCid_(
           getCidStruct, opt_persistenceConsent || consent);
       // Getting the CID might involve an HTTP request. We timeout after 10s.
-      return Services.timerFor(this.ampdoc.win)
+      return timerFor(this.ampdoc.win)
           .timeoutPromise(10000, cidPromise,
           `Getting cid for "${getCidStruct.scope}" timed out`)
           .catch(error => {
             rethrowAsync(error);
           });
     });
-  }
-
-  /**
-   * User will be opted out of Cid issuance for all scopes.
-   * When opted-out Cid service will reject all `get` requests.
-   *
-   * @return {!Promise}
-   */
-  optOut() {
-    return optOutOfCid(this.ampdoc);
   }
 
   /**
@@ -172,72 +155,36 @@ export class Cid {
    * @return {!Promise<?string>}
    */
   getExternalCid_(getCidStruct, persistenceConsent) {
-    const scope = getCidStruct.scope;
     /** @const {!Location} */
     const url = parseUrl(this.ampdoc.win.location.href);
     if (!isProxyOrigin(url)) {
-      const apiKey = this.viewerCidApi_.isScopeOptedIn(scope);
-      if (apiKey) {
-        return this.cidApi_.getScopedCid(apiKey, scope).then(scopedCid => {
-          if (scopedCid == TokenStatus.OPT_OUT) {
-            return null;
-          }
-          if (scopedCid) {
-            const cookieName = getCidStruct.cookieName || scope;
-            setCidCookie(this.ampdoc.win, cookieName, scopedCid);
-            return scopedCid;
-          }
-          return getOrCreateCookie(this, getCidStruct, persistenceConsent);
-        });
-      }
       return getOrCreateCookie(this, getCidStruct, persistenceConsent);
     }
-    return this.viewerCidApi_.isSupported().then(supported => {
-      if (supported) {
-        return this.viewerCidApi_.getScopedCid(scope);
+    const viewer = viewerForDoc(this.ampdoc);
+    if (viewer.hasCapability('cid')) {
+      return this.getScopedCidFromViewer_(getCidStruct.scope);
+    }
+    return getBaseCid(this, persistenceConsent)
+        .then(baseCid => {
+          return cryptoFor(this.ampdoc.win).sha384Base64(
+              baseCid + getProxySourceOrigin(url) + getCidStruct.scope);
+        });
+  }
+
+  /**
+   * @param {!string} scope
+   * @return {!Promise<?string>}
+   */
+  getScopedCidFromViewer_(scope) {
+    const viewer = viewerForDoc(this.ampdoc);
+    return viewer.isTrustedViewer().then(trusted => {
+      if (!trusted) {
+        rethrowAsync('Ignore CID API from Untrustful Viewer.');
+        return;
       }
-      return getBaseCid(this, persistenceConsent)
-          .then(baseCid => {
-            return Services.cryptoFor(this.ampdoc.win).sha384Base64(
-                baseCid + getProxySourceOrigin(url) + scope);
-          });
+      return viewer.sendMessageAwaitResponse('cid', dict({'scope': scope}));
     });
   }
-}
-
-/**
- * User will be opted out of Cid issuance for all scopes.
- * When opted-out Cid service will reject all `get` requests.
- *
- * @return {!Promise}
- * @visibleForTesting
- */
-export function optOutOfCid(ampdoc) {
-
-  // Tell the viewer that user has opted out.
-  Services.viewerForDoc(ampdoc)./*OK*/sendMessage(
-      CID_OPTOUT_VIEWER_MESSAGE, dict());
-
-  // Store the optout bit in storage
-  return Services.storageForDoc(ampdoc).then(storage => {
-    return storage.set(CID_OPTOUT_STORAGE_KEY, true);
-  });
-}
-
-/**
- * Whether user has opted out of Cid issuance for all scopes.
- *
- * @param {!./ampdoc-impl.AmpDoc} ampdoc
- * @return {!Promise<boolean>}
- * @visibleForTesting
- */
-export function isOptedOutOfCid(ampdoc) {
-  return Services.storageForDoc(ampdoc).then(storage => {
-    return storage.get(CID_OPTOUT_STORAGE_KEY).then(val => !!val);
-  }).catch(() => {
-    // If we fail to read the flag, assume not opted out.
-    return false;
-  });
 }
 
 /**

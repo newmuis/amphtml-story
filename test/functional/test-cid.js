@@ -14,11 +14,15 @@
  * limitations under the License.
  */
 
-import {Services} from '../../src/services';
+import {ampdocServiceFor} from '../../src/ampdoc';
+import {
+  extensionsFor,
+  timerFor,
+  viewerForDoc,
+} from '../../src/services';
 import {
   cidServiceForDocForTesting,
   getProxySourceOrigin,
-  viewerBaseCid,
 } from '../../src/service/cid-impl';
 import {installCryptoService, Crypto} from '../../src/service/crypto-impl';
 import {installDocService} from '../../src/service/ampdoc-impl';
@@ -36,7 +40,7 @@ import {
 import {stubServiceForDoc} from '../../testing/test-helper';
 import {macroTask} from '../../testing/yield';
 import * as url from '../../src/url';
-import {setCookie, getCookie} from '../../src/cookies';
+import {setCookie} from '../../src/cookies';
 import * as sinon from 'sinon';
 import * as lolex from 'lolex';
 
@@ -771,115 +775,4 @@ describes.realWin('cid', {amp: true}, env => {
     expect(resolved).to.be.true;
     expect(scopedCid).to.be.undefined;
   });
-
-  describe('pub origin, CID API opt in', () => {
-
-    beforeEach(() => {
-      sandbox.stub(url, 'isProxyOrigin').returns(false);
-      sandbox.stub(cid.viewerCidApi_, 'isScopeOptedIn').returns('api-key');
-      setCookie(win, '_ga', '', 0);
-    });
-
-    afterEach(() => {
-      setCookie(win, '_ga', '', 0);
-    });
-
-    it('should use cid api on pub origin if opted in', () => {
-      const getScopedCidStub = sandbox.stub(cid.cidApi_, 'getScopedCid');
-      getScopedCidStub.returns(Promise.resolve('cid-from-api'));
-      return cid.get({
-        scope: 'AMP_ECID_GOOGLE',
-        cookieName: '_ga',
-        createCookieIfNotPresent: true,
-      }, hasConsent).then(scopedCid => {
-        expect(getScopedCidStub)
-            .to.be.calledWith('api-key', 'AMP_ECID_GOOGLE');
-        expect(scopedCid).to.equal('cid-from-api');
-        expect(getCookie(win, '_ga')).to.equal('cid-from-api');
-      });
-    });
-
-    it('should fallback to cookie if cid api returns nothing', () => {
-      sandbox.stub(cid.cidApi_, 'getScopedCid').returns(Promise.resolve());
-      return cid.get({
-        scope: 'AMP_ECID_GOOGLE',
-        cookieName: '_ga',
-        createCookieIfNotPresent: true,
-      }, hasConsent).then(scopedCid => {
-        expect(scopedCid).to.contain('amp-');
-        expect(getCookie(win, '_ga')).to.equal(scopedCid);
-      });
-    });
-
-    it('should respect CID API opt out', () => {
-      sandbox.stub(cid.cidApi_, 'getScopedCid')
-          .returns(Promise.resolve('$OPT_OUT'));
-      return cid.get({
-        scope: 'AMP_ECID_GOOGLE',
-        cookieName: '_ga',
-        createCookieIfNotPresent: true,
-      }, hasConsent).then(scopedCid => {
-        expect(scopedCid).to.be.null;
-        expect(getCookie(win, '_ga')).to.be.null;
-      });
-    });
-  });
-});
-
-describes.fakeWin('cid optout:', {amp: true}, env => {
-  let storageGetStub;
-  let storageSetStub;
-  let viewerSendMessageStub;
-  let ampdoc;
-
-  beforeEach(() => {
-    ampdoc = env.ampdoc;
-    storageSetStub = stubServiceForDoc(sandbox, ampdoc, 'storage', 'set');
-    storageGetStub = stubServiceForDoc(sandbox, ampdoc, 'storage', 'get');
-    viewerSendMessageStub = stubServiceForDoc(sandbox, ampdoc,
-        'viewer', 'sendMessage');
-  });
-
-  describe('optOutOfCid()', () => {
-    it('should send a message to viewer', () => {
-      return optOutOfCid(ampdoc).then(() => {
-        expect(viewerSendMessageStub).to.be.calledWith('cidOptOut');
-      });
-    });
-
-    it('should save bit in storage', () => {
-      optOutOfCid(ampdoc).then(() => {
-        expect(storageSetStub).to.be.calledWith('amp-cid-optout', true);
-      });
-    });
-
-    it('should reject promise if storage set fails', () => {
-      storageSetStub.returns(Promise.reject('failed!'));
-      return optOutOfCid(ampdoc).should.eventually.be.rejectedWith('failed!');
-    });
-  });
-
-  describe('isOptedOutOfCid()', () => {
-    it('should return true if bit is set in storage', () => {
-      storageGetStub.withArgs('amp-cid-optout').returns(Promise.resolve(true));
-      return isOptedOutOfCid(ampdoc).then(isOut => {
-        expect(isOut).to.be.true;
-      });
-    });
-
-    it('should return false if bit is not set in storage', () => {
-      storageGetStub.withArgs('amp-cid-optout').returns(Promise.resolve(null));
-      return isOptedOutOfCid(ampdoc).then(isOut => {
-        expect(isOut).to.be.false;
-      });
-    });
-
-    it('should return false if storage get fails', () => {
-      storageGetStub.withArgs('amp-cid-optout').returns(Promise.reject('Fail'));
-      return isOptedOutOfCid(ampdoc).then(isOut => {
-        expect(isOut).to.be.false;
-      });
-    });
-  });
-
 });
