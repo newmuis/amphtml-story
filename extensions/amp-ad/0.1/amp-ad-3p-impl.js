@@ -91,6 +91,9 @@ export class AmpAd3PImpl extends AMP.BaseElement {
 
     /** @type {!../../../ads/google/a4a/performance.BaseLifecycleReporter} */
     this.lifecycleReporter = googleLifecycleReporterFactory(this);
+
+    /** @private {string} */
+    this.type_ = this.element.getAttribute('type');
   }
 
   /** @override */
@@ -245,7 +248,7 @@ export class AmpAd3PImpl extends AMP.BaseElement {
       // here, though, allows us to measure the impact of ad throttling via
       // incrementLoadingAds().
       this.emitLifecycleEvent('adRequestStart');
-      const iframe = getIframe(toWin(this.element.ownerDocument.defaultView),
+      const iframe = getIframe(this.element.ownerDocument.defaultView,
           this.element, this.type_, opt_context,
           this.config.remoteHTMLDisabled);
       this.xOriginIframeHandler_ = new AmpAdXOriginIframeHandler(

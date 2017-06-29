@@ -51,6 +51,12 @@ describes.realWin('amp-ad-3p-impl', {
   const whenFirstVisible = Promise.resolve();
 
   beforeEach(() => {
+    registryBackup = Object.create(null);
+    Object.keys(adConfig).forEach(k => {
+      registryBackup[k] = adConfig[k];
+      delete adConfig[k];
+    });
+    adConfig['_ping_'] = Object.assign({}, registryBackup['_ping_']);
     sandbox = env.sandbox;
     win = env.win;
     ad3p = createAmpAd(win);
@@ -59,6 +65,13 @@ describes.realWin('amp-ad-3p-impl', {
     // Turn the doc to visible so prefetch will be proceeded.
     stubService(sandbox, win, 'viewer', 'whenFirstVisible')
         .returns(whenFirstVisible);
+  });
+
+  afterEach(() => {
+    Object.keys(registryBackup).forEach(k => {
+      adConfig[k] = registryBackup[k];
+    });
+    registryBackup = null;
   });
 
   describe('layoutCallback', () => {
@@ -191,19 +204,6 @@ describes.realWin('amp-ad-3p-impl', {
             'http://ads.localhost:9876/dist.3p/current/frame.max.html"]'))
             .to.be.ok;
       });
-    });
-  });
-
-  describe('buildCallback', () => {
-    it('should emitLifecycleEvent for upgrade delay', () => {
-      const emitLifecycleEventSpy = sandbox.spy(ad3p, 'emitLifecycleEvent');
-      sandbox.stub(ad3p, 'getResource').returns({
-        getUpgradeDelayMs: () => 12345,
-      });
-      ad3p.buildCallback();
-      expect(emitLifecycleEventSpy.withArgs('upgradeDelay', {
-        'forced_delta': 12345,
-      })).to.be.calledOnce;
     });
   });
 

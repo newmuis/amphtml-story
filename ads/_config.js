@@ -114,6 +114,7 @@ export const adConfig = {
     preconnect: 'https://googleads.g.doubleclick.net',
     clientIdScope: 'AMP_ECID_GOOGLE',
     clientIdCookieName: '_ga',
+    remoteHTMLDisabled: true,
   },
 
   adsnative: {
