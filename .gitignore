@@ -18,6 +18,11 @@ typings.json
 build-system/runner/TESTS-TestSuites.xml
 /test/manual/amp-ad.adtech.html
 stamp-prototype/www
+stamp-prototype/www/v0
+stamp-prototype/www/sw.js
+stamp-prototype/www/v0.css
+stamp-prototype/www/v0.js
+stamp-prototype/www/v0.js.map
 !stamp-prototype/www/index.html
 !stamp-prototype/www/manifest.json
 !stamp-prototype/www/robots.txt
