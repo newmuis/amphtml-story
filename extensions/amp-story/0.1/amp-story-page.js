@@ -31,6 +31,57 @@ export class AmpStoryPage extends AMP.BaseElement {
   isLayoutSupported(layout) {
     return layout == Layout.CONTAINER;
   }
+
+  /** @override */
+  pauseCallback() {
+    this.pauseAllMedia_();
+  }
+
+
+  /** @override */
+  resumeCallback() {
+    this.playAllMedia_();
+  }
+
+
+  /** @override */
+  layoutCallback() {
+    this.playAllMedia_();
+    return Promise.resolve();
+  }
+
+
+  /**
+   * Gets all media on this page.
+   * @private
+   */
+  getAllMedia_() {
+    return this.element.querySelectorAll('audio, video');
+  }
+
+
+  /**
+   * Pauses all media on this page.
+   * @private
+   */
+  pauseAllMedia_() {
+    const mediaSet = this.getAllMedia_();
+    for (const mediaItem of mediaSet) {
+      mediaItem.pause();
+    }
+  }
+
+
+  /**
+   * Pauses all media on this page.
+   * @private
+   */
+  playAllMedia_() {
+    const mediaSet = this.getAllMedia_();
+    for (const mediaItem of mediaSet) {
+      mediaItem.play();
+    }
+  }
 }
 
 AMP.registerElement('amp-story-page', AmpStoryPage);
