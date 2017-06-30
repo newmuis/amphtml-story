@@ -548,6 +548,7 @@ describes.realWin('amp-user-notification', {
     it('should be able to get AmpUserNotification object by ID', () => {
       const element = getUserNotification();
       const userNotification = new AmpUserNotification(element);
+      userNotification.dialogResolve_();
       service.registerUserNotification('n1', userNotification);
       return expect(service.get('n1')).to.eventually.equal(userNotification);
     });

@@ -35,7 +35,7 @@ import {
 import {dict} from '../utils/object';
 import {isIframed} from '../dom';
 import {getCryptoRandomBytesArray} from '../utils/bytes';
-import {viewerForDoc} from '../services';
+import {viewerForDoc, storageForDoc} from '../services';
 import {cryptoFor} from '../crypto';
 import {parseJson, tryParseJson} from '../json';
 import {timerFor} from '../services';
@@ -134,6 +134,13 @@ export class Cid {
     return consent.then(() => {
       return Services.viewerForDoc(this.ampdoc).whenFirstVisible();
     }).then(() => {
+      // Check if user has globally opted out of CID, we do this after
+      // consent check since user can optout during consent process.
+      return isOptedOutOfCid(this.ampdoc);
+    }).then(optedOut => {
+      if (optedOut) {
+        return '';
+      }
       const cidPromise = this.getExternalCid_(
           getCidStruct, opt_persistenceConsent || consent);
       // Getting the CID might involve an HTTP request. We timeout after 10s.
@@ -144,6 +151,16 @@ export class Cid {
             rethrowAsync(error);
           });
     });
+  }
+
+  /**
+   * User will be opted out of Cid issuance for all scopes.
+   * When opted-out Cid service will reject all `get` requests.
+   *
+   * @return {!Promise}
+   */
+  optOut() {
+    return optOutOfCid(this.ampdoc);
   }
 
   /**
@@ -185,6 +202,40 @@ export class Cid {
       return viewer.sendMessageAwaitResponse('cid', dict({'scope': scope}));
     });
   }
+}
+
+/**
+ * User will be opted out of Cid issuance for all scopes.
+ * When opted-out Cid service will reject all `get` requests.
+ *
+ * @return {!Promise}
+ * @visibleForTesting
+ */
+export function optOutOfCid(ampdoc) {
+
+  // Tell the viewer that user has opted out.
+  viewerForDoc(ampdoc)./*OK*/sendMessage(CID_OPTOUT_VIEWER_MESSAGE, dict());
+
+  // Store the optout bit in storage
+  return storageForDoc(ampdoc).then(storage => {
+    return storage.set(CID_OPTOUT_STORAGE_KEY, true);
+  });
+}
+
+/**
+ * Whether user has opted out of Cid issuance for all scopes.
+ *
+ * @param {!./ampdoc-impl.AmpDoc} ampdoc
+ * @return {!Promise<boolean>}
+ * @visibleForTesting
+ */
+export function isOptedOutOfCid(ampdoc) {
+  return storageForDoc(ampdoc).then(storage => {
+    return storage.get(CID_OPTOUT_STORAGE_KEY).then(val => !!val);
+  }).catch(() => {
+    // If we fail to read the flag, assume not opted out.
+    return false;
+  });
 }
 
 /**

@@ -112,6 +112,9 @@ export class AmpUserNotification extends AMP.BaseElement {
     /** @private {?Promise<!Storage>} */
     this.storagePromise_ = null;
 
+    /** @private {?UserNotificationManager} */
+    this.userNotificationManager_ = null;
+
     /** @private {?../../../src/service/url-replacements-impl.UrlReplacements} */
     this.urlReplacements_ = null;
   }
@@ -124,8 +127,13 @@ export class AmpUserNotification extends AMP.BaseElement {
   /** @override */
   buildCallback() {
     const ampdoc = this.getAmpDoc();
-    this.urlReplacements_ = Services.urlReplacementsForDoc(ampdoc);
-    this.storagePromise_ = Services.storageForDoc(ampdoc);
+    this.urlReplacements_ = urlReplacementsForDoc(ampdoc);
+    this.storagePromise_ = storageForDoc(ampdoc);
+    if (!this.userNotificationManager_) {
+      installUserNotificationManager(window);
+      this.userNotificationManager_ = getService(window,
+          'userNotificationManager');
+    }
 
     this.elementId_ = user().assert(this.element.id,
         'amp-user-notification should have an id.');
@@ -157,13 +165,8 @@ export class AmpUserNotification extends AMP.BaseElement {
     this.registerAction('dismiss', () => this.dismiss(/*forceNoPersist*/false));
     this.registerAction('optoutOfCid', () => this.optoutOfCid_());
 
-    const userNotificationManagerPromise =
-        /** @type {!Promise<!UserNotificationManager>} */
-        (getServicePromiseForDoc(ampdoc, SERVICE_ID));
-    userNotificationManagerPromise.then(manager => {
-      manager.registerUserNotification(
-          dev().assertString(this.elementId_), this);
-    });
+    this.registerAction('dismiss', () => this.dismiss(/*forceNoPersist*/false));
+    this.registerAction('optoutOfCid', () => this.optoutOfCid_());
   }
 
   /**
@@ -208,20 +211,15 @@ export class AmpUserNotification extends AMP.BaseElement {
    * @return {!Promise}
    */
   postDismissEnpoint_() {
-    return Services.xhrFor(this.win).fetchJson(
-        dev().assertString(this.dismissHref_),
-        {
-          method: 'POST',
-          credentials: 'include',
-          requireAmpResponseSourceOrigin: false,
-          body: /** @type {!JsonObject} */({
-            'elementId': this.elementId_,
-            'ampUserId': this.ampUserId_,
-          }),
-          headers: {
-            'Content-Type': 'application/json;charset=utf-8',
-          },
-        });
+    return xhrFor(this.win).fetchJson(dev().assertString(this.dismissHref_), {
+      method: 'POST',
+      credentials: 'include',
+      requireAmpResponseSourceOrigin: false,
+      body: /** @type {!JsonObject} */({
+        'elementId': this.elementId_,
+        'ampUserId': this.ampUserId_,
+      }),
+    });
   }
 
   /**
@@ -286,7 +284,7 @@ export class AmpUserNotification extends AMP.BaseElement {
    * @private
    */
   getCidService_() {
-    return Services.cidForDoc(this.element);
+    return cidForDoc(this.element);
   }
 
   /** @override */
@@ -389,7 +387,7 @@ export class UserNotificationManager {
     this.deferRegistry_ = Object.create(null);
 
     /** @private @const {!../../../src/service/viewer-impl.Viewer} */
-    this.viewer_ = Services.viewerForDoc(this.ampdoc);
+    this.viewer_ = viewerForDoc(this.win.document);
 
     /** @private @const {!Promise} */
     this.documentReadyPromise_ = this.ampdoc.whenReady();
