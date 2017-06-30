@@ -53,6 +53,7 @@ export class AmpStoryPage extends AMP.BaseElement {
 
   /**
    * Gets all media on this page.
+   * @private
    */
   getAllMedia_() {
     return this.element.querySelectorAll('audio, video');
@@ -61,6 +62,7 @@ export class AmpStoryPage extends AMP.BaseElement {
 
   /**
    * Pauses all media on this page.
+   * @private
    */
   pauseAllMedia_() {
     const mediaSet = this.getAllMedia_();
@@ -72,6 +74,7 @@ export class AmpStoryPage extends AMP.BaseElement {
 
   /**
    * Pauses all media on this page.
+   * @private
    */
   playAllMedia_() {
     const mediaSet = this.getAllMedia_();
