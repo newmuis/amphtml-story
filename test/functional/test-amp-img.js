@@ -125,40 +125,6 @@ describe('amp-img', () => {
     });
   });
 
-  it('should load larger image on larger screen', () => {
-    windowWidth = 3000;
-    screenWidth = 300;
-    return getImg({
-      srcset: '/examples/img/sample.jpg?large 2000w, ' +
-          '/examples/img/small.jpg?small 1000w',
-      width: 300,
-      height: 200,
-    }).then(ampImg => {
-      const img = ampImg.querySelector('img');
-      expect(img.tagName).to.equal('IMG');
-      expect(img.getAttribute('src')).to.equal(
-          '/examples/img/sample.jpg?large');
-      expect(img.hasAttribute('referrerpolicy')).to.be.false;
-    });
-  });
-
-  it('should fall back to screen width for srcset', () => {
-    windowWidth = 0;
-    screenWidth = 3000;
-    return getImg({
-      srcset: '/examples/img/sample.jpg?large 2000w, ' +
-          '/examples/img/small.jpg?small 1000w',
-      width: 300,
-      height: 200,
-    }).then(ampImg => {
-      const img = ampImg.querySelector('img');
-      expect(img.tagName).to.equal('IMG');
-      expect(img.getAttribute('src')).to.equal(
-          '/examples/img/sample.jpg?large');
-      expect(img.hasAttribute('referrerpolicy')).to.be.false;
-    });
-  });
-
   it('should preconnect to the the first srcset url if src is not set', () => {
     return getImg({
       srcset: 'http://google.com/bad.jpg 2000w, /examples/img/sample.jpg 1000w',
