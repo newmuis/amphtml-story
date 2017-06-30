@@ -17,12 +17,7 @@
 import {isLayoutSizeDefined} from '../../../src/layout';
 import {tryParseJson} from '../../../src/json';
 import {user, dev} from '../../../src/log';
-import {
-  removeElement,
-  fullscreenEnter,
-  fullscreenExit,
-  isFullscreenElement,
-} from '../../../src/dom';
+import {removeElement} from '../../../src/dom';
 import {
   installVideoManagerForDoc,
 } from '../../../src/service/video-manager-impl';

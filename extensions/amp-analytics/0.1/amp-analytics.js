@@ -146,10 +146,9 @@ export class AmpAnalytics extends AMP.BaseElement {
         .getAttribute('data-consent-notification-id');
 
     if (this.consentNotificationId_ != null) {
-      this.consentPromise_ =
-          Services.userNotificationManagerForDoc(this.element)
-              .then(service => service.get(dev().assertString(
-                  this.consentNotificationId_)));
+      this.consentPromise_ = userNotificationManagerFor(this.win)
+          .then(service => service.get(dev().assertString(
+              this.consentNotificationId_)));
     }
 
     if (this.element.getAttribute('trigger') == 'immediate') {

@@ -16,7 +16,10 @@
 
 import {isObject} from '../../../src/types';
 import {dev, user} from '../../../src/log';
-import {Services} from '../../../src/services';
+import {cidForDoc} from '../../../src/services';
+import {viewerForDoc} from '../../../src/services';
+import {userNotificationManagerFor} from '../../../src/services';
+import {cryptoFor} from '../../../src/crypto';
 
 const ATTR_PREFIX = 'amp-x-';
 const nameValidator = /^[\w-]+$/;
@@ -46,7 +49,7 @@ export function allocateVariant(ampdoc, experimentName, config) {
   let hasConsentPromise = Promise.resolve(true);
 
   if (sticky && config['consentNotificationId']) {
-    hasConsentPromise = Services.userNotificationManagerForDoc(ampdoc)
+    hasConsentPromise = userNotificationManagerFor(ampdoc.win)
         .then(manager => manager.getNotification(
             config['consentNotificationId']))
         .then(userNotification => {
@@ -88,8 +91,8 @@ function validateConfig(config) {
   const variants = config['variants'];
   user().assert(isObject(variants) && Object.keys(variants).length > 0,
       'Missing experiment variants config.');
-  if (config.group) {
-    assertName(config.group);
+  if (config['group']) {
+    assertName(config['group']);
   }
   let totalPercentage = 0;
   for (const variantName in variants) {
@@ -122,9 +125,10 @@ function getBucketTicket(ampdoc, group, opt_cidScope) {
     return Promise.resolve(ampdoc.win.Math.random() * 100);
   }
 
-  const cidPromise = cidForDoc(ampdoc).then(cidService => cidService.get(
-        {scope: opt_cidScope, createCookieIfNotPresent: true},
-      Promise.resolve()));
+  const cidPromise = cidForDoc(ampdoc).then(cidService => cidService.get({
+    scope: dev().assertString(opt_cidScope),
+    createCookieIfNotPresent: true,
+  }, Promise.resolve()));
 
   return Promise.all([cidPromise, Services.cryptoFor(ampdoc.win)])
       .then(results => results[1].uniform(group + ':' + results[0]))

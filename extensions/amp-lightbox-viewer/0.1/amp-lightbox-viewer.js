@@ -23,7 +23,7 @@ import {Layout} from '../../../src/layout';
 import {user, dev} from '../../../src/log';
 import {extensionsFor} from '../../../src/services';
 import {toggle, setStyle} from '../../../src/style';
-import {listen} from '../../../src/event-helper';
+import {getData, listen} from '../../../src/event-helper';
 import {LightboxManager} from './service/lightbox-manager-impl';
 import {Animation} from '../../../src/animation';
 import {numeric} from '../../../src/transition';
@@ -99,12 +99,6 @@ export class AmpLightboxViewer extends AMP.BaseElement {
 
     /** @private  {?Element} */
     this.topBar_ = null;
-
-    /** @private  {?Element} */
-    this.topGradient_ = null;
-
-    /** @private {!LightboxControlsModes} */
-    this.controlsMode_ = LightboxControlsModes.SHOW_CONTROLS;
   }
 
   /** @override */
@@ -219,7 +213,7 @@ export class AmpLightboxViewer extends AMP.BaseElement {
     this.descriptionBox_.appendChild(this.descriptionTextArea_);
 
     const toggleDescription = this.toggleDescriptionBox_.bind(this);
-    listen(this.container_, 'click', toggleDescription);
+    listen(dev().assertElement(this.container_), 'click', toggleDescription);
     this.descriptionBox_.addEventListener('click', event => {
       this.toggleDescriptionOverflow_();
       event.stopPropagation();
@@ -316,7 +310,7 @@ export class AmpLightboxViewer extends AMP.BaseElement {
     this.buildButton_('Content', 'amp-lbv-button-slide', closeGallery);
 
     const toggleTopBar = this.toggleTopBar_.bind(this);
-    listen(this.container_, 'click', toggleTopBar);
+    listen(dev().assertElement(this.container_), 'click', toggleTopBar);
     this.container_.appendChild(this.topBar_);
   }
 
@@ -381,7 +375,10 @@ export class AmpLightboxViewer extends AMP.BaseElement {
     this.scheduleLayout(dev().assertElement(this.container_));
 
     this.currentElementId_ = element.lightboxItemId;
-    this.carousel_.implementation_.showSlideWhenReady(this.currentElementId_);
+    // Hack to access private property. Better than not getting
+    // type checking to work.
+    /**@type {?}*/ (this.carousel_).implementation_.showSlideWhenReady(
+        this.currentElementId_);
 
     this.win.document.documentElement.addEventListener(
         'keydown', this.boundHandleKeyboardEvents_);
@@ -509,7 +506,10 @@ export class AmpLightboxViewer extends AMP.BaseElement {
       this.closeGallery_();
       this.currentElementId_ = thumbnailObj.element.lightboxItemId;
       this.updateDescriptionBox_();
-      this.carousel_.implementation_.showSlideWhenReady(this.currentElementId_);
+      // Hack to access private property. Better than not getting
+      // type checking to work.
+      /**@type {?}*/ (this.carousel_).implementation_.showSlideWhenReady(
+          this.currentElementId_);
       event.stopPropagation();
     };
     element.addEventListener('click', closeGallaryAndShowTargetSlide);

@@ -106,9 +106,6 @@ export class AmpIframe extends AMP.BaseElement {
 
     /** @private {?Element} */
     this.container_ = null;
-
-    /** @private {boolean|undefined} */
-    this.isInContainer_ = undefined;
   }
 
   /** @override */

@@ -20,11 +20,8 @@ import {fetchBatchedJsonFor} from '../../../src/batched-json';
 import {isArray} from '../../../src/types';
 import {isLayoutSizeDefined} from '../../../src/layout';
 import {removeChildren} from '../../../src/dom';
-import {Services} from '../../../src/services';
+import {templatesFor} from '../../../src/services';
 import {dev, user} from '../../../src/log';
-
-/** @const {string} */
-const TAG = 'amp-list';
 
 /**
  * The implementation of `amp-list` component. See {@link ../amp-list.md} for
@@ -36,20 +33,8 @@ export class AmpList extends AMP.BaseElement {
   constructor(element) {
     super(element);
 
-    /** @const {!function(!Array<!Element>)} */
-    this.boundRendered_ = this.rendered_.bind(this);
-
-    /** @const {!function(!Array<!Element>):!Promise<!Array<!Element>>} */
-    this.boundScanForBindings_ = this.scanForBindings_.bind(this);
-
     /** @private {?Element} */
     this.container_ = null;
-
-    /** @private {boolean} */
-    this.fallbackDisplayed_ = false;
-
-    /** @const {!../../../src/service/template-impl.Templates} */
-    this.templates_ = Services.templatesFor(this.win);
   }
 
   /** @override */

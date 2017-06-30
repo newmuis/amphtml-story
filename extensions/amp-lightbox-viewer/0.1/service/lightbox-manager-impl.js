@@ -91,7 +91,7 @@ export class LightboxManager {
    * @return {!Promise}
    */
   scanLightboxables_() {
-    return this.ampdoc_.whenReady().then(() => {
+    return whenDocumentReady(this.ampdoc_.win.document).then(() => {
       const matches = this.ampdoc_.getRootNode().querySelectorAll('[lightbox]');
       this.elements_ = [];
       for (let i = 0; i < matches.length; i++) {
