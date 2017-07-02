@@ -46,7 +46,6 @@ var extensions = {};
 var extensionAliasFilePath = {};
 
 // Each extension and version must be listed individually here.
-// NOTE: No new extensions must pass the NO_TYPE_CHECK argument.
 declareExtension('amp-3q-player', '0.1', false);
 declareExtension('amp-access', '0.1', true, 'NO_TYPE_CHECK');
 declareExtension('amp-access-laterpay', '0.1', true, 'NO_TYPE_CHECK');
@@ -129,8 +128,8 @@ declareExtension('amp-story', '0.1', true);
 declareExtension('amp-timeago', '0.1', false);
 declareExtension('amp-twitter', '0.1', false);
 declareExtension('amp-user-notification', '0.1', true);
-declareExtension('amp-vimeo', '0.1', false, 'NO_TYPE_CHECK');
-declareExtension('amp-vine', '0.1', false, 'NO_TYPE_CHECK');
+declareExtension('amp-vimeo', '0.1', false);
+declareExtension('amp-vine', '0.1', false);
 declareExtension('amp-viz-vega', '0.1', true);
 declareExtension('amp-google-vrview-image', '0.1', false);
 declareExtension('amp-viewer-integration', '0.1', {
@@ -162,6 +161,9 @@ function declareExtension(name, version, hasCssOrOptions) {
     name: name,
     version: version,
     hasCss: hasCss,
+    // Only grandfathered for access
+    noTypeCheck: (!!opt_noTypeCheck && /access/.test(name)),
+    extraGlobs: opt_extraGlobs,
   }, options);
 }
 

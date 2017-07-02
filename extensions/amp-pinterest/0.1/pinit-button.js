@@ -15,8 +15,7 @@
  */
 import {openWindowDialog} from '../../../src/dom';
 import {dev, user} from '../../../src/log';
-import {Services} from '../../../src/services';
-import {toWin} from '../../../src/types';
+import {xhrFor} from '../../../src/services';
 
 import {Util} from './util';
 

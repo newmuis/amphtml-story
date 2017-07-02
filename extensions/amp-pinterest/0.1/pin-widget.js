@@ -38,7 +38,7 @@ export class PinWidget {
     user().assert(rootElement.getAttribute('data-url'),
         'The data-url attribute is required for Pin widgets');
     this.element = rootElement;
-    this.xhr = Services.xhrFor(toWin(rootElement.ownerDocument.defaultView));
+    this.xhr = xhrFor(rootElement.ownerDocument.defaultView);
     this.pinId = '';
     this.pinUrl = '';
     this.width = '';
@@ -75,7 +75,7 @@ export class PinWidget {
       requireAmpResponseSourceOrigin: false,
     }).then(res => res.json()).then(json => {
       try {
-        return json.data[0];
+        return /** @type {JsonObject} */(json)['data'][0];
       } catch (e) { return null; }
     });
   }
