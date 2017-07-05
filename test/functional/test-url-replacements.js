@@ -39,10 +39,7 @@ import {registerServiceBuilder} from '../../src/service';
 import {setCookie} from '../../src/cookies';
 import {parseUrl} from '../../src/url';
 import * as trackPromise from '../../src/impression';
-import {
-  stubServiceForDoc,
-  mockWindowInterface,
-} from '../../testing/test-helper';
+import {stubServiceForDoc} from '../../testing/test-helper';
 
 
 describes.sandboxed('UrlReplacements', {}, () => {
