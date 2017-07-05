@@ -25,21 +25,19 @@ describes.realWin('amp-soundcloud', {
   const trackEmbedUrl = 'https://w.soundcloud.com/player/?url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F243169232';
   const playlistEmbedUrl = 'https://w.soundcloud.com/player/?url=https%3A%2F%2Fapi.soundcloud.com%2Fplaylists%2F173211206';
 
-  let win, doc;
-
-  beforeEach(() => {
-    win = env.win;
-    doc = win.document;
-  });
+  const trackEmbedUrl = 'https://w.soundcloud.com/player/?url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F243169232';
+  const playlistEmbedUrl = 'https://w.soundcloud.com/player/?url=https%3A%2F%2Fapi.soundcloud.com%2Fplaylists%2F173211206';
 
   function getIns(mediaid, playlist, opt_attrs) {
-    const ins = doc.createElement('amp-soundcloud');
-    if (playlist) {
-      ins.setAttribute('data-playlistid', mediaid);
-    } else {
-      ins.setAttribute('data-trackid', mediaid);
-    }
-    ins.setAttribute('height', '237');
+    return createIframePromise().then(iframe => {
+      doNotLoadExternalResourcesInTest(iframe.win);
+      const ins = iframe.doc.createElement('amp-soundcloud');
+      if (playlist) {
+        ins.setAttribute('data-playlistid', mediaid);
+      } else {
+        ins.setAttribute('data-trackid', mediaid);
+      }
+      ins.setAttribute('height', '237');
 
     if (opt_attrs) {
       for (const attr in opt_attrs) {
