@@ -32,7 +32,7 @@ export class AccessClientAdapter {
   /**
    * @param {!../../../src/service/ampdoc-impl.AmpDoc} ampdoc
    * @param {!JsonObject} configJson
-   * @param {!AccessTypeAdapterContextDef} context
+   * @param {!./amp-access.AccessTypeAdapterContextDef} context
    */
   constructor(ampdoc, configJson, context) {
     /** @const */
@@ -61,10 +61,10 @@ export class AccessClientAdapter {
         configJson);
 
     /** @const @private {!../../../src/service/xhr-impl.Xhr} */
-    this.xhr_ = Services.xhrFor(ampdoc.win);
+    this.xhr_ = xhrFor(ampdoc.win);
 
     /** @const @private {!../../../src/service/timer-impl.Timer} */
-    this.timer_ = Services.timerFor(ampdoc.win);
+    this.timer_ = timerFor(ampdoc.win);
   }
 
   /**

@@ -47,8 +47,8 @@ var extensionAliasFilePath = {};
 
 // Each extension and version must be listed individually here.
 declareExtension('amp-3q-player', '0.1', false);
-declareExtension('amp-access', '0.1', true, 'NO_TYPE_CHECK');
-declareExtension('amp-access-laterpay', '0.1', true, 'NO_TYPE_CHECK');
+declareExtension('amp-access', '0.1', true);
+declareExtension('amp-access-laterpay', '0.1', true);
 declareExtension('amp-accordion', '0.1', false);
 declareExtension('amp-ad', '0.1', true);
 declareExtension('amp-ad-network-adsense-impl', 0.1, false);
@@ -161,9 +161,6 @@ function declareExtension(name, version, hasCssOrOptions) {
     name: name,
     version: version,
     hasCss: hasCss,
-    // Only grandfathered for access
-    noTypeCheck: (!!opt_noTypeCheck && /access/.test(name)),
-    extraGlobs: opt_extraGlobs,
   }, options);
 }
 

@@ -20,7 +20,10 @@ import {isProxyOrigin, removeFragment} from '../../../src/url';
 import {dev} from '../../../src/log';
 import {dict} from '../../../src/utils/object';
 import {parseJson} from '../../../src/json';
-import {Services} from '../../../src/services';
+import {timerFor} from '../../../src/services';
+import {viewerForDoc} from '../../../src/services';
+import {vsyncFor} from '../../../src/services';
+import {xhrFor} from '../../../src/services';
 
 /** @const {string} */
 const TAG = 'amp-access-server';
@@ -60,7 +63,7 @@ export class AccessServerAdapter {
   /**
    * @param {!../../../src/service/ampdoc-impl.AmpDoc} ampdoc
    * @param {!JsonObject} configJson
-   * @param {!AccessTypeAdapterContextDef} context
+   * @param {!./amp-access.AccessTypeAdapterContextDef} context
    */
   constructor(ampdoc, configJson, context) {
     /** @const */
@@ -73,16 +76,16 @@ export class AccessServerAdapter {
     this.clientAdapter_ = new AccessClientAdapter(ampdoc, configJson, context);
 
     /** @private @const {!../../../src/service/viewer-impl.Viewer} */
-    this.viewer_ = Services.viewerForDoc(ampdoc);
+    this.viewer_ = viewerForDoc(ampdoc);
 
     /** @const @private {!../../../src/service/xhr-impl.Xhr} */
-    this.xhr_ = Services.xhrFor(ampdoc.win);
+    this.xhr_ = xhrFor(ampdoc.win);
 
     /** @const @private {!../../../src/service/timer-impl.Timer} */
-    this.timer_ = Services.timerFor(ampdoc.win);
+    this.timer_ = timerFor(ampdoc.win);
 
     /** @const @private {!../../../src/service/vsync-impl.Vsync} */
-    this.vsync_ = Services.vsyncFor(ampdoc.win);
+    this.vsync_ = vsyncFor(ampdoc.win);
 
     const stateElement = ampdoc.getRootNode().querySelector(
         'meta[name="i-amphtml-access-state"]');

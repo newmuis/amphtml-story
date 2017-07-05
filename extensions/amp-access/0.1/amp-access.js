@@ -32,6 +32,7 @@ import {isExperimentOn} from '../../../src/experiments';
 import {isObject} from '../../../src/types';
 import {listenOnce} from '../../../src/event-helper';
 import {dev, user} from '../../../src/log';
+import {dict} from '../../../src/utils/object';
 import {getLoginUrl, openLoginDialog} from './login-dialog';
 import {parseQueryString} from '../../../src/url';
 import {startsWith} from '../../../src/string';
@@ -112,33 +113,33 @@ export class AccessService {
     this.pubOrigin_ = getSourceOrigin(ampdoc.win.location);
 
     /** @const @private {!../../../src/service/timer-impl.Timer} */
-    this.timer_ = Services.timerFor(ampdoc.win);
+    this.timer_ = timerFor(ampdoc.win);
 
     /** @const @private {!../../../src/service/vsync-impl.Vsync} */
-    this.vsync_ = Services.vsyncFor(ampdoc.win);
+    this.vsync_ = vsyncFor(ampdoc.win);
 
     /** @const @private {!../../../src/service/url-replacements-impl.UrlReplacements} */
-    this.urlReplacements_ = Services.urlReplacementsForDoc(ampdoc);
+    this.urlReplacements_ = urlReplacementsForDoc(ampdoc);
 
     // TODO(dvoytenko, #3742): This will refer to the ampdoc once AccessService
     // is migrated to ampdoc as well.
     /** @private @const {!Promise<!../../../src/service/cid-impl.Cid>} */
-    this.cid_ = Services.cidForDoc(ampdoc);
+    this.cid_ = cidForDoc(ampdoc);
 
     /** @private @const {!../../../src/service/viewer-impl.Viewer} */
-    this.viewer_ = Services.viewerForDoc(ampdoc);
+    this.viewer_ = viewerForDoc(ampdoc);
 
-    /** @private @const {!../../../src/service/viewport/viewport-impl.Viewport} */
-    this.viewport_ = Services.viewportForDoc(ampdoc);
+    /** @private @const {!../../../src/service/viewport-impl.Viewport} */
+    this.viewport_ = viewportForDoc(ampdoc);
 
     /** @private @const {!../../../src/service/template-impl.Templates} */
-    this.templates_ = Services.templatesFor(ampdoc.win);
+    this.templates_ = templatesFor(ampdoc.win);
 
     /** @private @const {!../../../src/service/resources-impl.Resources} */
-    this.resources_ = Services.resourcesForDoc(ampdoc);
+    this.resources_ = resourcesForDoc(ampdoc);
 
     /** @private @const {?../../../src/service/performance-impl.Performance} */
-    this.performance_ = Services.performanceForOrNull(ampdoc.win);
+    this.performance_ = performanceForOrNull(ampdoc.win);
 
     /** @private @const {function(string):Promise<string>} */
     this.openLoginDialog_ = openLoginDialog.bind(null, ampdoc);
@@ -262,7 +263,7 @@ export class AccessService {
 
   /**
    * @param {!JsonObject} configJson
-   * @return {?Object<string, string>}
+   * @return {!JsonObject}
    * @private
    */
   buildConfigLoginMap_(configJson) {
@@ -535,7 +536,7 @@ export class AccessService {
   }
 
   /**
-   * @param {!JsonObjectDef} response
+   * @param {!JsonObject} response
    * @return {!Promise}
    * @private
    */
@@ -550,7 +551,7 @@ export class AccessService {
 
   /**
    * @param {!Element} element
-   * @param {!JsonObjectDef} response
+   * @param {!JsonObject} response
    * @return {!Promise}
    * @private
    */
@@ -591,8 +592,8 @@ export class AccessService {
   /**
    * Discovers and renders templates.
    * @param {!Element} element
-   * @param {!JsonObjectDef} response
-   * @return {!Promise}
+   * @param {!JsonObject} response
+   * @return {?Promise}
    * @private
    */
   renderTemplates_(element, response) {
@@ -615,7 +616,7 @@ export class AccessService {
   /**
    * @param {!Element} element
    * @param {!Element} templateOrPrev
-   * @param {!JsonObjectDef} response
+   * @param {!JsonObject} response
    * @return {!Promise}
    * @private
    */
@@ -765,7 +766,6 @@ export class AccessService {
 
   /**
    * @param {!../../../src/service/action-impl.ActionInvocation} invocation
-   * @return {?Promise}
    * @private
    */
   handleAction_(invocation) {
