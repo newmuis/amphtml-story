@@ -121,11 +121,11 @@ amp-story-grid-layer * {
   margin: 0 !important;
 }
 
-amp-story-grid-layer[template="fill"] > :not(:first-child) {
+.i-amp-story-grid-template-fill > :not(:first-child) {
   display: none !important;
 }
 
-amp-story-grid-layer[template="fill"] > :first-child {
+.i-amp-story-grid-template-fill > :first-child {
   bottom: 0 !important;
   display: block !important;
   height: auto !important;
@@ -136,13 +136,13 @@ amp-story-grid-layer[template="fill"] > :first-child {
   width: auto !important;
 }
 
-amp-story-grid-layer[template="fill"] > amp-anim img,
-amp-story-grid-layer[template="fill"] > amp-img img,
-amp-story-grid-layer[template="fill"] > amp-video video {
+.i-amp-story-grid-template-fill > amp-anim img,
+.i-amp-story-grid-template-fill > amp-img img,
+.i-amp-story-grid-template-fill > amp-video video {
   object-fit: cover !important;
 }
 
-amp-story-grid-layer[template="vertical"] {
+.i-amp-story-grid-template-vertical {
   align-content: start;
   grid-auto-flow: row !important;
   grid-gap: 16px;
@@ -151,11 +151,11 @@ amp-story-grid-layer[template="vertical"] {
   justify-items: start;
 }
 
-amp-story-grid-layer[template="vertical"] > * {
+.i-amp-story-grid-template-vertical > * {
   width: 100%;
 }
 
-amp-story-grid-layer[template="horizontal"] {
+.i-amp-story-grid-template-horizontal {
   align-content: stretch;
   align-items: start;
   grid-auto-flow: column !important;
@@ -164,7 +164,7 @@ amp-story-grid-layer[template="horizontal"] {
   justify-content: start;
 }
 
-amp-story-grid-layer[template="thirds"] {
+.i-amp-story-grid-template-thirds {
   grid-template-rows: repeat(3, 1fr) !important;
   grid-template-areas: "upper-third"
                        "middle-third"
