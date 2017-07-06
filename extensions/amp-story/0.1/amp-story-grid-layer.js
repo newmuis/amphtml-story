@@ -52,6 +52,23 @@ const SUPPORTED_CSS_GRID_ATTRIBUTES_SELECTOR =
     .map(key => `[${key}]`)
     .join(',');
 
+/**
+ * The attribute name for grid layer templates.
+ * @private @const {string}
+ */
+const TEMPLATE_ATTRIBUTE_NAME = 'template';
+
+/**
+ * A mapping of template attribute values to CSS class names.
+ * @private @const {!Object<string, string>}
+ */
+const TEMPLATE_CLASS_NAMES = {
+  'fill': 'i-amp-story-grid-template-fill',
+  'vertical': 'i-amp-story-grid-template-vertical',
+  'horizontal': 'i-amp-story-grid-template-horizontal',
+  'thirds': 'i-amp-story-grid-template-thirds',
+};
+
 export class AmpStoryGridLayer extends AMP.BaseElement {
   buildCallback() {
     const elementsToUpgradeStyles = this.element
@@ -64,6 +81,13 @@ export class AmpStoryGridLayer extends AMP.BaseElement {
 
     // Upgrade styles for the grid layer itself.
     this.setCssGridStyles_(this.element);
+
+    // Add CSS class names for templates.
+    if (this.element.hasAttribute(TEMPLATE_ATTRIBUTE_NAME)) {
+      const templateName = this.element.getAttribute(TEMPLATE_ATTRIBUTE_NAME);
+      const templateClassName = TEMPLATE_CLASS_NAMES[templateName];
+      this.element.classList.add(templateClassName);
+    }
   }
 
   /**
