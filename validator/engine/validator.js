@@ -2110,6 +2110,20 @@ class Context {
      */
     this.firstUrlSeenTag_ = null;
 
+    if (!amp.validator.LIGHT) {
+      /**
+       * @type {?LineCol}
+       * @private
+       */
+      this.encounteredBodyLineCol_ = null;
+    }
+
+    /**
+     * @type {?Array<string>}
+     * @private
+     */
+    this.encounteredBodyAttrs_ = null;
+
     /**
      * Extension-specific context.
      * @type {!ExtensionsContext}
@@ -2302,6 +2316,26 @@ class Context {
   /** @return {!ExtensionsContext} */
   getExtensions() {
     return this.extensions_;
+  }
+
+  /** @param {!Array<string>} attrs */
+  recordBodyTag(attrs) {
+    // Must copy because parser reuses the attrs array.
+    this.encounteredBodyAttrs_ = attrs.slice();
+    if (!amp.validator.LIGHT) {
+      this.encounteredBodyLineCol_ =
+          new LineCol(this.docLocator_.getLine(), this.docLocator_.getCol());
+    }
+  }
+
+  /** @return {?Array<string>} */
+  getEncounteredBodyAttrs() {
+    return this.encounteredBodyAttrs_;
+  }
+
+  /** @return {?LineCol} */
+  getEncounteredBodyLineCol() {
+    return this.encounteredBodyLineCol_;
   }
 }
 
@@ -4851,7 +4885,10 @@ amp.validator.ValidationHandler =
     if (referencePointMatcher !== null) {
       referencePointMatcher.match(attrs, this.context_, this.validationResult_);
     }
-    if ('BODY' === tagName) this.emitMissingExtensionErrors();
+    if ('BODY' === tagName) {
+      this.context_.recordBodyTag(attrs);
+      this.emitMissingExtensionErrors();
+    }
     this.validateTag(tagName, attrs);
     this.context_.getTagStack().matchChildTagName(
         this.context_, this.validationResult_);
