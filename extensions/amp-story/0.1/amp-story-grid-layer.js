@@ -57,9 +57,13 @@ export class AmpStoryGridLayer extends AMP.BaseElement {
     const elementsToUpgradeStyles = this.element
         .querySelectorAll(SUPPORTED_CSS_GRID_ATTRIBUTES_SELECTOR);
 
+    // Upgrade styles for children of the grid layer.
     for (const element of elementsToUpgradeStyles) {
       this.setCssGridStyles_(element);
     }
+
+    // Upgrade styles for the grid layer itself.
+    this.setCssGridStyles_(this.element);
   }
 
   /**
