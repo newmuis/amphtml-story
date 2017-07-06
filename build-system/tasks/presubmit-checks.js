@@ -668,7 +668,7 @@ var forbiddenTermsSrcInclusive = {
   },
   'decodeURIComponent\\(': {
     message: 'decodeURIComponent throws for malformed URL components. Please ' +
-    'use tryDecodeUriComponent from src/url.js',
+        'use tryDecodeUriComponent from src/url.js',
     whitelist: [
       '3p/integration.js',
       'dist.3p/current/integration.js',
@@ -679,15 +679,6 @@ var forbiddenTermsSrcInclusive = {
       'extensions/amp-pinterest/0.1/util.js',
       'src/url.js',
       'src/url-try-decode-uri-component.js',
-      'src/utils/bytes.js',
-    ],
-  },
-  'Text(Encoder|Decoder)\\(': {
-    message: 'TextEncoder/TextDecoder is not supported in all browsers.' +
-        'Please use UTF8 utilities from src/bytes.js',
-    whitelist: [
-      'ads/google/a4a/line-delimited-response-handler.js',
-      'examples/pwa/pwa.js',
       'src/utils/bytes.js',
     ],
   },
