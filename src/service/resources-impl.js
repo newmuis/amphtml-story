@@ -267,30 +267,11 @@ export class Resources {
       // See https://bugs.webkit.org/show_bug.cgi?id=174031 for more details.
       Promise.race([
         loadPromise(this.win),
-        Services.timerFor(this.win).promise(3100),
-      ]).then(remeasure);
-
-      // Remeasure the document when all fonts loaded.
-      if (this.win.document.fonts &&
-          this.win.document.fonts.status != 'loaded') {
-        this.win.document.fonts.ready.then(remeasure);
-      }
-    });
-
-    // Safari 10 and under incorrectly estimates font spacing for `@font-face`
-    // fonts. This leads to wild measurement errors. The best course of action
-    // is to remeasure everything on window.onload or font timeout (3s),
-    // whichever is earlier. This has to be done on the global window because
-    // this is where the fonts are always added. Unfortunately,
-    // `document.fonts.ready` cannot be used here due to
-    // https://bugs.webkit.org/show_bug.cgi?id=174030.
-    // See https://bugs.webkit.org/show_bug.cgi?id=174031 for more details.
-    Promise.race([
-      loadPromise(this.win),
-      timerFor(this.win).promise(3100),
-    ]).then(() => {
-      this.relayoutAll_ = true;
-      this.schedulePass();
+        timerFor(this.win).promise(3100),
+      ]).then(() => {
+        this.relayoutAll_ = true;
+        this.schedulePass();
+      });
     });
   }
 
