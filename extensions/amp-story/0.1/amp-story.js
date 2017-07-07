@@ -47,6 +47,8 @@ import {
 } from '../../../src/experiments';
 import {urlReplacementsForDoc} from '../../../src/services';
 import {xhrFor} from '../../../src/services';
+import {isFiniteNumber} from '../../../src/types';
+
 
 
 /** @private @const {number} */
@@ -57,6 +59,11 @@ const ACTIVE_PAGE_ATTRIBUTE_NAME = 'active';
 
 /** @private @const {string} */
 const RELATED_ARTICLES_ATTRIBUTE_NAME = 'related-articles';
+
+const TIME_REGEX = {
+  MILLISECONDS: /^(\d+)ms$/,
+  SECONDS: /^(\d+)s$/,
+};
 
 
 /**
@@ -130,6 +137,7 @@ export class AmpStory extends AMP.BaseElement {
 
     firstPage.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
     this.scheduleResume(firstPage);
+    this.maybeScheduleAutoAdvance_();
 
     // Mark all videos as autoplay
     const videos = this.element.querySelectorAll('amp-video');
@@ -165,13 +173,18 @@ export class AmpStory extends AMP.BaseElement {
 
   /**
    * Gets the next page that the user should be advanced to, upon navigation.
+   * @param {boolean=} opt_isAutomaticAdvance Whether this navigation was caused
+   *     by an automatic advancement after a timeout.
    * @return {?Element} The element representing the page that the user should
    *     be advanced to.
    * @private
    */
-  getNextPage_() {
+  getNextPage_(opt_isAutomaticAdvance) {
     const activePage = this.getActivePage_();
-    const nextPageId = activePage.getAttribute('advance-to');
+    const nextPageId =
+        opt_isAutomaticAdvance && activePage.hasAttribute('auto-advance-to') ?
+            activePage.getAttribute('auto-advance-to') :
+            activePage.getAttribute('advance-to');
 
     if (nextPageId) {
       return user().assert(
@@ -191,11 +204,13 @@ export class AmpStory extends AMP.BaseElement {
 
   /**
    * Advance to the next screen in the story, if there is one.
+   * @param {boolean=} opt_isAutomaticAdvance Whether this navigation was caused
+   *     by an automatic advancement after a timeout.
    * @private
    */
-  next_() {
+  next_(opt_isAutomaticAdvance) {
     const activePage = this.getActivePage_();
-    const nextPage = this.getNextPage_();
+    const nextPage = this.getNextPage_(opt_isAutomaticAdvance);
     if (!nextPage) {
       this.showBookend_();
       return;
@@ -249,7 +264,36 @@ export class AmpStory extends AMP.BaseElement {
     }, page).then(() => {
       this.schedulePause(activePage);
       this.scheduleResume(page);
-    });
+    }).then(() => this.maybeScheduleAutoAdvance_());
+  }
+
+
+  /**
+   * If the auto-advance-delay property is set, a timer is set for that
+   * duration, after which next_() will be invoked.
+   * @private
+   */
+  maybeScheduleAutoAdvance_() {
+    const activePage = this.getActivePage_();
+    const autoAdvanceDelay = activePage.getAttribute('auto-advance-delay');
+
+    if (!autoAdvanceDelay) {
+      return;
+    }
+
+    let delayMs;
+    if (TIME_REGEX.MILLISECONDS.test(autoAdvanceDelay)) {
+      delayMs = Number(TIME_REGEX.MILLISECONDS.exec(autoAdvanceDelay)[1]);
+    } else if (TIME_REGEX.SECONDS.test(autoAdvanceDelay)) {
+      delayMs = Number(TIME_REGEX.SECONDS.exec(autoAdvanceDelay)[1]) * 1000;
+    }
+
+    user().assert(isFiniteNumber(delayMs) && delayMs > 0,
+        `Invalid automatic advance delay '${autoAdvanceDelay}' ` +
+        `for page '${activePage.id}'.`);
+
+    this.win.setTimeout(
+        () => this.next_(true /* opt_isAutomaticAdvance */), delayMs);
   }
 
 
