@@ -294,10 +294,10 @@ function runAllCommands() {
     command.runVisualDiffTests();
     command.runJsonAndLintChecks();
     command.runDepAndTypeChecks();
+    command.runUnitTests();
     // command.testDocumentLinks() is skipped during push builds.
     command.buildValidatorWebUI();
     command.buildValidator();
-    command.runUnitTests(); // Needs validator to be built.
   }
   if (process.env.BUILD_SHARD == "integration_tests") {
     command.cleanBuild();
@@ -374,16 +374,11 @@ function main(argv) {
     if (buildTargets.has('BUILD_SYSTEM')) {
       command.testBuildSystem();
     }
+
     if (buildTargets.has('DOCS')) {
       command.testDocumentLinks(files);
     }
-    if (buildTargets.has('VALIDATOR_WEBUI')) {
-      command.buildValidatorWebUI();
-    }
-    // Unit tests require validator being built.
-    if (buildTargets.has('VALIDATOR') || buildTargets.has('RUNTIME')) {
-      command.buildValidator();
-    }
+
     if (buildTargets.has('RUNTIME') || buildTargets.has('INTEGRATION_TEST')) {
       command.cleanBuild();
       command.buildRuntime();
@@ -399,6 +394,12 @@ function main(argv) {
       if (buildTargets.has('RUNTIME')) {
         command.runUnitTests();
       }
+    }
+    if (buildTargets.has('VALIDATOR_WEBUI')) {
+      command.buildValidatorWebUI();
+    }
+    if (buildTargets.has('VALIDATOR')) {
+      command.buildValidator();
     }
   }
 
