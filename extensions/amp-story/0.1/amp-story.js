@@ -357,11 +357,9 @@ export class AmpStory extends AMP.BaseElement {
 
     if (event.pageX >= nextScreenAreaMin && event.pageX < nextScreenAreaMax) {
       this.next_();
-      event.stopPropagation();
     } else if (event.pageX >= this.element.offsetLeft &&
         event.pageX < nextScreenAreaMin) {
       this.previous_();
-      event.stopPropagation();
     }
 
     event.stopPropagation();
