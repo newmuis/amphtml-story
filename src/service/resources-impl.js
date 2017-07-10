@@ -160,8 +160,14 @@ export class Resources {
     /** @private {number} */
     this.lastVelocity_ = 0;
 
-    /** @const {!Pass} */
+    /** @const @private {!Pass} */
     this.pass_ = new Pass(this.win, () => this.doPass());
+
+    /** @const @private {!Pass} */
+    this.remeasurePass_ = new Pass(this.win, () => {
+      this.relayoutAll_ = true;
+      this.schedulePass();
+    });
 
     /** @const {!TaskQueue} */
     this.exec_ = new TaskQueue();
@@ -268,10 +274,7 @@ export class Resources {
       Promise.race([
         loadPromise(this.win),
         timerFor(this.win).promise(3100),
-      ]).then(() => {
-        this.relayoutAll_ = true;
-        this.schedulePass();
-      });
+      ]).then(remeasure);
     });
   }
 
