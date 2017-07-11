@@ -126,9 +126,7 @@ function isBuildSystemFile(filePath) {
       !isFlagConfig(filePath) &&
       // Exclude visual diff files from build-system since we want it to trigger
       // visual diff tests.
-      !isVisualDiffFile(filePath))
-      // OWNERS.yaml files should trigger build system to run tests
-      || isOwnersFile(filePath);
+      !isVisualDiffFile(filePath);
 }
 
 /**
@@ -166,6 +164,16 @@ function isValidatorFile(filePath) {
  */
 function isDocFile(filePath) {
   return path.extname(filePath) == '.md';
+}
+
+/**
+ * Determines if the given file is related to the visual diff tests.
+ * @param {string} filePath
+ * @return {boolean}
+ */
+function isVisualDiffFile(filePath) {
+  const filename = path.basename(filePath);
+  return (filename == 'visual-diff.rb' || filename == 'visual-tests.json');
 }
 
 /**
@@ -221,6 +229,8 @@ function determineBuildTargets(filePaths) {
       targetSet.add('FLAG_CONFIG');
     } else if (isIntegrationTest(p)) {
       targetSet.add('INTEGRATION_TEST');
+    } else if (isVisualDiffFile(p)) {
+      targetSet.add('VISUAL_DIFF');
     } else {
       targetSet.add('RUNTIME');
     }
@@ -374,12 +384,12 @@ function main(argv) {
     if (buildTargets.has('BUILD_SYSTEM')) {
       command.testBuildSystem();
     }
-
     if (buildTargets.has('DOCS')) {
       command.testDocumentLinks(files);
     }
-
-    if (buildTargets.has('RUNTIME') || buildTargets.has('INTEGRATION_TEST')) {
+    if (buildTargets.has('RUNTIME') ||
+        buildTargets.has('INTEGRATION_TEST') ||
+        buildTargets.has('VISUAL_DIFF')) {
       command.cleanBuild();
       command.buildRuntime();
       command.runVisualDiffTests();
@@ -390,7 +400,7 @@ function main(argv) {
       command.runPresubmitTests();
       command.runJsonAndLintChecks();
       command.runDepAndTypeChecks();
-      // Skip unit tests if the PR only contains changes to integration tests.
+      // Run unit tests only if the PR contains runtime changes.
       if (buildTargets.has('RUNTIME')) {
         command.runUnitTests();
       }
