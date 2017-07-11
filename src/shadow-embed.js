@@ -98,7 +98,7 @@ export function createShadowRoot(hostElement) {
 function createShadowRootPolyfill(hostElement) {
   const doc = hostElement.ownerDocument;
   /** @const {!Window} */
-  const win = toWin(doc.defaultView);
+  const win = doc.defaultView;
 
   // Host CSS polyfill.
   hostElement.classList.add('i-amphtml-shadow-host-polyfill');
