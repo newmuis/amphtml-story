@@ -194,6 +194,18 @@ describes.realWin('amp-ad-network-doubleclick-impl', realWinConfig, env => {
         impl.size_ = {width: 200, height: 50};
         impl.iframe = impl.win.document.createElement('iframe');
         installExtensionsService(impl.win);
+        // Temporary fix for local test failure.
+        sandbox.stub(impl,
+            'getIntersectionElementLayoutBox', () => {
+              return {
+                top: 0,
+                bottom: 0,
+                left: 0,
+                right: 0,
+                width: 320,
+                height: 50,
+              };
+            });
       });
       impl = new AmpAdNetworkDoubleclickImpl(element);
       sandbox.stub(impl, 'getAmpDoc', () => ampdoc);
@@ -380,9 +392,9 @@ describes.realWin('amp-ad-network-doubleclick-impl', realWinConfig, env => {
       impl.buildCallback();
       impl.onLayoutMeasure();
       return impl.getAdUrl().then(url =>
-          // With exp dc-use-attr-for-format off, we can't test for specific
-          // numbers, but we know that the values should be numeric.
-          expect(url).to.match(/sz=[0-9]+x[0-9]+/));
+        // With exp dc-use-attr-for-format off, we can't test for specific
+        // numbers, but we know that the values should be numeric.
+        expect(url).to.match(/sz=[0-9]+x[0-9]+/));
     });
     it('has correct format when width == "auto"',
         () => {
@@ -453,6 +465,15 @@ describes.realWin('amp-ad-network-doubleclick-impl', realWinConfig, env => {
           return impl.getAdUrl().then(url =>
              expect(url).to.contain('sz=123x456&'));
         });
+    it('has correct format with height/width override',
+        () => {
+          element.setAttribute('data-override-width', '123');
+          element.setAttribute('data-override-height', '456');
+          new AmpAd(element).upgradeCallback();
+          impl.onLayoutMeasure();
+          return impl.getAdUrl().then(url =>
+              expect(url).to.contain('sz=123x456&'));
+        });
     it('has correct format with height/width override and multiSize',
         () => {
           element.setAttribute('data-override-width', '123');
@@ -460,10 +481,9 @@ describes.realWin('amp-ad-network-doubleclick-impl', realWinConfig, env => {
           element.setAttribute('data-multi-size', '1x2,3x4');
           element.setAttribute('data-multi-size-validation', 'false');
           new AmpAd(element).upgradeCallback();
-          impl.buildCallback();
           impl.onLayoutMeasure();
           return impl.getAdUrl().then(url =>
-             expect(url).to.contain('sz=123x456%7C1x2%7C3x4&'));
+              expect(url).to.contain('sz=123x456%7C1x2%7C3x4&'));
         });
     it('has correct format with auto height/width and multiSize',
         () => {
@@ -472,59 +492,11 @@ describes.realWin('amp-ad-network-doubleclick-impl', realWinConfig, env => {
           element.setAttribute('data-multi-size', '1x2,3x4');
           element.setAttribute('data-multi-size-validation', 'false');
           new AmpAd(element).upgradeCallback();
-          impl.buildCallback();
           impl.onLayoutMeasure();
           return impl.getAdUrl().then(url =>
-             // Ensure that "auto" doesn't appear anywhere here:
-             expect(url).to.match(/sz=[0-9]+x[0-9]+%7C1x2%7C3x4&/));
+              // Ensure that "auto" doesn't appear anywhere here:
+              expect(url).to.match(/sz=[0-9]+x[0-9]+%7C1x2%7C3x4&/));
         });
-    it('should have the correct ifi numbers - no refresh', function() {
-      // When ran locally, this test tends to exceed 2000ms timeout.
-      this.timeout(5000);
-      // Reset counter for purpose of this test.
-      delete env.win['ampAdGoogleIfiCounter'];
-      new AmpAd(element).upgradeCallback();
-      return impl.getAdUrl().then(url1 => {
-        expect(url1).to.match(/ifi=1/);
-        return impl.getAdUrl().then(url2 => {
-          expect(url2).to.match(/ifi=2/);
-          return impl.getAdUrl().then(url3 => {
-            expect(url3).to.match(/ifi=3/);
-          });
-        });
-      });
-    });
-    it('has correct rc and ifi after refresh', () => {
-      // We don't really care about the behavior of the following methods, so
-      // we'll just stub them out so that refresh() can run without tripping any
-      // unrelated errors.
-      sandbox.stub(AmpA4A.prototype, 'initiateAdRequest',
-          () => impl.adPromise_ = Promise.resolve());
-      const tearDownSlotMock = sandbox.stub(AmpA4A.prototype, 'tearDownSlot');
-      tearDownSlotMock.returns(undefined);
-      const destroyFrameMock = sandbox.stub(AmpA4A.prototype, 'destroyFrame');
-      destroyFrameMock.returns(undefined);
-      impl.mutateElement = func => func();
-      impl.togglePlaceholder = sandbox.spy();
-      impl.win.document.win = impl.win;
-      impl.getAmpDoc = () => impl.win.document;
-      impl.getResource = () => {
-        return {
-          layoutCanceled: () => {},
-        };
-      };
-      new AmpAd(element).upgradeCallback();
-      return impl.getAdUrl().then(url1 => {
-        expect(url1).to.not.match(/(\?|&)rc=[0-9]+(&|$)/);
-        expect(url1).to.match(/(\?|&)ifi=1(&|$)/);
-        return impl.refresh(() => {}).then(() => {
-          return impl.getAdUrl().then(url2 => {
-            expect(url2).to.match(/(\?|&)rc=1(&|$)/);
-            expect(url1).to.match(/(\?|&)ifi=1(&|$)/);
-          });
-        });
-      });
-    });
   });
 
   describe('#unlayoutCallback', () => {

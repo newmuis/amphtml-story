@@ -239,21 +239,9 @@ const EXPERIMENTS = [
     name: 'Use slot width/height attribute for AdSense size format',
   },
   {
-    id: 'input-debounced',
-    name: 'A debounced input event for AMP actions',
-    cleanupIssue: 'https://github.com/ampproject/amphtml/issues/9413',
-    spec: 'https://github.com/ampproject/amphtml/issues/9277',
-  },
-  {
-    id: 'amp-ima-video',
-    name: 'IMA-integrated Video Player',
-  },
-  {
-    id: 'amp-sidebar 1.0',
-    name: 'Amp sidebar 1.0 extension',
-    cleanupIssue: 'https://github.com/ampproject/amphtml/issues/9803',
-    spec: 'https://github.com/ampproject/amphtml/blob/master/extensions/' +
-      'amp-sidebar/1.0/amp-sidebar-1.0.md',
+    id: 'ad-loader-v1',
+    name: 'New ad loader version 1',
+    cleanupIssue: 'https://github.com/ampproject/amphtml/issues/8261',
   },
   {
     id: 'user-error-reporting',
