@@ -262,51 +262,38 @@ export class FixedLayer {
     let hasTransferables = false;
     return this.vsync_.runPromise({
       measure: state => {
-        const elements = this.elements_;
         const autoTops = [];
-        const win = this.ampdoc.win;
+        const oldTops = [];
+        const elements = this.elements_;
 
         // Notice that this code intentionally breaks vsync contract.
         // Unfortunately, there's no way to reliably test whether or not
         // `top` has been set to a non-auto value on all platforms. To work
-        // this around, this code compares `style.top` values with a new
-        // `style.bottom` value.
-        // 1. Unset top from previous mutates and set bottom to an extremely
-        // large value (to catch cases where sticky-tops are in a long way
-        // down inside a scroller).
-        for (let i = 0; i < elements.length; i++) {
-          setStyles(elements[i].element, {
-            top: '',
-            bottom: '-9999vh',
-            transition: 'none',
-          });
-        }
-        // 2. Capture the `style.top` with this new `style.bottom` value. If
-        // this element has a non-auto top, this value will remain constant
-        // regardless of bottom.
-        for (let i = 0; i < elements.length; i++) {
-          autoTops.push(computedStyle(win, elements[i].element).top);
-        }
-        // 3. Cleanup the `style.bottom`.
-        for (let i = 0; i < elements.length; i++) {
-          setStyle(elements[i].element, 'bottom', '');
-        }
+        // this around, this code compares `offsetTop` values with and without
+        // `style.top = auto`.
 
+        // 1. Set all style top to `auto` and calculate the auto-offset.
         for (let i = 0; i < elements.length; i++) {
           const fe = elements[i];
-          const {element} = fe;
-          const style = computedStyle(win, element);
+          oldTops.push(getStyle(fe.element, 'top'));
+          setStyle(fe.element, 'top', 'auto');
+        }
 
-          const {offsetWidth, offsetHeight, offsetTop} = element;
-          const {
-            position = '',
-            bottom,
-            zIndex,
-          } = style;
-          const opacity = parseFloat(style.opacity);
-          const transform = style[getVendorJsPropertyName(style, 'transform')];
-          let {top} = style;
+        for (let i = 0; i < elements.length; i++) {
+          autoTops.push(elements[i].element./*OK*/offsetTop);
+        }
 
+        // 2. Reset style top.
+        for (let i = 0; i < elements.length; i++) {
+          setStyle(elements[i].element, 'top', oldTops[i]);
+        }
+
+        // 3. Calculated fixed/sticky info.
+        for (let i = 0; i < elements.length; i++) {
+          const fe = elements[i];
+          const element = fe.element;
+          const styles = computedStyle(this.ampdoc.win, element);
+          const position = styles.position || '';
           // Element is indeed fixed. Visibility is added to the test to
           // avoid moving around invisible elements.
           const isFixed = (
@@ -326,9 +313,22 @@ export class FixedLayer {
             continue;
           }
 
-          if (top === 'auto' || autoTops[i] !== top) {
-            if (isFixed &&
-                offsetTop === this.committedPaddingTop_ + this.borderTop_) {
+          // Calculate top, assuming that it could implicitly be `auto`.
+          // `getComputedStyle().top` will return `auto` in Safari and the
+          // actual calculated value in all other browsers. To find out whether
+          // or not the `top` was actually set in CSS, this method compares
+          // `offsetTop` with `style.top = 'auto'` and without.
+          let top = styles.top;
+          const currentOffsetTop = element./*OK*/offsetTop;
+          const isImplicitAuto = currentOffsetTop == autoTops[i];
+          if ((top == 'auto' || isImplicitAuto) && top != '0px' ||
+              // This is workaround for http://crbug.com/703816 in Chrome where
+              // `getComputedStyle().top` returns `0px` instead of `auto`.
+              (isSticky && top == '0px' && isImplicitAuto &&
+                  currentOffsetTop != 0)) {
+            top = '';
+            if (currentOffsetTop ==
+                    this.committedPaddingTop_ + this.borderTop_) {
               top = '0px';
             } else {
               top = '';
