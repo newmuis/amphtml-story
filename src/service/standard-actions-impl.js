@@ -112,6 +112,9 @@ export class StandardActions {
       case 'goBack':
         this.handleAmpGoBack_(invocation);
         return;
+      case 'print':
+        this.handleAmpPrint_(invocation);
+        return;
     }
     const node = dev().assertElement(invocation.target);
 
@@ -177,6 +180,19 @@ export class StandardActions {
       return;
     }
     historyForDoc(this.ampdoc).goBack();
+  }
+
+  /**
+   * @param {!./action-impl.ActionInvocation} invocation
+   * @private
+   */
+  handleAmpPrint_(invocation) {
+    if (!invocation.satisfiesTrust(ActionTrust.HIGH)) {
+      return;
+    }
+    const node = invocation.target;
+    const win = (node.ownerDocument || node).defaultView;
+    win.print();
   }
 
   /**
