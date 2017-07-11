@@ -30,6 +30,8 @@ import {AmpAdUIHandler} from '../../../amp-ad/0.1/amp-ad-ui'; // eslint-disable-
 import {
   AmpAdXOriginIframeHandler,    // eslint-disable-line no-unused-vars
 } from '../../../amp-ad/0.1/amp-ad-xorigin-iframe-handler';
+import {createIframePromise} from '../../../../testing/iframe';
+import {upgradeOrRegisterElement} from '../../../../src/custom-element';
 import {
   createElementWithAttributes,
   addAttributesToElement,
@@ -313,7 +315,7 @@ describes.realWin('amp-ad-network-adsense-impl', {
   });
 
   describe('#extractSize', () => {
-    let preloadExtensionSpy;
+    let loadExtensionSpy;
 
     beforeEach(() => {
       element = createElementWithAttributes(doc, 'amp-ad', {
@@ -328,84 +330,36 @@ describes.realWin('amp-ad-network-adsense-impl', {
       preloadExtensionSpy = sandbox.spy(extensions, 'preloadExtension');
     });
 
-    it('without signature', () => {
-      return utf8Encode('some creative').then(creative => {
-        return impl.extractCreativeAndSignature(
-            creative,
-            {
-              get() { return undefined; },
-              has() { return false; },
-            }).then(adResponse => {
-              expect(adResponse).to.deep.equal(
-                  {creative, signature: null});
-              expect(loadExtensionSpy.withArgs('amp-analytics')).to.not.be
-                  .called;
-            });
+    it('without analytics', () => {
+      impl.extractSize({
+        get() {
+          return undefined;
+        },
+        has() {
+          return false;
+        },
       });
-    });
-    it('with signature', () => {
-      return utf8Encode('some creative').then(creative => {
-        return impl.extractCreativeAndSignature(
-            creative,
-            {
-              get(name) {
-                return name == 'X-AmpAdSignature' ? 'AQAB' : undefined;
-              },
-              has(name) {
-                return name === 'X-AmpAdSignature';
-              },
-            }).then(adResponse => {
-              expect(adResponse).to.deep.equal(
-                  {creative, signature: base64UrlDecodeToBytes('AQAB')});
-              expect(loadExtensionSpy.withArgs('amp-analytics')).to.not.be
-                  .called;
-            });
-      });
-      expect(preloadExtensionSpy.withArgs('amp-analytics')).to.not.be.called;
+      expect(loadExtensionSpy.withArgs('amp-analytics')).to.not.be.called;
     });
 
     it('with analytics', () => {
-      return utf8Encode('some creative').then(creative => {
-        const url = ['https://foo.com?a=b', 'https://blah.com?lsk=sdk&sld=vj'];
-        return impl.extractCreativeAndSignature(
-            creative,
-            {
-              get(name) {
-                switch (name) {
-                  case 'X-AmpAnalytics':
-                    return JSON.stringify({url});
-                  case 'X-AmpAdSignature':
-                    return 'AQAB';
-                  default:
-                    return undefined;
-                }
-              },
-              has(name) {
-                return !!this.get(name);
-              },
-            }).then(adResponse => {
-              expect(adResponse).to.deep.equal(
-                  {
-                    creative,
-                    signature: base64UrlDecodeToBytes('AQAB'),
-                  });
-              expect(loadExtensionSpy.withArgs('amp-analytics')).to.be.called;
-            // exact value of ampAnalyticsConfig_ covered in
-            // ads/google/test/test-utils.js
-            });
+      const url = ['https://foo.com?a=b', 'https://blah.com?lsk=sdk&sld=vj'];
+      impl.extractSize({
+        get(name) {
+          switch (name) {
+            case 'X-AmpAnalytics':
+              return JSON.stringify({url});
+            default:
+              return undefined;
+          }
+        },
+        has(name) {
+          return !!this.get(name);
+        },
       });
-      expect(preloadExtensionSpy.withArgs('amp-analytics')).to.be.called;
+      expect(loadExtensionSpy.withArgs('amp-analytics')).to.be.called;
       // exact value of ampAnalyticsConfig_ covered in
       // ads/google/test/test-utils.js
-    });
-  });
-
-  describe('#onNetworkFailure', () => {
-
-    it('should append error parameter', () => {
-      const TEST_URL = 'https://somenetwork.com/foo?hello=world&a=b';
-      expect(impl.onNetworkFailure(new Error('xhr failure'), TEST_URL))
-          .to.jsonEqual({adUrl: TEST_URL + '&aet=n'});
     });
   });
 

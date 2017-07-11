@@ -23,14 +23,6 @@ import {startsWith} from '../../../src/string';
  * @type {string}
  * @private
  */
-const GMOSSP_BASE_URL_ = 'https://sp.gmossp-sp.jp/';
-
-/**
- * GMOSSP A4A base URL
- *
- * @type {string}
- * @private
- */
 const GMOSSP_BASE_A4A_URL_ = 'https://amp.sp.gmossp-sp.jp/_a4a/';
 
 /**
@@ -62,26 +54,6 @@ export class AmpAdNetworkGmosspImpl extends AmpA4A {
         GMOSSP_BASE_A4A_URL_);
   }
 
-  /**
-   * Extract creative and signature from a GMOSSP signed response.
-   *
-   * @override
-   */
-  extractCreativeAndSignature(responseText, responseHeaders) {
-    let signature = null;
-    try {
-      if (responseHeaders.has(AMP_SIGNATURE_HEADER_)) {
-        signature =
-          base64UrlDecodeToBytes(dev().assertString(
-              responseHeaders.get(AMP_SIGNATURE_HEADER_)));
-      }
-    } finally {
-      return Promise.resolve(/** @type
-        {!../../../extensions/amp-a4a/0.1/amp-a4a.AdResponseDef} */
-        ({creative: responseText, signature})
-      );
-    }
-  }
 }
 
 AMP.registerElement('amp-ad-network-gmossp-impl',

@@ -40,6 +40,8 @@ import {dev, user, duplicateErrorIfNecessary} from '../../../src/log';
 import {dict} from '../../../src/utils/object';
 import {getMode} from '../../../src/mode';
 import {isArray, isObject, isEnumValue} from '../../../src/types';
+import {some} from '../../../src/utils/promise';
+import {base64UrlDecodeToBytes} from '../../../src/utils/base64';
 import {utf8Decode} from '../../../src/utils/bytes';
 import {viewerForDoc} from '../../../src/services';
 import {xhrFor} from '../../../src/services';
@@ -76,6 +78,9 @@ const METADATA_STRINGS = [
 // cache' issue.  See https://github.com/ampproject/amphtml/issues/5614
 /** @type {string} */
 export const DEFAULT_SAFEFRAME_VERSION = '1-0-9';
+
+/** @const {string} @visibleForTesting */
+export const AMP_SIGNATURE_HEADER = 'X-AmpAdSignature';
 
 /** @const {string} */
 const CREATIVE_SIZE_HEADER = 'X-CreativeSize';
@@ -1146,7 +1151,7 @@ export class AmpA4A extends AMP.BaseElement {
 
   /**
    * Extracts creative and verification signature (if present) from
-   * XHR response body and header.  To be implemented by network.
+   * XHR response body and header.
    *
    * In the returned value, the `creative` field should be an `ArrayBuffer`
    * containing the utf-8 encoded bytes of the creative itself, while the
@@ -1154,32 +1159,34 @@ export class AmpA4A extends AMP.BaseElement {
    * bytes.  The `signature` field may be null if no signature was available
    * for this creative / the creative is not valid AMP.
    *
+   * @param {!ArrayBuffer} responseArrayBuffer content as array buffer
+   * @param {!../../../src/service/xhr-impl.FetchResponseHeaders} responseHeaders
+   *   XHR service FetchResponseHeaders object containing the response
+   *   headers.
+   * @return {!Promise<!AdResponseDef>}
+   */
+  extractCreativeAndSignature(responseArrayBuffer, responseHeaders) {
+    let signature = null;
+    const headerValue = responseHeaders.get(AMP_SIGNATURE_HEADER);
+    if (headerValue) {
+      try {
+        signature = base64UrlDecodeToBytes(headerValue);
+      } catch (e) {
+        // Decoding error; do nothing
+      }
+    }
+    return Promise.resolve(/** @type {!AdResponseDef} */ (
+        {creative: responseArrayBuffer, signature}));
+  }
+
+  /**
+   * Determine the desired size of the creative based on the HTTP response
+   * headers. Must be less than or equal to the original size of the ad slot
+   * along each dimension. May be overridden by network.
+   *
    * @param {!../../../src/service/xhr-impl.FetchResponseHeaders} responseHeaders
    * @return {?SizeInfoDef}
    */
-  extractSize(responseHeaders) {
-    const headerValue = responseHeaders.get(CREATIVE_SIZE_HEADER);
-    if (!headerValue) {
-      return null;
-    }
-    const match = /^([0-9]+)x([0-9]+)$/.exec(headerValue);
-    if (!match) {
-      // TODO(@taymonbeal, #9274): replace this with real error reporting
-      user().error(TAG, `Invalid size header: ${headerValue}`);
-      return null;
-    }
-    return /** @type {?SizeInfoDef} */ (
-        {width: Number(match[1]), height: Number(match[2])});
-  }
-
- /**
-  * Determine the desired size of the creative based on the HTTP response
-  * headers. Must be less than or equal to the original size of the ad slot
-  * along each dimension. May be overridden by network.
-  *
-  * @param {!../../../src/service/xhr-impl.FetchResponseHeaders} responseHeaders
-  * @return {?SizeInfoDef}
-  */
   extractSize(responseHeaders) {
     const headerValue = responseHeaders.get(CREATIVE_SIZE_HEADER);
     if (!headerValue) {

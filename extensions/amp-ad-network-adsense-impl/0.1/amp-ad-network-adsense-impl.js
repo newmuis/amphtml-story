@@ -31,7 +31,6 @@ import {
 import {getExperimentBranch, isExperimentOn} from '../../../src/experiments';
 import {
   additionalDimensions,
-  extractGoogleAdCreativeAndSignature,
   googleAdUrl,
   isGoogleAdsA4AValidEnvironment,
   isReportingEnabled,
@@ -210,11 +209,6 @@ export class AmpAdNetworkAdsenseImpl extends AmpA4A {
       this.extensions_./*OK*/installExtensionForDoc(
           this.getAmpDoc(), 'amp-analytics');
     }
-    return extractGoogleAdCreativeAndSignature(responseText, responseHeaders);
-  }
-
-  /** @override */
-  extractSize(unusedResponseHeaders) {
     return this.size_;
   }
 

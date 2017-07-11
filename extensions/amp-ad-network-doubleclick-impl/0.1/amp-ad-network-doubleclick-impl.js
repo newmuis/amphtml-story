@@ -364,11 +364,6 @@ export class AmpAdNetworkDoubleclickImpl extends AmpA4A {
       this.extensions_./*OK*/installExtensionForDoc(
           this.getAmpDoc(), 'amp-analytics');
     }
-    return extractGoogleAdCreativeAndSignature(responseText, responseHeaders);
-  }
-
-  /** @override */
-  extractSize(responseHeaders) {
     // If the server returned a size, use that, otherwise use the size that we
     // sent in the ad request.
     let size = super.extractSize(responseHeaders);

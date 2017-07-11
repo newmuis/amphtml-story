@@ -30,15 +30,11 @@ import {
   viewerForDoc,
   viewportForDoc,
 } from '../../../src/services';
-import {base64UrlDecodeToBytes} from '../../../src/utils/base64';
 import {domFingerprint} from '../../../src/utils/dom-fingerprint';
 import {
   isExperimentOn,
   toggleExperiment,
 } from '../../../src/experiments';
-
-/** @const {string} */
-const AMP_SIGNATURE_HEADER = 'X-AmpAdSignature';
 
 /** @type {string}  */
 const AMP_ANALYTICS_HEADER = 'X-AmpAnalytics';
@@ -279,28 +275,6 @@ export function truncAndTimeUrl(baseUrl, parameters, startTime) {
   return buildUrl(
       baseUrl, parameters, MAX_URL_LENGTH - 10, {name: 'trunc', value: '1'})
     + '&dtd=' + elapsedTimeWithCeiling(Date.now(), startTime);
-}
-
-/**
- * @param {string} baseUrl
- * @param {!Object<string,null|number|string>} parameters
- * @param {number} startTime
- * @return {string}
- */
-export function extractGoogleAdCreativeAndSignature(
-    creative, responseHeaders) {
-  let signature = null;
-  try {
-    if (responseHeaders.has(AMP_SIGNATURE_HEADER)) {
-      signature =
-        base64UrlDecodeToBytes(dev().assertString(
-            responseHeaders.get(AMP_SIGNATURE_HEADER)));
-    }
-  } finally {
-    return Promise.resolve(/** @type {
-          !../../../extensions/amp-a4a/0.1/amp-a4a.AdResponseDef} */ (
-          {creative, signature}));
-  }
 }
 
 /**

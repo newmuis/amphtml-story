@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import {AMP_SIGNATURE_HEADER} from '../legacy-signature-verifier';
-import {FetchMock, networkFailure} from './fetch-mock';
+import {AMP_SIGNATURE_HEADER} from '../amp-a4a';
 import {MockA4AImpl, TEST_URL} from './utils';
+import {Xhr} from '../../../../src/service/xhr-impl';
 import {createIframePromise} from '../../../../testing/iframe';
 import {
     data as validCSSAmp,
@@ -110,7 +110,7 @@ describe('integration test: a4a', () => {
     }
     // Expect ad request.
     headers = {};
-    headers[SIGNATURE_HEADER] = validCSSAmp.signature;
+    headers[AMP_SIGNATURE_HEADER] = validCSSAmp.signature;
     mockResponse = {
       arrayBuffer: () => utf8Encode(validCSSAmp.reserialized),
       bodyUsed: false,
@@ -168,7 +168,7 @@ describe('integration test: a4a', () => {
   });
 
   it('should fall back to 3p when no signature is present', () => {
-    delete adResponse.headers[AMP_SIGNATURE_HEADER];
+    delete headers[AMP_SIGNATURE_HEADER];
     return fixture.addElement(a4aElement).then(unusedElement => {
       expectRenderedInXDomainIframe(a4aElement, TEST_URL);
     });
@@ -197,9 +197,96 @@ describe('integration test: a4a', () => {
     });
   });
 
+  it('should fall back to 3p when extractCreative returns empty sig', () => {
+    const extractCreativeAndSignatureStub =
+        sandbox.stub(MockA4AImpl.prototype, 'extractCreativeAndSignature');
+    extractCreativeAndSignatureStub.onFirstCall().returns({
+      creative: utf8Encode(validCSSAmp.reserialized),
+      signature: null,
+      size: null,
+    });
+    return fixture.addElement(a4aElement).then(unusedElement => {
+      expect(extractCreativeAndSignatureStub).to.be.calledOnce;
+      expectRenderedInXDomainIframe(a4aElement, TEST_URL);
+    });
+  });
+
+  it('should fall back to 3p when extractCreative returns empty creative',
+      () => {
+        sandbox.stub(MockA4AImpl.prototype, 'extractCreativeAndSignature')
+            .onFirstCall().returns({
+              creative: null,
+              signature: validCSSAmp.signature,
+              size: null,
+            })
+            .onSecondCall().throws(new Error(
+            'Testing extractCreativeAndSignature should not occur error'));
+        // TODO(tdrl) Currently layoutCallback rejects, even though something
+        // *is* rendered.  This should be fixed in a refactor, and we should
+        // change this .catch to a .then.
+        return fixture.addElement(a4aElement).catch(error => {
+          expect(error.message).to.contain.string('Key failed to validate');
+          expect(error.message).to.contain.string('amp-a4a:');
+          expectRenderedInXDomainIframe(a4aElement, TEST_URL);
+        });
+      });
+
   it('should collapse slot when creative response has code 204', () => {
-    adResponse.status = 204;
-    adResponse.body = null;
+    headers = {};
+    headers[AMP_SIGNATURE_HEADER] = validCSSAmp.signature;
+    mockResponse = {
+      arrayBuffer: () => utf8Encode(validCSSAmp.reserialized),
+      bodyUsed: false,
+      headers: new FetchResponseHeaders({
+        getResponseHeader(name) {
+          return headers[name];
+        },
+      }),
+      status: 204,
+    };
+    xhrMock.withArgs(TEST_URL, {
+      mode: 'cors',
+      method: 'GET',
+      credentials: 'include',
+    }).onFirstCall().returns(Promise.resolve(mockResponse));
+    const forceCollapseStub =
+        sandbox.spy(MockA4AImpl.prototype, 'forceCollapse');
+    return fixture.addElement(a4aElement).then(() => {
+      expect(forceCollapseStub).to.be.calledOnce;
+    });
+  });
+
+  it('should NOT collapse slot when creative response is null', () => {
+    xhrMock.withArgs(TEST_URL, {
+      mode: 'cors',
+      method: 'GET',
+      credentials: 'include',
+    }).onFirstCall().returns(Promise.resolve(null));
+    const forceCollapseStub =
+        sandbox.spy(MockA4AImpl.prototype, 'forceCollapse');
+    return fixture.addElement(a4aElement).then(unusedElement => {
+      expect(forceCollapseStub).to.be.notCalled;
+    });
+  });
+
+  it('should collapse slot when creative response.arrayBuffer is null', () => {
+    headers = {};
+    headers[AMP_SIGNATURE_HEADER] = validCSSAmp.signature;
+    mockResponse = {
+      arrayBuffer: () => null,
+      bodyUsed: false,
+      headers: new FetchResponseHeaders({
+        getResponseHeader(name) {
+          return headers[name];
+        },
+      }),
+      status: 204,
+    };
+    xhrMock.withArgs(TEST_URL, {
+      mode: 'cors',
+      method: 'GET',
+      credentials: 'include',
+    }).onFirstCall().returns(Promise.resolve(mockResponse));
     const forceCollapseStub =
         sandbox.spy(MockA4AImpl.prototype, 'forceCollapse');
     return fixture.addElement(a4aElement).then(() => {
@@ -209,7 +296,23 @@ describe('integration test: a4a', () => {
 
   it('should collapse slot when creative response.arrayBuffer() is empty',
       () => {
-        adResponse.body = '';
+        headers = {};
+        headers[AMP_SIGNATURE_HEADER] = validCSSAmp.signature;
+        mockResponse = {
+          arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
+          bodyUsed: false,
+          headers: new FetchResponseHeaders({
+            getResponseHeader(name) {
+              return headers[name];
+            },
+          }),
+          status: 200,
+        };
+        xhrMock.withArgs(TEST_URL, {
+          mode: 'cors',
+          method: 'GET',
+          credentials: 'include',
+        }).onFirstCall().returns(Promise.resolve(mockResponse));
         const forceCollapseStub =
             sandbox.spy(MockA4AImpl.prototype, 'forceCollapse');
         return fixture.addElement(a4aElement).then(unusedElement => {
