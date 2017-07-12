@@ -30,21 +30,21 @@ describes.realWin('amp-dailymotion', {
   });
 
   function getDailymotion(videoId, optResponsive, optCustomSettings) {
-    const dailymotion = doc.createElement('amp-dailymotion');
-    dailymotion.setAttribute('data-videoid', videoId);
-    dailymotion.setAttribute('width', '111');
-    dailymotion.setAttribute('height', '222');
-    if (optResponsive) {
-      dailymotion.setAttribute('layout', 'responsive');
-    }
-    if (optCustomSettings) {
-      dailymotion.setAttribute('data-start', 123);
-      dailymotion.setAttribute('data-param-origin', 'example&.org');
-    }
-    doc.body.appendChild(dailymotion);
-    return dailymotion.build().then(() => {
-      return dailymotion.layoutCallback();
-    }).then(() => dailymotion);
+    return createIframePromise().then(iframe => {
+      doNotLoadExternalResourcesInTest(iframe.win);
+      const dailymotion = iframe.doc.createElement('amp-dailymotion');
+      dailymotion.setAttribute('data-videoid', videoId);
+      dailymotion.setAttribute('width', '111');
+      dailymotion.setAttribute('height', '222');
+      if (optResponsive) {
+        dailymotion.setAttribute('layout', 'responsive');
+      }
+      if (optCustomSettings) {
+        dailymotion.setAttribute('data-start', 123);
+        dailymotion.setAttribute('data-param-origin', 'example&.org');
+      }
+      return iframe.addElement(dailymotion);
+    });
   }
 
   it('renders', () => {
