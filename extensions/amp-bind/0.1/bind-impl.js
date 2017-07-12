@@ -805,17 +805,17 @@ export class Bind {
         // Once the user interacts with these elements, the JS properties
         // underlying these attributes must be updated for the change to be
         // visible to the user.
-        const updateElementProperty =
+        const updateProperty =
             element.tagName == 'INPUT' && property in element;
         const oldValue = element.getAttribute(property);
 
         let mutated = false;
         if (typeof newValue === 'boolean') {
-          if (updateElementProperty && element[property] !== newValue) {
-            // Property value *must* be read before the attribute is changed.
+          if (updateProperty && element[property] !== newValue) {
+            // Property value _must_ be read before the attribute is changed.
             // Before user interaction, attribute updates affect the property.
             element[property] = newValue;
-            attributeChanged = true;
+            mutated = true;
           }
           if (newValue && oldValue !== '') {
             element.setAttribute(property, '');
@@ -841,10 +841,10 @@ export class Bind {
           if (rewrittenNewValue !== undefined) {
             // TODO(choumx): Don't bother setting for bind-only attrs.
             element.setAttribute(property, rewrittenNewValue);
-            if (updateElementProperty) {
+            if (updateProperty) {
               element[property] = rewrittenNewValue;
             }
-            attributeChanged = true;
+            mutated = true;
           }
         }
 

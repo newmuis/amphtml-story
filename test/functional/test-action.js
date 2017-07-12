@@ -1074,15 +1074,13 @@ describes.fakeWin('Core events', {amp: true}, env => {
     const handler = window.document.addEventListener.getCall(3).args[1];
     const element = document.createElement('input');
     element.setAttribute('type', 'checkbox');
-    element.setAttribute('value', 'foo');
     element.checked = true;
     const event = {target: element};
     handler(event);
     expect(action.trigger).to.have.been.calledWith(
         element,
         'change',
-        sinon.match(object =>
-            object.detail.checked && object.detail.value == 'foo'));
+        sinon.match(object => object.detail.checked));
   });
 
   it('should trigger change event for <input type="range"> elements', () => {
@@ -1098,9 +1096,8 @@ describes.fakeWin('Core events', {amp: true}, env => {
         element,
         'change',
         sinon.match(e => {
-          const {min, max, value, valueAsNumber} = e.detail;
-          return min === '0' && max === '10' && value === '5'
-              && valueAsNumber === 5;
+          const detail = e.detail;
+          return detail.min == 0 && detail.max == 10 && detail.value == 5;
         }));
   });
 
