@@ -167,10 +167,40 @@ export class VideoInterface {
    *
    * @param {string} unusedMethod
    * @param {function(!./service/action-impl.ActionInvocation)} unusedHandler
-   * @param {ActionTrust} minTrust
+   * @param {ActionTrust} unusedMinTrust
    * @public
    */
-  registerAction(unusedMethod, unusedHandler, minTrust) {}
+  registerAction(unusedMethod, unusedHandler, unusedMinTrust) {}
+}
+
+
+/**
+ * @interface
+ */
+export class VideoInterfaceWithAnalytics extends VideoInterface {
+  /**
+   * Should return true.
+   * @return {boolean}
+   */
+  supportsAnalytics() {}
+
+  /**
+   * Current playback time in seconds at time of trigger
+   * @return {number}
+   */
+  getCurrentTime() {}
+
+  /**
+   * Total duration of the video in seconds
+   * @return {number}
+   */
+  getDuration() {}
+
+  /**
+   * Get a 2d array of start and stop times that the user has watched.
+   * @return {!Array<Array<number>>}
+   */
+  getPlayedRanges() {}
 }
 
 
@@ -311,28 +341,24 @@ export const VideoEvents = {
   RELOAD: 'reloaded',
 
   /**
-   * pre/mid/post Ad start
+   * ended
    *
-   * Fired when an Ad starts playing.
+   * Fired when the video ends.
    *
-   * This is used to remove any overlay shims during Ad play during autoplay
-   * or minimized-to-corner version of the player.
-   *
-   * @event ad_start
+   * @event ended
    */
-  AD_START: 'ad_start',
+  ENDED: 'ended',
 
   /**
-   * pre/mid/post Ad ends
+   * amp:video:analytics
    *
-   * Fired when an Ad ends playing.
+   * Fired when an analytics event occurs
    *
-   * This is used to restore any overlay shims during Ad play during autoplay
-   * or minimized-to-corner version of the player.
-   *
-   * @event ad_end
+   * @event amp:video:analytics
+   * @property {!VideoAnalyticsType} type The type of the video analytics event.
+   * @property {!VideoAnalyticsDetailsDef} details
    */
-  AD_END: 'ad_end',
+  ANALYTICS: 'amp:video:analytics',
 };
 
 
@@ -376,61 +402,31 @@ export const PlayingStates = {
 
 
 /** @enum {string} */
-export const VideoAnalyticsEvents = {
+export const VideoAnalyticsType = {
   /**
-   * video-ended
-   *
    * Indicates that a video ended.
-   * @property {!VideoAnalyticsDetailsDef} details
-   * @event video-ended
    */
   ENDED: 'video-ended',
 
   /**
-   * video-pause
-   *
    * Indicates that a video paused.
-   * @property {!VideoAnalyticsDetailsDef} details
-   * @event video-pause
    */
   PAUSE: 'video-pause',
 
   /**
-   * video-play
-   *
    * Indicates that a video began to play.
-   * @property {!VideoAnalyticsDetailsDef} details
-   * @event video-play
    */
   PLAY: 'video-play',
 
   /**
-   * video-session
-   *
    * Indicates that some segment of the video played.
-   * @property {!VideoAnalyticsDetailsDef} details
-   * @event video-session
    */
   SESSION: 'video-session',
 
   /**
-   * video-session-visible
-   *
    * Indicates that some segment of the video played in the viewport.
-   * @property {!VideoAnalyticsDetailsDef} details
-   * @event video-session-visible
    */
   SESSION_VISIBLE: 'video-session-visible',
-
-  /**
-   * video-seconds-played
-   *
-   * Indicates that a video was playing when the
-   * video-seconds-played interval fired.
-   * @property {!VideoAnalyticsDetailsDef} details
-   * @event video-session-visible
-   */
-  SECONDS_PLAYED: 'video-seconds-played',
 };
 
 

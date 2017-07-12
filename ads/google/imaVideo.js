@@ -734,7 +734,8 @@ export function playVideo() {
   playerState = PlayerStates.PLAYING;
   // Kick off the hide controls timer.
   showControls();
-  changeIcon(playPauseDiv, 'pause');
+  setStyle(playPauseDiv, 'line-height', '1.4em');
+  playPauseNode.textContent = pauseChars;
   window.parent./*OK*/postMessage({event: VideoEvents.PLAYING}, '*');
   videoPlayer.play();
 }

@@ -112,7 +112,7 @@ describes.realWin('amp-brid-player', {
 
       return Promise.resolve()
           .then(() => {
-            const p = listenOncePromise(bc, VideoEvents.PLAY);
+            const p = listenOncePromise(bc, VideoEvents.PLAYING);
             sendFakeMessage(bc, iframe, 'trigger|play');
             return p;
           })

@@ -24,7 +24,6 @@ import {
   CustomEventTracker,
   IniLoadTracker,
   SignalTracker,
-  TimerEventTracker,
   VideoEventTracker,
   VisibilityTracker,
 } from './events';
@@ -40,6 +39,7 @@ import {
   registerServiceBuilderForDoc,
 } from '../../../src/service';
 import {isEnumValue} from '../../../src/types';
+import {startsWith} from '../../../src/string';
 import {timerFor} from '../../../src/services';
 import {viewerForDoc} from '../../../src/services';
 import {viewportForDoc} from '../../../src/services';
@@ -493,7 +493,9 @@ export class AnalyticsGroup {
    */
   addTrigger(config, handler) {
     const eventType = dev().assertString(config['on']);
-    let trackerProfile = EVENT_TRACKERS[eventType];
+    const trackerKey = startsWith(eventType, 'video-') ? 'video' : eventType;
+
+    let trackerProfile = EVENT_TRACKERS[trackerKey];
     if (!trackerProfile && !isEnumValue(AnalyticsEventType, eventType)) {
       trackerProfile = EVENT_TRACKERS['custom'];
     }
