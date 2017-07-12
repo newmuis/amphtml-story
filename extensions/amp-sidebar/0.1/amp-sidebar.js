@@ -152,7 +152,6 @@ export class AmpSidebar extends AMP.BaseElement {
     this.registerAction('toggle', this.toggle_.bind(this));
     this.registerAction('open', this.open_.bind(this));
     this.registerAction('close', this.close_.bind(this));
-
     this.element.addEventListener('click', e => {
       const target = closestByTag(dev().assertElement(e.target), 'A');
       if (target && target.href) {
@@ -232,7 +231,6 @@ export class AmpSidebar extends AMP.BaseElement {
     this.viewport_.enterOverlayMode();
     this.vsync_.mutate(() => {
       toggle(this.element, /* display */true);
-      this.openMask_();
       if (this.isIos_ && this.isSafari_) {
         this.compensateIosBottombar_();
       }
