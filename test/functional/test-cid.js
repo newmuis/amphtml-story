@@ -16,6 +16,7 @@
 
 import {ampdocServiceFor} from '../../src/ampdoc';
 import {
+  cryptoFor,
   extensionsFor,
   timerFor,
   viewerForDoc,

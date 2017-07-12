@@ -15,7 +15,7 @@
  */
 
 import {isExperimentOn} from '../../../src/experiments';
-import {Services} from '../../../src/services';
+import {cryptoFor} from '../../../src/services';
 import {dev, user} from '../../../src/log';
 import {getService, registerServiceBuilder} from '../../../src/service';
 import {isArray, isFiniteNumber} from '../../../src/types';
