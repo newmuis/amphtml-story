@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-import '../amp-dynamic-css-classes';
-import {Services} from '../../../../src/services';
+import {ampdocServiceFor, viewerForDoc} from '../../../../src/services';
+import {installDocService} from '../../../../src/service/ampdoc-impl';
+import {installPlatformService} from '../../../../src/service/platform-impl';
+import {installViewerServiceForDoc} from '../../../../src/service/viewer-impl';
 import {vsyncForTesting} from '../../../../src/service/vsync-impl';
 
 const tcoReferrer = 'http://t.co/xyzabc123';

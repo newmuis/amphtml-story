@@ -15,10 +15,7 @@
  */
 
 import {ValidationBubble} from './validation-bubble';
-import {createCustomEvent} from '../../../src/event-helper';
-import {dev} from '../../../src/log';
 import {getAmpdoc} from '../../../src/service';
-import {toWin} from '../../../src/types';
 
 
 /** @type {boolean|undefined} */

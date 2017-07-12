@@ -16,6 +16,7 @@
 
 import {Services} from './services';
 import {ShadowCSS} from '../third_party/webcomponentsjs/ShadowCSS';
+import {ampdocServiceFor, vsyncFor} from './services';
 import {dev} from './log';
 import {
   closestNode,
@@ -30,7 +31,6 @@ import {
 } from './web-components';
 import {setStyle} from './style';
 import {toArray} from './types';
-import {vsyncFor} from './services';
 
 /**
  * Used for non-composed root-node search. See `getRootNode`.

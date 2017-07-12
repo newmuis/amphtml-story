@@ -19,7 +19,7 @@
  */
 
 import '../polyfills';
-import {Services} from '../services';
+import {ampdocServiceFor, resourcesForDoc} from '../services';
 import {startupChunk} from '../chunk';
 import {fontStylesheetTimeout} from '../font-stylesheet-timeout';
 import {installIframeMessagingClient} from './inabox-iframe-messaging-client';

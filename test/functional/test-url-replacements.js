@@ -15,7 +15,11 @@
  */
 
 import {Observable} from '../../src/observable';
-import {Services} from '../../src/services';
+import {
+  ampdocServiceFor,
+  urlReplacementsForDoc,
+  viewerForDoc,
+} from '../../src/services';
 import {createIframePromise} from '../../testing/iframe';
 import {user} from '../../src/log';
 import {

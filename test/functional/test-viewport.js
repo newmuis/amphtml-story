@@ -15,7 +15,13 @@
  */
 
 import {AmpDocSingle, installDocService} from '../../src/service/ampdoc-impl';
-import {Services} from '../../src/services';
+import {
+  ampdocServiceFor,
+  platformFor,
+  viewerForDoc,
+  viewportForDoc,
+  vsyncFor,
+} from '../../src/services';
 import {
   installViewportServiceForDoc,
   Viewport,

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Services} from '../services';
+import {ampdocServiceFor, viewerForDoc} from '../services';
 import {dev, user} from '../log';
 import {registerServiceBuilder, getService} from '../service';
 import {

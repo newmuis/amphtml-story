@@ -38,17 +38,20 @@ import {utf8EncodeSync} from '../../../../src/utils/bytes';
 import {Signals} from '../../../../src/utils/signals';
 import {Extensions} from '../../../../src/service/extensions-impl';
 import {Viewer} from '../../../../src/service/viewer-impl';
-import {ampdocServiceFor} from '../../../../src/ampdoc';
 import {cancellation} from '../../../../src/error';
 import {forceExperimentBranch} from '../../../../src/experiments';
 import {
   data as validCSSAmp,
 } from './testdata/valid_css_at_rules_amp.reserialized';
 import {data as testFragments} from './testdata/test_fragments';
+import {FetchResponseHeaders} from '../../../../src/service/xhr-impl';
+import {base64UrlDecodeToBytes} from '../../../../src/utils/base64';
+import {utf8Encode} from '../../../../src/utils/bytes';
+import {resetScheduledElementForTesting} from '../../../../src/custom-element';
 import {
-  resetScheduledElementForTesting,
-} from '../../../../src/service/custom-element-registry';
-import {Services} from '../../../../src/services';
+  ampdocServiceFor,
+  urlReplacementsForDoc,
+} from '../../../../src/services';
 import {incrementLoadingAds} from '../../../amp-ad/0.1/concurrent-load';
 import '../../../../extensions/amp-ad/0.1/amp-ad-xorigin-iframe-handler';
 import {dev, user} from '../../../../src/log';

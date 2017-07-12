@@ -91,7 +91,11 @@ import {
 import {stubService} from './test-helper';
 import {installFriendlyIframeEmbed} from '../src/friendly-iframe-embed';
 import {doNotLoadExternalResourcesInTest} from './iframe';
-import {Services} from '../src/services';
+import {
+  ampdocServiceFor,
+  extensionsFor,
+  resourcesForDoc,
+} from '../src/services';
 import {
   adopt,
   adoptShadowMode,
@@ -109,9 +113,7 @@ import {
   installExtensionsService,
   registerExtension,
 } from '../src/service/extensions-impl';
-import {
-  resetScheduledElementForTesting,
-} from '../src/service/custom-element-registry';
+import {resetScheduledElementForTesting} from '../src/custom-element';
 import {setStyles} from '../src/style';
 import * as sinon from 'sinon';
 

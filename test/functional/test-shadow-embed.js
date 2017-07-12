@@ -26,11 +26,12 @@ import {
   scopeShadowCss,
   setShadowDomStreamingSupportedForTesting,
 } from '../../src/shadow-embed';
-import {installStylesForDoc} from '../../src/style-installer';
+import {ampdocServiceFor, extensionsFor} from '../../src/services';
 import {
   setShadowDomSupportedVersionForTesting,
   ShadowDomVersion,
 } from '../../src/web-components';
+import * as sinon from 'sinon';
 
 
 describes.sandboxed('shadow-embed', {}, () => {

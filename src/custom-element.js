@@ -36,7 +36,13 @@ import {
 import {getMode} from './mode';
 import {parseSizeList} from './size-list';
 import {reportError} from './error';
-import {setStyle} from './style';
+import {
+  ampdocServiceFor,
+  resourcesForDoc,
+  performanceForOrNull,
+  timerFor,
+  vsyncFor,
+} from './services';
 import * as dom from './dom';
 import {setStyle, setStyles} from './style';
 import {LayoutDelayMeter} from './layout-delay-meter';

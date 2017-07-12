@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Services} from '../../../src/services';
+import {ampdocServiceFor} from '../../../src/services';
 import {installParallaxForDoc} from '../../../src/service/parallax-impl';
 import {onDocumentReady} from '../../../src/document-ready';
 
