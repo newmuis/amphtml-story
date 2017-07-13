@@ -848,17 +848,12 @@ export class MeasureScanner extends Scanner {
         newTiming.iterationStart, prevTiming.iterationStart);
 
     // Identifier CSS values.
-    const easing = newTiming.easing != null ?
-        this.css_.resolveCss(newTiming.easing) :
-        prevTiming.easing;
-    const direction = newTiming.direction != null ?
-        /** @type {!WebAnimationTimingDirection} */
-        (this.css_.resolveCss(newTiming.direction)) :
-        prevTiming.direction;
-    const fill = newTiming.fill != null ?
-        /** @type {!WebAnimationTimingFill} */
-        (this.css_.resolveCss(newTiming.fill)) :
-        prevTiming.fill;
+    const easing =
+        this.css_.resolveIdent(newTiming.easing, prevTiming.easing);
+    const direction = /** @type {!WebAnimationTimingDirection} */
+        (this.css_.resolveIdent(newTiming.direction, prevTiming.direction));
+    const fill = /** @type {!WebAnimationTimingFill} */
+        (this.css_.resolveIdent(newTiming.fill, prevTiming.fill));
 
     // Other.
     const ticker = newTiming.ticker != null ?
@@ -1063,20 +1058,9 @@ class CssContextImpl {
    * @protected
    */
   resolveCss(input) {
-    if (input == null || input === '') {
-      return '';
-    }
-    const inputCss = String(input);
-    if (typeof input == 'number') {
-      return inputCss;
-    }
-    // Test first if CSS contains any variable components. Otherwise, there's
-    // no need to spend cycles to parse/evaluate.
-    if (!isVarCss(inputCss)) {
-      return inputCss;
-    }
-    const result = this.resolveAsNode_(inputCss);
-    return result != null ? result.css() : '';
+    // Will always return a valid string, since the default value is `''`.
+    return dev().assertString(this.resolveCss_(
+        input, /* def */ '', /* normalize */ true));
   }
 
   /**
@@ -1097,6 +1081,15 @@ class CssContextImpl {
 
   /**
    * @param {*} input
+   * @param {string|undefined} def
+   * @return {string|undefined}
+   */
+  resolveIdent(input, def) {
+    return this.resolveCss_(input, def, /* normalize */ false);
+  }
+
+  /**
+   * @param {*} input
    * @param {number|undefined} def
    * @return {number|undefined}
    */
@@ -1105,7 +1098,7 @@ class CssContextImpl {
       if (typeof input == 'number') {
         return input;
       }
-      const node = this.resolveAsNode_(input);
+      const node = this.resolveAsNode_(input, /* normalize */ false);
       if (node) {
         return CssTimeNode.millis(node);
       }
@@ -1123,7 +1116,7 @@ class CssContextImpl {
       if (typeof input == 'number') {
         return input;
       }
-      const node = this.resolveAsNode_(input);
+      const node = this.resolveAsNode_(input, /* normalize */ false);
       if (node) {
         return CssNumberNode.num(node);
       }
@@ -1161,7 +1154,7 @@ class CssContextImpl {
    * @return {?./css-expr-ast.CssNode}
    * @private
    */
-  resolveAsNode_(input) {
+  resolveAsNode_(input, normalize) {
     if (input == null || input === '') {
       return null;
     }
@@ -1179,7 +1172,7 @@ class CssContextImpl {
     if (!node) {
       return null;
     }
-    return node.resolve(this);
+    return node.resolve(this, normalize);
   }
 
   /**
@@ -1205,7 +1198,8 @@ class CssContextImpl {
     if (rawValue == null || rawValue === '') {
       user().warn(TAG, `Variable not found: "${varName}"`);
     }
-    const result = this.resolveAsNode_(rawValue);
+    // No need to normalize vars - they will be normalized later.
+    const result = this.resolveAsNode_(rawValue, /* normalize */ false);
     this.varPath_.pop();
     return result;
   }

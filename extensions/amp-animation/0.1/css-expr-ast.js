@@ -18,6 +18,7 @@ const FINAL_URL_RE = /^(data|https)\:/i;
 const DEG_TO_RAD = 2 * Math.PI / 360;
 const GRAD_TO_RAD = Math.PI / 200;
 const VAR_CSS_RE = /(calc|var|url|rand|width|height)\(/i;
+const NORM_CSS_RE = /\d(%|em|rem|vw|vh|vmin|vmax|s|deg|grad)/i;
 const INFINITY_RE = /^(infinity|infinite)$/i;
 
 
@@ -731,15 +732,15 @@ export class CssRandNode extends CssNode {
   }
 
   /** @override */
-  calc(context) {
+  calc(context, normalize) {
     // No arguments: return a random node between 0 and 1.
     if (this.left_ == null || this.right_ == null) {
       return new CssNumberNode(Math.random());
     }
 
     // Arguments: do a min/max random math.
-    let left = this.left_.resolve(context);
-    let right = this.right_.resolve(context);
+    let left = this.left_.resolve(context, normalize);
+    let right = this.right_.resolve(context, normalize);
     if (left == null || right == null) {
       return null;
     }
