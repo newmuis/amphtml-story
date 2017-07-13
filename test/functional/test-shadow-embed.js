@@ -18,7 +18,9 @@ import {AmpDocShadow} from '../../src/service/ampdoc-impl';
 import {
   ShadowDomWriterBulk,
   ShadowDomWriterStreamer,
+  copyRuntimeStylesToShadowRoot,
   createShadowDomWriter,
+  createShadowEmbedRoot,
   createShadowRoot,
   getShadowRootNode,
   importShadowBody,

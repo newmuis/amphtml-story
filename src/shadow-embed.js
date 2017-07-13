@@ -18,12 +18,9 @@ import {Services} from './services';
 import {ShadowCSS} from '../third_party/webcomponentsjs/ShadowCSS';
 import {ampdocServiceFor, vsyncFor} from './services';
 import {dev} from './log';
-import {
-  closestNode,
-  escapeCssSelectorIdent,
-  iterateCursor,
-} from './dom';
-import {installCssTransformer} from './style-installer';
+import {closestNode, escapeCssSelectorIdent} from './dom';
+import {extensionsFor, platformFor, vsyncFor} from './services';
+import {insertStyleElement} from './style-installer';
 import {
   isShadowDomSupported,
   getShadowDomSupportedVersion,
@@ -353,7 +350,7 @@ function calcShadowDomStreamingSupported(win) {
   }
   // Firefox does not support DOM streaming.
   // See: https://bugzilla.mozilla.org/show_bug.cgi?id=867102
-  if (Services.platformFor(win).isFirefox()) {
+  if (platformFor(win).isFirefox()) {
     return false;
   }
   // Assume full streaming support.
@@ -583,7 +580,7 @@ export class ShadowDomWriterBulk {
     this.fullHtml_ = [];
 
     /** @const @private */
-    this.vsync_ = Services.vsyncFor(win);
+    this.vsync_ = vsyncFor(win);
 
     /** @private {?function(!Document):!Element} */
     this.onBody_ = null;
@@ -634,31 +631,6 @@ export class ShadowDomWriterBulk {
     this.eof_ = true;
     this.vsync_.mutate(() => this.complete_());
     return this.success_;
-  }
-
-  /** @override */
-  abort(unusedReason) {
-    throw new Error('Not implemented');
-  }
-
-  /** @override */
-  releaseLock() {
-    throw new Error('Not implemented');
-  }
-
-  /** @override */
-  get closed() {
-    throw new Error('Not implemented');
-  }
-
-  /** @override */
-  get desiredSize() {
-    throw new Error('Not implemented');
-  }
-
-  /** @override */
-  get ready() {
-    throw new Error('Not implemented');
   }
 
   /** @private */
