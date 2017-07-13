@@ -16,10 +16,14 @@
 
 import {Services} from './services';
 import {ShadowCSS} from '../third_party/webcomponentsjs/ShadowCSS';
-import {ampdocServiceFor, vsyncFor} from './services';
+import {
+  ampdocServiceFor,
+  extensionsFor,
+  platformFor,
+  vsyncFor,
+} from './services';
 import {dev} from './log';
 import {closestNode, escapeCssSelectorIdent} from './dom';
-import {extensionsFor, platformFor, vsyncFor} from './services';
 import {insertStyleElement} from './style-installer';
 import {
   isShadowDomSupported,
