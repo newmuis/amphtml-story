@@ -23,7 +23,7 @@ import {
   VisibilityManagerForEmbed,
 } from '../visibility-manager';
 import {VisibilityState} from '../../../../src/visibility-state';
-import {Services} from '../../../../src/services';
+import {documentStateFor} from '../../../../src/services';
 import {layoutRectLtwh, rectIntersection} from '../../../../src/layout-rect';
 
 class IntersectionObserverStub {

@@ -19,6 +19,9 @@ import {AmpEvents} from '../../src/amp-events';
 import {BaseElement} from '../../src/base-element';
 import {ElementStub} from '../../src/element-stub';
 import {LOADING_ELEMENTS_, Layout} from '../../src/layout';
+import {installDocumentStateService} from '../../src/service/document-state';
+import {installResourcesServiceForDoc} from '../../src/service/resources-impl';
+import {poll} from '../../testing/iframe';
 import {ResourceState} from '../../src/service/resource';
 import {resourcesForDoc} from '../../src/services';
 import {vsyncFor} from '../../src/services';
@@ -1981,6 +1984,8 @@ describes.realWin('CustomElement Overflow Element', {amp: true}, env => {
         ampExtendedElements: {},
       };
       doc.defaultView = win;
+
+      installDocumentStateService(win);
     });
 
     afterEach(() => {

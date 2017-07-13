@@ -85,7 +85,7 @@ describe('Viewer', () => {
     });
     installDocService(windowApi, /* isSingleDoc */ true);
     installDocumentStateService(windowApi);
-    ampdoc = Services.ampdocServiceFor(windowApi).getAmpDoc();
+    ampdoc = ampdocServiceFor(windowApi).getAmpDoc();
     installPlatformService(windowApi);
     installTimerService(windowApi);
     events = {};

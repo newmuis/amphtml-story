@@ -105,7 +105,7 @@ describes.fakeWin('Viewport', {}, env => {
     installPlatformService(windowApi);
     installDocService(windowApi, /* isSingleDoc */ true);
     installDocumentStateService(windowApi);
-    ampdoc = Services.ampdocServiceFor(windowApi).getAmpDoc();
+    ampdoc = ampdocServiceFor(windowApi).getAmpDoc();
     installViewerServiceForDoc(ampdoc);
 
     binding = new ViewportBindingDef();
@@ -1161,7 +1161,7 @@ describe('Viewport META', () => {
       installPlatformService(windowApi);
       installDocService(windowApi, /* isSingleDoc */ true);
       installDocumentStateService(windowApi);
-      ampdoc = Services.ampdocServiceFor(windowApi).getAmpDoc();
+      ampdoc = ampdocServiceFor(windowApi).getAmpDoc();
       installViewerServiceForDoc(ampdoc);
       binding = new ViewportBindingDef();
       viewport = new Viewport(ampdoc, binding, viewer);
@@ -1264,6 +1264,7 @@ describes.realWin('ViewportBindingNatural', {ampCss: true}, env => {
     installPlatformService(win);
     installVsyncService(win);
     installDocService(win, /* isSingleDoc */ true);
+    installDocumentStateService(win);
     ampdoc = ampdocServiceFor(win).getAmpDoc();
     binding = new ViewportBindingNatural_(ampdoc, viewer);
     binding.connect();
@@ -1417,6 +1418,7 @@ describes.realWin('ViewportBindingNaturalIosEmbed', {ampCss: true}, env => {
     child.style.height = '300px';
     win.document.body.appendChild(child);
     installDocService(win, /* isSingleDoc */ true);
+    installDocumentStateService(win);
     installVsyncService(win);
     const ampdoc = ampdocServiceFor(win).getAmpDoc();
     installPlatformService(win);
@@ -1874,7 +1876,7 @@ describe('createViewport', () => {
       win.parent = win;
       installDocService(win, /* isSingleDoc */ true);
       installDocumentStateService(win);
-      const ampDoc = Services.ampdocServiceFor(win).getAmpDoc();
+      const ampDoc = ampdocServiceFor(win).getAmpDoc();
       installViewerServiceForDoc(ampDoc);
       installViewportServiceForDoc(ampDoc);
       const viewport = Services.viewportForDoc(ampDoc);
@@ -1885,7 +1887,7 @@ describe('createViewport', () => {
       win.parent = {};
       installDocService(win, /* isSingleDoc */ true);
       installDocumentStateService(win);
-      const ampDoc = Services.ampdocServiceFor(win).getAmpDoc();
+      const ampDoc = ampdocServiceFor(win).getAmpDoc();
       installViewerServiceForDoc(ampDoc);
       installViewportServiceForDoc(ampDoc);
       const viewport = Services.viewportForDoc(ampDoc);
@@ -1907,7 +1909,7 @@ describe('createViewport', () => {
       installVsyncService(win);
       installDocService(win, /* isSingleDoc */ true);
       installDocumentStateService(win);
-      ampDoc = Services.ampdocServiceFor(win).getAmpDoc();
+      ampDoc = ampdocServiceFor(win).getAmpDoc();
       installViewerServiceForDoc(ampDoc);
       viewer = Services.viewerForDoc(ampDoc);
     });

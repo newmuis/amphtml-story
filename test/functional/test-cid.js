@@ -112,7 +112,7 @@ describe('cid', () => {
     fakeWin.document.defaultView = fakeWin;
     installDocService(fakeWin, /* isSingleDoc */ true);
     installDocumentStateService(fakeWin);
-    ampdoc = Services.ampdocServiceFor(fakeWin).getAmpDoc();
+    ampdoc = ampdocServiceFor(fakeWin).getAmpDoc();
     installTimerService(fakeWin);
     installPlatformService(fakeWin);
 

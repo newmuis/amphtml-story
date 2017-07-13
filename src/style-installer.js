@@ -16,7 +16,7 @@
 
 import {Services} from './services';
 import {dev, rethrowAsync} from './log';
-import {map} from './utils/object';
+import {documentStateFor, performanceFor, resourcesForDoc} from './services';
 import {setStyles} from './style';
 import {waitForBody} from './dom';
 import {waitForServices} from './render-delaying-services';

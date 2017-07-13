@@ -38,8 +38,9 @@ import {parseSizeList} from './size-list';
 import {reportError} from './error';
 import {
   ampdocServiceFor,
-  resourcesForDoc,
+  documentStateFor,
   performanceForOrNull,
+  resourcesForDoc,
   timerFor,
   vsyncFor,
 } from './services';
