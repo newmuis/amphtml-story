@@ -19,7 +19,7 @@ limitations under the License.
 <table>
   <tr>
     <td class="col-fourty"><strong>Description</strong></td>
-    <td>Conduct user experience experiments on an AMP document and collect corresponding data with <code>amp-pixel</code> or <code>amp-analytics</code>.</td>
+    <td>Conduct user experience experiments (such as A/B testing and multivariate testing) on an AMP document and collect corresponding data with <code>amp-pixel</code> or <code>amp-analytics</code>.</td>
   </tr>
   <tr>
     <td class="col-fourty"><strong>Required Script</strong></td>
