@@ -445,6 +445,16 @@ function ensurePolyfillInstalled(win) {
   }
 }
 
+/**
+ * @param {!Window} win
+ */
+function ensurePolyfillInstalled(win) {
+  if (!win[POLYFILLED]) {
+    win[POLYFILLED] = true;
+    installWebAnimations(win);
+  }
+}
+
 AMP.extension(TAG, '0.1', function(AMP) {
   AMP.registerElement(TAG, AmpAnimation);
 });
