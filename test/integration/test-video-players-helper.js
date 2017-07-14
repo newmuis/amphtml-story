@@ -136,7 +136,7 @@ export function runVideoPlayerIntegrationTests(
     this.timeout(TIMEOUT);
     let video;
 
-    it('should trigger play analytics when the video plays', function() {
+    it.skip('should trigger play analytics when the video plays', function() {
       let playButton;
 
       return getVideoPlayer(
@@ -254,7 +254,7 @@ export function runVideoPlayerIntegrationTests(
       });
     });
 
-    it('should include current time, play state, etc.', function() {
+    it.skip('should include current time, play state, etc.', function() {
       let playButton;
       let pauseButton;
       let timer;
