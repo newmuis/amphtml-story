@@ -15,15 +15,16 @@
  */
 
 import {CommonSignals} from './common-signals';
-import {Services} from './services';
 import {
     createElementWithAttributes,
     removeElement,
 } from './dom';
 import {dev} from './log';
 import {dict} from './utils/object';
-import {isArray, toWin} from './types';
+import {isArray} from './types';
+import {analyticsForDocOrNull} from './services';
 import {triggerAnalyticsEvent} from './analytics';
+import {extensionsFor} from './services';
 
 /**
  * Method to create scoped analytics element for any element.
@@ -54,12 +55,10 @@ export function insertAnalyticsElement(
   // Force load analytics extension if script not included in page.
   if (loadAnalytics) {
     // Get Extensions service and force load analytics extension.
-    const extensions =
-        Services.extensionsFor(toWin(parentElement.ownerDocument.defaultView));
-    const ampdoc = Services.ampdoc(parentElement);
-    extensions./*OK*/installExtensionForDoc(ampdoc, 'amp-analytics');
+    const extensions = extensionsFor(parentElement.ownerDocument.defaultView);
+    extensions./*OK*/loadExtension('amp-analytics');
   } else {
-    Services.analyticsForDocOrNull(parentElement).then(analytics => {
+    analyticsForDocOrNull(parentElement).then(analytics => {
       dev().assert(analytics);
     });
   }
@@ -123,9 +122,7 @@ class CustomEventReporter {
 
 
 /**
- * A builder class that enable extension elements to easily build and get a CustomEventReporter instance.
- * Its constructor requires the parent AMP element.
- * It provides two methods #track() and #build() to build the CustomEventReporter instance.
+ * A builder class that enable extension elements to easily build a CustomEventReporter instance
  */
 export class CustomEventReporterBuilder {
   /** @param {!AmpElement} parent */
@@ -142,8 +139,6 @@ export class CustomEventReporterBuilder {
   }
 
   /**
-   * The #track() method takes in a unique custom-event name, and the corresponding request url (or an array of request urls).
-   * One can call #track() multiple times with different eventType name (order doesn't matter) before #build() is called.
    * @param {string} eventType
    * @param {string|!Array<string>} request
    */
@@ -165,9 +160,8 @@ export class CustomEventReporterBuilder {
   }
 
   /**
-   * Call the #build() method to build and get the CustomEventReporter instance.
-   * One CustomEventReporterBuilder instance can only build one reporter,
-   * which means #build() should only be called once after all eventType are added.
+   * Call to build the CustomEventReporter instance.
+   * Should only be called after all eventType added.
    */
   build() {
     dev().assert(this.config_, 'CustomEventReporter already built');
