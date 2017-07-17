@@ -27,7 +27,6 @@ import {
 import {Services} from '../../../src/services';
 import {dev} from '../../../src/log';
 import {dict} from '../../../src/utils/object';
-import {timerFor} from '../../../src/services';
 import {setStyle} from '../../../src/style';
 import {getData, loadPromise} from '../../../src/event-helper';
 import {getHtml} from '../../../src/get-html';
@@ -82,12 +81,6 @@ export class AmpAdXOriginIframeHandler {
 
     /** @private @const {!../../../src/service/viewer-impl.Viewer} */
     this.viewer_ = Services.viewerForDoc(this.baseInstance_.getAmpDoc());
-
-    /** @private @const {!../../../src/service/viewport/viewport-impl.Viewport} */
-    this.viewport_ = Services.viewportForDoc(this.baseInstance_.getAmpDoc());
-
-    /** @private {boolean} */
-    this.sendPositionPending_ = false;
   }
 
 

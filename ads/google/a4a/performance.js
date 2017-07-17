@@ -22,7 +22,6 @@ import {serializeQueryString} from '../../../src/url';
 import {getTimingDataSync} from '../../../src/service/variable-source';
 import {Services} from '../../../src/services';
 import {CommonSignals} from '../../../src/common-signals';
-import {analyticsForDoc} from '../../../src/services';
 
 /**
  * This module provides a fairly crude form of performance monitoring (or

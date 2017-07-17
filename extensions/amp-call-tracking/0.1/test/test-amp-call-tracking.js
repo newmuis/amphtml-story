@@ -15,8 +15,10 @@
  */
 
 import '../amp-call-tracking';
-import {clearResponseCacheForTesting} from '../amp-call-tracking';
+import {clearResponseCache} from '../amp-call-tracking';
+import {createIframePromise} from '../../../../testing/iframe';
 import {Services} from '../../../../src/services';
+import * as sinon from 'sinon';
 
 
 describes.realWin('amp-call-tracking', {
@@ -27,11 +29,12 @@ describes.realWin('amp-call-tracking', {
   let win, doc;
   let xhrMock;
 
-  beforeEach(() => {
-    win = env.win;
-    doc = win.document;
-    xhrMock = sandbox.mock(Services.xhrFor(win));
-  });
+  function getTestIframe() {
+    return createIframePromise().then(iframe => {
+      xhrMock = sandbox.mock(Services.xhrFor(iframe.win));
+      return iframe;
+    });
+  }
 
   afterEach(() => {
     clearResponseCacheForTesting();

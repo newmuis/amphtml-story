@@ -91,11 +91,7 @@ import {
 import {stubService} from './test-helper';
 import {installFriendlyIframeEmbed} from '../src/friendly-iframe-embed';
 import {doNotLoadExternalResourcesInTest} from './iframe';
-import {
-  ampdocServiceFor,
-  extensionsFor,
-  resourcesForDoc,
-} from '../src/services';
+import {Services} from '../src/services';
 import {
   adopt,
   adoptShadowMode,
@@ -636,7 +632,7 @@ class AmpFixture {
     const singleDoc = ampdocType == 'single' || ampdocType == 'fie';
     installDocService(win, singleDoc);
     const ampdocService = Services.ampdocServiceFor(win);
-    env.ampdocService = ampdocService;
+    env.ampdocService  = ampdocService;
     installExtensionsService(win);
     env.extensions = Services.extensionsFor(win);
     installBuiltinElements(win);

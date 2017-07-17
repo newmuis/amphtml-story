@@ -22,8 +22,7 @@ import {
 import {getMode} from '../mode';
 import {dev} from '../log';
 import {dict, map} from '../utils/object';
-import {timerFor} from '../services';
-import {viewerForDoc} from '../services';
+import {Services} from '../services';
 
 /** @private @const */
 const TAG_ = 'History';

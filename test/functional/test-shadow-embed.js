@@ -28,7 +28,7 @@ import {
   scopeShadowCss,
   setShadowDomStreamingSupportedForTesting,
 } from '../../src/shadow-embed';
-import {ampdocServiceFor, extensionsFor} from '../../src/services';
+import {Services} from '../../src/services';
 import {
   setShadowDomSupportedVersionForTesting,
   ShadowDomVersion,
@@ -265,6 +265,66 @@ describes.sandboxed('shadow-embed', {}, () => {
     it('should find the root node via polyfill', () => {
       setShadowDomSupportedVersionForTesting(ShadowDomVersion.NONE);
       expect(getShadowRootNode(content)).to.equal(shadowRoot);
+    });
+  });
+
+  describe('createShadowEmbedRoot', () => {
+    let extensionsMock;
+    let hostElement;
+
+    beforeEach(() => {
+      const extensions = Services.extensionsFor(window);
+      extensionsMock = sandbox.mock(extensions);
+
+      hostElement = document.createElement('div');
+      if (!hostElement.createShadowRoot) {
+        hostElement.createShadowRoot = () => {
+          const shadowRoot = document.createElement('shadow');
+          hostElement.appendChild(shadowRoot);
+          hostElement.shadowRoot = shadowRoot;
+          shadowRoot.host = hostElement;
+        };
+      }
+
+      const root = document.createElement('div');
+      const style = document.createElement('style');
+      style.setAttribute('amp-runtime', '');
+      root.appendChild(style);
+      const ampdoc = new AmpDocShadow(window, 'https://a.org/', root);
+      const ampdocService = Services.ampdocServiceFor(window);
+      sandbox.stub(ampdocService, 'getAmpDoc', () => ampdoc);
+    });
+
+    afterEach(() => {
+      extensionsMock.verify();
+    });
+
+    it('should create shadow root and context', () => {
+      const shadowRoot = createShadowEmbedRoot(hostElement, []);
+      expect(shadowRoot).to.exist;
+      expect(shadowRoot.AMP).to.exist;
+    });
+
+    it('should install runtime styles', () => {
+      const shadowRoot = createShadowEmbedRoot(hostElement, []);
+      expect(shadowRoot.querySelector('style[amp-runtime]')).to.exist;
+    });
+
+    it('should install extensions', () => {
+      extensionsMock.expects('loadExtension')
+          .withExactArgs('amp-ext1')
+          .returns(Promise.resolve({}))
+          .once();
+      let savedShadowRoot;
+      extensionsMock.expects('installFactoriesInShadowRoot')
+          .withExactArgs(sinon.match(arg => {
+            savedShadowRoot = arg;
+            return true;
+          }), ['amp-ext1'])
+          .returns(Promise.resolve())
+          .once();
+      const shadowRoot = createShadowEmbedRoot(hostElement, ['amp-ext1']);
+      expect(savedShadowRoot).to.equal(shadowRoot);
     });
   });
 

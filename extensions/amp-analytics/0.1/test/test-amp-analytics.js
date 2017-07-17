@@ -26,6 +26,8 @@ import {variableServiceFor} from '../variables';
 import {
   installUserNotificationManagerForTesting,
 } from '../../../amp-user-notification/0.1/amp-user-notification';
+import {adopt} from '../../../../src/runtime';
+import {createIframePromise} from '../../../../testing/iframe';
 import {
   getService,
   registerServiceBuilder,
@@ -34,7 +36,7 @@ import {
 import {map} from '../../../../src/utils/object';
 import {cidServiceForDocForTesting} from
     '../../../../src/service/cid-impl';
-import {urlReplacementsForDoc} from '../../../../src/services';
+import {Services} from '../../../../src/services';
 import * as sinon from 'sinon';
 
 import {AmpDocSingle} from '../../../../src/service/ampdoc-impl';
@@ -108,7 +110,7 @@ describes.realWin('amp-analytics', {
       ins = instrumentationServiceForDocForTesting(ampdoc);
       installVariableService(iframe.win);
       installUserNotificationManager(iframe.win);
-      return userNotificationManagerFor(iframe.win).then(manager => {
+      return Services.userNotificationManagerFor(iframe.win).then(manager => {
         uidService = manager;
       });
     });
@@ -1620,7 +1622,7 @@ describes.realWin('amp-analytics', {
         'sandbox': 'true',
       }, true);
 
-      const urlReplacements = urlReplacementsForDoc(analytics.element);
+      const urlReplacements = Services.urlReplacementsForDoc(analytics.element);
       sandbox.stub(urlReplacements.getVariableSource(), 'get').returns(0);
       sandbox.stub(crypto, 'uniform')
           .withArgs('0').returns(Promise.resolve(0.005))

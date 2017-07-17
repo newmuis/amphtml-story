@@ -15,7 +15,7 @@
  */
 
 import {createIframePromise} from '../../testing/iframe';
-import {documentInfoForDoc} from '../../src/services';
+import {Services} from '../../src/services';
 import {installDocumentInfoServiceForDoc} from
     '../../src/service/document-info-impl';
 import {installDocService} from '../../src/service/ampdoc-impl';

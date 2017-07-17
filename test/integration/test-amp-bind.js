@@ -16,8 +16,8 @@
 import {AmpEvents} from '../../src/amp-events';
 import {BindEvents} from '../../extensions/amp-bind/0.1/bind-events';
 import {FormEvents} from '../../extensions/amp-form/0.1/form-events';
+import {Services} from '../../src/services';
 import {createFixtureIframe} from '../../testing/iframe';
-import {batchedXhrFor} from '../../src/services';
 import * as sinon from 'sinon';
 
 describe.configure().skipSauceLabs().run('amp-bind', function() {

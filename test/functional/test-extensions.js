@@ -30,7 +30,7 @@ import {
   installExtensionsService,
   registerExtension,
 } from '../../src/service/extensions-impl';
-import {extensionsFor} from '../../src/services';
+import {Services} from '../../src/services';
 import {registerServiceBuilder} from '../../src/service';
 import {resetScheduledElementForTesting} from '../../src/custom-element';
 import {loadPromise} from '../../src/event-helper';

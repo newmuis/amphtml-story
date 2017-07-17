@@ -16,12 +16,6 @@
 
 import {Services} from './services';
 import {ShadowCSS} from '../third_party/webcomponentsjs/ShadowCSS';
-import {
-  ampdocServiceFor,
-  extensionsFor,
-  platformFor,
-  vsyncFor,
-} from './services';
 import {dev} from './log';
 import {closestNode, escapeCssSelectorIdent} from './dom';
 import {insertStyleElement} from './style-installer';
@@ -174,6 +168,35 @@ export function getShadowRootNode(node) {
   }
   // Polyfill shadow root lookup.
   return /** @type {?ShadowRoot} */ (closestNode(node, n => isShadowRoot(n)));
+}
+
+
+/**
+ * Creates a shadow root for an shadow embed.
+ * @param {!Element} hostElement
+ * @param {!Array<string>} extensionIds
+ * @return {!ShadowRoot}
+ */
+export function createShadowEmbedRoot(hostElement, extensionIds) {
+  const shadowRoot = createShadowRoot(hostElement);
+  shadowRoot.AMP = {};
+
+  const win = hostElement.ownerDocument.defaultView;
+  /** @const {!./service/extensions-impl.Extensions} */
+  const extensions = Services.extensionsFor(win);
+  const ampdocService = Services.ampdocServiceFor(win);
+  const ampdoc = ampdocService.getAmpDoc(hostElement);
+
+  // Instal runtime CSS.
+  copyRuntimeStylesToShadowRoot(ampdoc, shadowRoot);
+
+  // Install extensions.
+  extensionIds.forEach(extensionId => extensions.loadExtension(extensionId));
+
+  // Apply extensions factories, such as CSS.
+  extensions.installFactoriesInShadowRoot(shadowRoot, extensionIds);
+
+  return shadowRoot;
 }
 
 
@@ -354,7 +377,7 @@ function calcShadowDomStreamingSupported(win) {
   }
   // Firefox does not support DOM streaming.
   // See: https://bugzilla.mozilla.org/show_bug.cgi?id=867102
-  if (platformFor(win).isFirefox()) {
+  if (Services.platformFor(win).isFirefox()) {
     return false;
   }
   // Assume full streaming support.
@@ -584,7 +607,7 @@ export class ShadowDomWriterBulk {
     this.fullHtml_ = [];
 
     /** @const @private */
-    this.vsync_ = vsyncFor(win);
+    this.vsync_ = Services.vsyncFor(win);
 
     /** @private {?function(!Document):!Element} */
     this.onBody_ = null;

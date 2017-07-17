@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
+import {createIframePromise} from '../../../../testing/iframe';
+import {Services} from '../../../../src/services';
 import {
     AmpAppBanner,
     AbstractAppBanner,
     AmpIosAppBanner,
     AmpAndroidAppBanner,
 } from '../amp-app-banner';
-import {xhrFor} from '../../../../src/services';
 import {AmpDocSingle} from '../../../../src/service/ampdoc-impl';
-import {viewerForDoc} from '../../../../src/services';
 
 describes.realWin('amp-app-banner', {amp: true}, () => {
 
@@ -66,10 +66,10 @@ describes.realWin('amp-app-banner', {amp: true}, () => {
   function getTestFrame() {
     return createIframePromise(true).then(iframe => {
       const ampdoc = new AmpDocSingle(iframe.win);
-      const viewer = viewerForDoc(ampdoc);
+      const viewer = Services.viewerForDoc(ampdoc);
       sandbox.stub(viewer, 'isEmbedded', () => isEmbedded);
       sandbox.stub(viewer, 'hasCapability', () => hasNavigateToCapability);
-      platform = platformFor(iframe.win);
+      platform = Services.platformFor(iframe.win);
       sandbox.stub(platform, 'isIos', () => isIos);
       sandbox.stub(platform, 'isAndroid', () => isAndroid);
       sandbox.stub(platform, 'isChrome', () => isChrome);
@@ -77,7 +77,7 @@ describes.realWin('amp-app-banner', {amp: true}, () => {
       sandbox.stub(platform, 'isFirefox', () => isFirefox);
       sandbox.stub(platform, 'isEdge', () => isEdge);
 
-      vsync = vsyncFor(iframe.win);
+      vsync = Services.vsyncFor(iframe.win);
       sandbox.stub(vsync, 'runPromise', (task, state) => {
         runTask(task, state);
         return Promise.resolve();
@@ -108,7 +108,7 @@ describes.realWin('amp-app-banner', {amp: true}, () => {
         manifest.setAttribute('rel', rel);
         manifest.setAttribute('href', manifestObj.href);
         iframe.doc.head.appendChild(manifest);
-        sandbox.mock(xhrFor(iframe.win)).expects('fetchJson')
+        sandbox.mock(Services.xhrFor(iframe.win)).expects('fetchJson')
             .returns(Promise.resolve({
               json() {
                 return Promise.resolve(manifestObj.content);
@@ -519,22 +519,26 @@ describes.realWin('amp-app-banner', {amp: true}, () => {
     });
 
     it('should create dismiss button and setup click listener', () => {
-      const element = doc.createElement('div');
-      element.id = 'banner1';
-      element.getAmpDoc = () => ampdoc;
-      doc.body.appendChild(element);
-      const banner = new AbstractAppBanner(element);
-      banner.addDismissButton_();
+      return createIframePromise(true).then(iframe => {
+        const win = iframe.win;
+        const doc = iframe.doc;
+        vsync = Services.vsyncFor(win);
+        sandbox.stub(vsync, 'run', runTask);
+        const element = doc.createElement('div');
+        element.id = 'banner1';
+        element.getAmpDoc = () => iframe.ampdoc;
+        doc.body.appendChild(element);
+        const banner = new AbstractAppBanner(element);
+        banner.addDismissButton_();
 
-      const bannerTop = element.querySelector(
-          'i-amphtml-app-banner-top-padding');
-      expect(bannerTop).to.exist;
-      const dismissBtn = element.querySelector(
-          '.amp-app-banner-dismiss-button');
-      expect(dismissBtn).to.not.be.null;
-      expect(dismissBtn.parentElement).to.be.equal(element);
-      dismissBtn.dispatchEvent(new Event('click'));
-      return banner.isDismissed().then(value => {
+        const bannerTop = element.querySelector(
+            'i-amphtml-app-banner-top-padding');
+        expect(bannerTop).to.exist;
+        const dismissBtn = element.querySelector(
+            '.amp-app-banner-dismiss-button');
+        expect(dismissBtn).to.not.be.null;
+        expect(dismissBtn.parentElement).to.be.equal(element);
+        dismissBtn.dispatchEvent(new Event('click'));
         expect(element.parentElement).to.be.null;
         expect(value).to.be.true;
       });

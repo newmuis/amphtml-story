@@ -15,7 +15,6 @@
  */
 
 import {Services} from '../../../src/services';
-import {map} from '../../../src/utils/object';
 import {fetchBatchedJsonFor} from '../../../src/batched-json';
 import {isJsonScriptTag} from '../../../src/dom';
 import {toggle} from '../../../src/style';
@@ -149,7 +148,7 @@ export class AmpState extends AMP.BaseElement {
     const id = user().assert(this.element.id, '<amp-state> must have an id.');
     const state = /** @type {!JsonObject} */ (map());
     state[id] = json;
-    bindForDoc(this.element).then(bind => {
+    Services.bindForDoc(this.element).then(bind => {
       bind.setState(state,
           /* opt_skipEval */ isInit, /* opt_isAmpStateMutation */ !isInit);
     });

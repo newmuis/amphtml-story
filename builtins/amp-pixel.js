@@ -18,9 +18,7 @@ import {BaseElement} from '../src/base-element';
 import {dev, user} from '../src/log';
 import {dict} from '../src/utils/object';
 import {registerElement} from '../src/custom-element';
-import {timerFor} from '../src/services';
-import {urlReplacementsForDoc} from '../src/services';
-import {viewerForDoc} from '../src/services';
+import {Services} from '../src/services';
 import {createElementWithAttributes} from '../src/dom';
 import {toWin} from '../src/types';
 

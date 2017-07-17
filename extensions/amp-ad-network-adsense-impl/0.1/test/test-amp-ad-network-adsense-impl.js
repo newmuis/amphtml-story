@@ -20,11 +20,8 @@ import {
   resetSharedState,
 } from '../amp-ad-network-adsense-impl';
 import {
-  ADSENSE_A4A_EXPERIMENT_NAME,
-  FF_DR_EXP_NAME,
-  ADSENSE_EXPERIMENT_FEATURE,
-  INTERNAL_FAST_FETCH_DELAY_REQUEST_EXP,
-} from '../adsense-a4a-config';
+  installExtensionsService,
+} from '../../../../src/service/extensions-impl';
 import {Services} from '../../../../src/services';
 import {AmpAdUIHandler} from '../../../amp-ad/0.1/amp-ad-ui'; // eslint-disable-line no-unused-vars
 import {
@@ -318,11 +315,19 @@ describes.realWin('amp-ad-network-adsense-impl', {
     let loadExtensionSpy;
 
     beforeEach(() => {
-      element = createElementWithAttributes(doc, 'amp-ad', {
-        'width': '200',
-        'height': '50',
-        'type': 'adsense',
-        'layout': 'fixed',
+      return createIframePromise().then(fixture => {
+        setupForAdTesting(fixture);
+        const doc = fixture.doc;
+        element = createElementWithAttributes(doc, 'amp-ad', {
+          'width': '200',
+          'height': '50',
+          'type': 'adsense',
+          'layout': 'fixed',
+        });
+        impl = new AmpAdNetworkAdsenseImpl(element);
+        installExtensionsService(impl.win);
+        const extensions = Services.extensionsFor(impl.win);
+        loadExtensionSpy = sandbox.spy(extensions, 'loadExtension');
       });
       impl = new AmpAdNetworkAdsenseImpl(element);
       sandbox.stub(impl, 'getAmpDoc', () => ampdoc);

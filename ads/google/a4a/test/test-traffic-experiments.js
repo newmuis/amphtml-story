@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {ampdocServiceFor} from '../../../../src/services';
+import {Services} from '../../../../src/services';
 import {installDocService} from '../../../../src/service/ampdoc-impl';
 import {
   addExperimentIdToElement,
@@ -320,7 +320,7 @@ describe('all-traffic-experiments-tests', () => {
       };
       win.document.defaultView = win;
       installDocService(win, /* isSingleDoc */ true);
-      const ampdoc = ampdocServiceFor(win).getAmpDoc();
+      const ampdoc = Services.ampdocServiceFor(win).getAmpDoc();
       events = {};
       installDocumentStateService(win);
       installPlatformService(win);

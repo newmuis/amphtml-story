@@ -16,6 +16,7 @@
 
 import {KeyCodes} from '../../../../src/utils/key-codes';
 import {Services} from '../../../../src/services';
+import {createIframePromise} from '../../../../testing/iframe';
 import '../amp-image-lightbox';
 import {
   ImageViewer,
@@ -24,12 +25,21 @@ import {parseSrcset} from '../../../../src/srcset';
 import * as lolex from 'lolex';
 
 
-describes.realWin('amp-image-lightbox component', {
-  amp: {
-    extensions: ['amp-image-lightbox'],
-  },
-}, env => {
-  let win, doc;
+
+describe('amp-image-lightbox component', () => {
+
+  function getImageLightbox() {
+    return createIframePromise().then(iframe => {
+      const el = iframe.doc.createElement('amp-image-lightbox');
+      el.setAttribute('layout', 'nodisplay');
+      iframe.doc.body.appendChild(el);
+      return Services.timerFor(window).promise(16).then(() => {
+        return el;
+      });
+    });
+  }
+
+  let sandbox;
 
   beforeEach(() => {
     win = env.win;
@@ -230,10 +240,10 @@ describes.realWin('amp-image-lightbox image viewer', {
     lightboxMock = sandbox.mock(lightbox);
     loadPromiseStub = sandbox.stub().returns(Promise.resolve());
 
-    sandbox.stub(Services.timerFor(win), 'promise')
+    sandbox.stub(Services.timerFor(window), 'promise')
         .returns(Promise.resolve());
-    imageViewer = new ImageViewer(lightbox, win, loadPromiseStub);
-    doc.body.appendChild(imageViewer.getElement());
+    imageViewer = new ImageViewer(lightbox, window, loadPromiseStub);
+    document.body.appendChild(imageViewer.getElement());
   });
 
   afterEach(() => {

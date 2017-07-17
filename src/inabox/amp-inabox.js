@@ -19,12 +19,12 @@
  */
 
 import '../polyfills';
-import {ampdocServiceFor, resourcesForDoc} from '../services';
+import {Services} from '../services';
 import {startupChunk} from '../chunk';
 import {fontStylesheetTimeout} from '../font-stylesheet-timeout';
 import {installIframeMessagingClient} from './inabox-iframe-messaging-client';
 import {installPerformanceService} from '../service/performance-impl';
-import {installStylesForDoc, makeBodyVisible} from '../style-installer';
+import {installStyles, makeBodyVisible} from '../style-installer';
 import {installErrorReporting} from '../error';
 import {installDocService} from '../service/ampdoc-impl';
 import {installCacheServiceWorker} from '../service-worker/install';

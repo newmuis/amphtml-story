@@ -17,7 +17,7 @@
 import {Observable} from '../observable';
 import {findIndex} from '../utils/array';
 import {dict, map} from '../utils/object';
-import {documentStateFor, timerFor} from '../services';
+import {Services} from '../services';
 import {registerServiceBuilderForDoc} from '../service';
 import {dev, duplicateErrorIfNecessary} from '../log';
 import {isIframed} from '../dom';

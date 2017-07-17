@@ -17,15 +17,11 @@
 import {ActionTrust} from '../action-trust';
 import {OBJECT_STRING_ARGS_KEY} from '../service/action-impl';
 import {Layout, getLayoutClass} from '../layout';
-import {actionServiceForDoc, urlReplacementsForDoc} from '../services';
-import {bindForDoc} from '../services';
+import {Services} from '../services';
 import {computedStyle, getStyle, toggle} from '../style';
 import {dev, user} from '../log';
-import {historyForDoc} from '../services';
 import {isProtocolValid} from '../url';
 import {registerServiceBuilderForDoc} from '../service';
-import {resourcesForDoc} from '../services';
-import {vsyncFor} from '../services';
 
 /**
  * @param {!Element} element
@@ -61,12 +57,6 @@ export class StandardActions {
 
     /** @const @private {!./url-replacements-impl.UrlReplacements} */
     this.urlReplacements_ = Services.urlReplacementsForDoc(ampdoc);
-
-    /** @const @private {!./viewport/viewport-impl.Viewport} */
-    this.viewport_ = Services.viewportForDoc(ampdoc);
-
-    /** @const @private {!./url-replacements-impl.UrlReplacements} */
-    this.urlReplacements_ = urlReplacementsForDoc(ampdoc);
 
     this.installActions_(this.actions_);
   }
@@ -132,7 +122,7 @@ export class StandardActions {
     if (!invocation.satisfiesTrust(ActionTrust.MEDIUM)) {
       return;
     }
-    bindForDoc(invocation.target).then(bind => {
+    Services.bindForDoc(invocation.target).then(bind => {
       const args = invocation.args;
       const objectString = args[OBJECT_STRING_ARGS_KEY];
       if (objectString) {
@@ -179,7 +169,7 @@ export class StandardActions {
     if (!invocation.satisfiesTrust(ActionTrust.MEDIUM)) {
       return;
     }
-    historyForDoc(this.ampdoc).goBack();
+    Services.historyForDoc(this.ampdoc).goBack();
   }
 
   /**

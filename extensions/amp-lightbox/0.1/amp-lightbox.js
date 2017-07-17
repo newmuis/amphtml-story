@@ -20,9 +20,7 @@ import {KeyCodes} from '../../../src/utils/key-codes';
 import {Layout} from '../../../src/layout';
 import {SwipeXYRecognizer} from '../../../src/gesture-recognizers';
 import {dev} from '../../../src/log';
-import {historyForDoc} from '../../../src/services';
-import {vsyncFor} from '../../../src/services';
-import {timerFor} from '../../../src/services';
+import {Services} from '../../../src/services';
 import * as st from '../../../src/style';
 
 /** @const {string} */
@@ -327,20 +325,6 @@ class AmpLightbox extends AMP.BaseElement {
 
   getHistory_() {
     return Services.historyForDoc(this.getAmpDoc());
-  }
-
-  /**
-   * Sets the document body to transparent to allow for frame "merging" if the
-   * element is under FIE.
-   * The module-level execution of setTransparentBody() only works on inabox,
-   * so we need to perform the check on element build time as well.
-   * @private
-   */
-  maybeSetTransparentBody_() {
-    if (this.getAmpDoc().win != this.win) { // in FIE
-      setTransparentBody(this.getAmpDoc().win, /** @type {!HTMLBodyElement} */ (
-          dev().assert(this.win.document.body)));
-    }
   }
 }
 

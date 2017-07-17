@@ -17,7 +17,7 @@
 // This must load before all other tests.
 import 'babel-polyfill';
 import '../src/polyfills';
-import {ampdocServiceFor, platformFor, resourcesForDoc} from '../src/services';
+import {Services} from '../src/services';
 import {removeElement} from '../src/dom';
 import {setReportError} from '../src/log';
 import {
@@ -102,21 +102,6 @@ class TestConfig {
     this.configTasks = [];
 
     this.platform = Services.platformFor(window);
-
-    /**
-     * Predicate functions that determine whether to run tests on a platform.
-     */
-    this.runOnChrome = this.platform.isChrome.bind(this.platform);
-    this.runOnEdge = this.platform.isEdge.bind(this.platform);
-    this.runOnFirefox = this.platform.isFirefox.bind(this.platform);
-    this.runOnSafari = this.platform.isSafari.bind(this.platform);
-    this.runOnIos = this.platform.isIos.bind(this.platform);
-    this.runOnIe = this.platform.isIe.bind(this.platform);
-
-    /**
-     * By default, IE is skipped. Individual tests may opt in.
-     */
-    this.skip(this.runOnIe);
   }
 
   skipChrome() {

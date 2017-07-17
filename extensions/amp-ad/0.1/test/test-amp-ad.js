@@ -21,6 +21,7 @@ import {AmpAd} from '../amp-ad';
 import {AmpAd3PImpl} from '../amp-ad-3p-impl';
 import {Services} from '../../../../src/services';
 import {stubService} from '../../../../testing/test-helper';
+import * as sinon from 'sinon';
 
 describe('Ad loader', () => {
   let sandbox;
@@ -79,15 +80,17 @@ describe('Ad loader', () => {
 
       describe('with consent-notification-id, upgradeCallback', () => {
         it('should block for notification dismissal', () => {
-          ampAdElement.setAttribute('data-consent-notification-id', 'notif');
+          return iframePromise.then(fixture => {
+            ampAdElement.setAttribute('data-consent-notification-id', 'notif');
 
-          return Promise.race([
-            ampAd.upgradeCallback().then(() => {
-              throw new Error('upgradeCallback should not resolve without ' +
-                'notification dismissal');
-            }),
-            Services.timerFor(win).promise(25),
-          ]);
+            return Promise.race([
+              ampAd.upgradeCallback().then(() => {
+                throw new Error('upgradeCallback should not resolve without ' +
+                  'notification dismissal');
+              }),
+              Services.timerFor(fixture.win).promise(25),
+            ]);
+          });
         });
 
         it('should resolve once notification is dismissed', () => {
@@ -112,20 +115,22 @@ describe('Ad loader', () => {
       });
 
       it('fails upgrade on A4A upgrade with loadElementClass error', () => {
-        a4aRegistry['zort'] = function() {
-          return true;
-        };
-        ampAdElement.setAttribute('type', 'zort');
-        const extensions = Services.extensionsFor(win);
-        const extensionsStub = sandbox.stub(extensions, 'loadElementClass')
-            .withArgs('amp-ad-network-zort-impl')
-            .returns(Promise.reject(new Error('I failed!')));
-        ampAd = new AmpAd(ampAdElement);
-        return ampAd.upgradeCallback().then(baseElement => {
-          expect(extensionsStub).to.be.calledAtLeastOnce;
-          expect(ampAdElement.getAttribute(
-              'data-a4a-upgrade-type')).to.equal('amp-ad-network-zort-impl');
-          expect(baseElement).to.be.instanceof(AmpAd3PImpl);
+        return iframePromise.then(fixture => {
+          a4aRegistry['zort'] = function() {
+            return true;
+          };
+          ampAdElement.setAttribute('type', 'zort');
+          const extensions = Services.extensionsFor(fixture.win);
+          const extensionsStub = sandbox.stub(extensions, 'loadElementClass')
+              .withArgs('amp-ad-network-zort-impl')
+              .returns(Promise.reject(new Error('I failed!')));
+          ampAd = new AmpAd(ampAdElement);
+          return ampAd.upgradeCallback().then(baseElement => {
+            expect(extensionsStub).to.be.calledAtLeastOnce;
+            expect(ampAdElement.getAttribute(
+                'data-a4a-upgrade-type')).to.equal('amp-ad-network-zort-impl');
+            expect(baseElement).to.be.instanceof(AmpAd3PImpl);
+          });
         });
       });
 
@@ -230,7 +235,7 @@ describe('Ad loader', () => {
           ampAdElement.setAttribute('type', 'zort');
           const zortInstance = {};
           const zortConstructor = function() { return zortInstance; };
-          const extensions = extensionsFor(fixture.win);
+          const extensions = Services.extensionsFor(fixture.win);
           const extensionsStub = sandbox.stub(extensions, 'loadElementClass')
               .withArgs('amp-ad-network-zort-impl')
               .returns(Promise.resolve(zortConstructor));
@@ -245,22 +250,24 @@ describe('Ad loader', () => {
       });
 
       it('upgrades to registered, A4A type network-specific element', () => {
-        a4aRegistry['zort'] = function() {
-          return true;
-        };
-        ampAdElement.setAttribute('type', 'zort');
-        const zortInstance = {};
-        const zortConstructor = function() { return zortInstance; };
-        const extensions = Services.extensionsFor(win);
-        const extensionsStub = sandbox.stub(extensions, 'loadElementClass')
-            .withArgs('amp-ad-network-zort-impl')
-            .returns(Promise.resolve(zortConstructor));
-        ampAd = new AmpAd(ampAdElement);
-        return ampAd.upgradeCallback().then(baseElement => {
-          expect(extensionsStub).to.be.calledAtLeastOnce;
-          expect(ampAdElement.getAttribute(
-              'data-a4a-upgrade-type')).to.equal('amp-ad-network-zort-impl');
-          expect(baseElement).to.equal(zortInstance);
+        return iframePromise.then(fixture => {
+          a4aRegistry['zort'] = function() {
+            return true;
+          };
+          ampAdElement.setAttribute('type', 'zort');
+          const zortInstance = {};
+          const zortConstructor = function() { return zortInstance; };
+          const extensions = Services.extensionsFor(fixture.win);
+          const extensionsStub = sandbox.stub(extensions, 'loadElementClass')
+              .withArgs('amp-ad-network-zort-impl')
+              .returns(Promise.resolve(zortConstructor));
+          ampAd = new AmpAd(ampAdElement);
+          return ampAd.upgradeCallback().then(baseElement => {
+            expect(extensionsStub).to.be.calledAtLeastOnce;
+            expect(ampAdElement.getAttribute(
+                'data-a4a-upgrade-type')).to.equal('amp-ad-network-zort-impl');
+            expect(baseElement).to.equal(zortInstance);
+          });
         });
       });
 

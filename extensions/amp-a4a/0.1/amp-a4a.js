@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {Services} from '../../../src/services';
 import {
   verifyHashVersion,
   LegacySignatureVerifier,
@@ -43,10 +44,7 @@ import {isArray, isObject, isEnumValue} from '../../../src/types';
 import {some} from '../../../src/utils/promise';
 import {base64UrlDecodeToBytes} from '../../../src/utils/base64';
 import {utf8Decode} from '../../../src/utils/bytes';
-import {viewerForDoc} from '../../../src/services';
-import {xhrFor} from '../../../src/services';
 import {endsWith} from '../../../src/string';
-import {platformFor} from '../../../src/services';
 import {isExperimentOn} from '../../../src/experiments';
 import {setStyle} from '../../../src/style';
 import {assertHttpsUrl} from '../../../src/url';
@@ -1072,25 +1070,6 @@ export class AmpA4A extends AMP.BaseElement {
     this.fromResumeCallback = false;
     this.experimentalNonAmpCreativeRenderMethod_ =
         Services.platformFor(this.win).isIos() ? XORIGIN_MODE.SAFEFRAME : null;
-  }
-
-  /**
-   * Attempts to remove the current frame and free any associated resources.
-   * This function will no-op if this ad slot is currently in the process of
-   * being refreshed.
-   *
-   * @param {boolean=} force Forces the removal of the frame, even if
-   *   this.isRefreshing is true.
-   * @protected
-   */
-  destroyFrame(force = false) {
-    if (!force && this.isRefreshing) {
-      return;
-    }
-    if (this.iframe && this.iframe.parentElement) {
-      this.iframe.parentElement.removeChild(this.iframe);
-      this.iframe = null;
-    }
     if (this.xOriginIframeHandler_) {
       this.xOriginIframeHandler_.freeXOriginIframe();
       this.xOriginIframeHandler_ = null;
@@ -1321,8 +1300,8 @@ export class AmpA4A extends AMP.BaseElement {
       const currServiceName = serviceName;
       if (url) {
         // Delay request until document is not in a prerender state.
-        return viewerForDoc(this.getAmpDoc()).whenFirstVisible()
-            .then(() => xhrFor(this.win).fetchJson(url, {
+        return Services.viewerForDoc(this.getAmpDoc()).whenFirstVisible()
+            .then(() => Services.xhrFor(this.win).fetchJson(url, {
               mode: 'cors',
               method: 'GET',
             // Set ampCors false so that __amp_source_origin is not
@@ -1551,7 +1530,7 @@ export class AmpA4A extends AMP.BaseElement {
   renderViaCachedContentIframe_(adUrl) {
     this.protectedEmitLifecycleEvent_('renderCrossDomainStart');
     return this.iframeRenderHelper_(dict({
-      'src': xhrFor(this.win).getCorsUrl(this.win, adUrl),
+      'src': Services.xhrFor(this.win).getCorsUrl(this.win, adUrl),
       'name': JSON.stringify(
           getContextMetadata(this.win, this.element, this.sentinel)),
     }));

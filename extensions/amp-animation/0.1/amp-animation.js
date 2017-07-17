@@ -27,10 +27,8 @@ import {installWebAnimations} from 'web-animations-js/web-animations.install';
 import {listen} from '../../../src/event-helper';
 import {setStyles} from '../../../src/style';
 import {tryParseJson} from '../../../src/json';
-import {user} from '../../../src/log';
+import {user, dev} from '../../../src/log';
 import {Services} from '../../../src/services';
-import {isFiniteNumber} from '../../../src/types';
-import {clamp} from '../../../src/utils/math';
 
 const TAG = 'amp-animation';
 const POLYFILLED = '__AMP_WA';

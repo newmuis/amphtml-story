@@ -144,7 +144,7 @@ export function googleAdsIsA4AEnabled(win, element, experimentName,
  * @return {?string} experiment extracted from page url.
  */
 export function extractUrlExperimentId(win, element) {
-  const expParam = viewerForDoc(element).getParam('exp') ||
+  const expParam = Services.viewerForDoc(element).getParam('exp') ||
     parseQueryString(win.location.search)['exp'];
   if (!expParam) {
     return null;

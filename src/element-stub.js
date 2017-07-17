@@ -16,6 +16,7 @@
 
 import {BaseElement} from './base-element';
 import {dev} from './log';
+import {Services} from './services';
 
 /** @type {!Array} */
 export const stubbedElements = [];
@@ -24,6 +25,13 @@ export const stubbedElements = [];
 export class ElementStub extends BaseElement {
   constructor(element) {
     super(element);
+    // Fetch amp-ad script if it is not present.
+    const name = element.tagName.toLowerCase();
+    if (!loadingChecked[name]) {
+      loadingChecked[name] = true;
+      Services.extensionsFor(this.win).loadExtension(
+          name, /* stubElement */ false);
+    }
     stubbedElements.push(this);
   }
 

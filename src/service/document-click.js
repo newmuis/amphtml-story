@@ -65,7 +65,7 @@ export class ClickHandler {
     /** @private @const {!Document|!ShadowRoot} */
     this.rootNode_ = opt_rootNode || ampdoc.getRootNode();
 
-    /** @private @const {!./viewport/viewport-impl.Viewport} */
+    /** @private @const {!./viewport-impl.Viewport} */
     this.viewport_ = Services.viewportForDoc(this.ampdoc);
 
     /** @private @const {!./viewer-impl.Viewer} */

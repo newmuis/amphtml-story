@@ -17,6 +17,9 @@
 import {KeyCodes} from '../../../../src/utils/key-codes';
 import {Services} from '../../../../src/services';
 import '../amp-social-share';
+import {Services} from '../../../../src/services';
+
+adopt(window);
 
 const STRINGS = {
   'text': 'Hello world',
@@ -38,6 +41,42 @@ describes.realWin('amp-social-share', {
   let platform;
   let isIos = false;
   let isSafari = false;
+
+  function getShare(type, opt_endpoint, opt_params) {
+    return getCustomShare(iframe => {
+      sandbox./*OK*/stub(iframe.win, 'open').returns(true);
+      const share = iframe.doc.createElement('amp-social-share');
+      share.addEventListener = sandbox.spy();
+      if (opt_endpoint) {
+        share.setAttribute('data-share-endpoint', opt_endpoint);
+      }
+
+      for (const key in opt_params) {
+        share.setAttribute('data-param-' + key, opt_params[key]);
+      }
+
+      share.setAttribute('type', type);
+      share.setAttribute('width', 60);
+      share.setAttribute('height', 44);
+      return share;
+    });
+  }
+
+  function getCustomShare(modifier) {
+    return createIframePromise().then(iframe => {
+      platform = Services.platformFor(iframe.win);
+      sandbox.stub(platform, 'isIos', () => isIos);
+      sandbox.stub(platform, 'isSafari', () => isSafari);
+      const canonical = iframe.doc.createElement('link');
+
+      iframe.doc.title = 'doc title';
+      canonical.setAttribute('rel', 'canonical');
+      canonical.setAttribute('href', 'https://canonicalexample.com/');
+      iframe.addElement(canonical);
+
+      return iframe.addElement(modifier(iframe));
+    });
+  }
 
   beforeEach(() => {
     win = env.win;

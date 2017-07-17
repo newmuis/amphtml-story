@@ -20,14 +20,12 @@ import {Signals} from './utils/signals';
 import {dev, rethrowAsync} from './log';
 import {disposeServicesForEmbed, getTopWindow} from './service';
 import {escapeHtml} from './dom';
-import {extensionsFor} from './services';
+import {Services} from './services';
 import {getFixedContainer} from './full-overlay-frame-child-helper';
 import {isDocumentReady} from './document-ready';
 import {layoutRectLtwh} from './layout-rect';
 import {loadPromise} from './event-helper';
 import {px, resetStyles, setStyle, setStyles} from './style';
-import {resourcesForDoc} from './services';
-import {vsyncFor} from './services';
 
 
 /** @const {string} */
@@ -470,7 +468,7 @@ export class FriendlyIframeEmbed {
    * @visibleForTesting
    */
   getVsync() {
-    return vsyncFor(this.win);
+    return Services.vsyncFor(this.win);
   }
 
   /**
@@ -478,7 +476,7 @@ export class FriendlyIframeEmbed {
    * @visibleForTesting
    */
   getResources() {
-    return resourcesForDoc(this.iframe);
+    return Services.resourcesForDoc(this.iframe);
   }
 
   /**

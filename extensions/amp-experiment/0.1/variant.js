@@ -16,12 +16,7 @@
 
 import {isObject} from '../../../src/types';
 import {dev, user} from '../../../src/log';
-import {
-  cidForDoc,
-  cryptoFor,
-  viewerForDoc,
-  userNotificationManagerFor,
-} from '../../../src/services';
+import {Services} from '../../../src/services';
 
 const ATTR_PREFIX = 'amp-x-';
 const nameValidator = /^[\w-]+$/;
@@ -51,7 +46,7 @@ export function allocateVariant(ampdoc, experimentName, config) {
   let hasConsentPromise = Promise.resolve(true);
 
   if (sticky && config['consentNotificationId']) {
-    hasConsentPromise = userNotificationManagerFor(ampdoc.win)
+    hasConsentPromise = Services.userNotificationManagerFor(ampdoc.win)
         .then(manager => manager.getNotification(
             config['consentNotificationId']))
         .then(userNotification => {
@@ -127,10 +122,11 @@ function getBucketTicket(ampdoc, group, opt_cidScope) {
     return Promise.resolve(ampdoc.win.Math.random() * 100);
   }
 
-  const cidPromise = cidForDoc(ampdoc).then(cidService => cidService.get({
-    scope: dev().assertString(opt_cidScope),
-    createCookieIfNotPresent: true,
-  }, Promise.resolve()));
+  const cidPromise = Services.cidForDoc(ampdoc).then(cidService =>
+      cidService.get({
+        scope: dev().assertString(opt_cidScope),
+        createCookieIfNotPresent: true,
+      }, Promise.resolve()));
 
   return Promise.all([cidPromise, Services.cryptoFor(ampdoc.win)])
       .then(results => results[1].uniform(group + ':' + results[0]))

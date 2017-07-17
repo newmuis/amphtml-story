@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 import '../amp-apester-media';
+import {adopt} from '../../../../src/runtime';
 import {Services} from '../../../../src/services';
+import * as sinon from 'sinon';
 
 
 describes.realWin('amp-apester-media', {
@@ -53,7 +55,7 @@ describes.realWin('amp-apester-media', {
           media.implementation_, 'changeHeight');
       attemptChangeSizeSpy = sandbox.spy(
           media.implementation_, 'attemptChangeHeight');
-      xhrMock = sandbox.mock(xhrFor(iframe.win));
+      xhrMock = sandbox.mock(Services.xhrFor(iframe.win));
       xhrMock.expects('fetchJson').returns(Promise.resolve({
         json() {
           return Promise.resolve(response);

@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
-import {AmpFlyingCarpet} from '../amp-fx-flying-carpet';
-import {Resource} from '../../../../src/service/resource';
+import {adopt} from '../../../../src/runtime';
+import {createIframePromise} from '../../../../testing/iframe';
+import {installImg} from '../../../../builtins/amp-img';
 import {Services} from '../../../../src/services';
+import * as sinon from 'sinon';
+import '../amp-fx-flying-carpet';
 
 
 describes.realWin('amp-fx-flying-carpet', {
@@ -35,34 +38,34 @@ describes.realWin('amp-fx-flying-carpet', {
 
   function getAmpFlyingCarpet(opt_childrenCallback, opt_top) {
     const top = opt_top || '200vh';
+    let flyingCarpet;
+    return createIframePromise().then(i => {
+      iframe = i;
 
-    const bodyResizer = doc.createElement('div');
-    bodyResizer.style.height = '400vh';
-    bodyResizer.style.width = '1px';
-    doc.body.appendChild(bodyResizer);
+      const bodyResizer = iframe.doc.createElement('div');
+      bodyResizer.style.height = '400vh';
+      bodyResizer.style.width = '1px';
+      iframe.doc.body.appendChild(bodyResizer);
 
-    doc.body.style.position = 'relative';
-    viewport.resize_();
+      iframe.doc.body.style.position = 'relative';
+      viewport = Services.viewportForDoc(iframe.win.document);
+      viewport.resize_();
 
-    const parent = doc.querySelector('#parent');
-    parent.style.position = 'absolute';
-    parent.style.top = top;
+      const parent = iframe.doc.querySelector('#parent');
+      parent.style.position = 'absolute';
+      parent.style.top = top;
 
-    const flyingCarpet = doc.createElement('amp-fx-flying-carpet');
-    flyingCarpet.setAttribute('height', '10px');
-    if (opt_childrenCallback) {
-      const children = opt_childrenCallback(flyingCarpet);
-      children.forEach(child => {
-        flyingCarpet.appendChild(child);
-      });
-    }
+      flyingCarpet = iframe.doc.createElement('amp-fx-flying-carpet');
+      flyingCarpet.setAttribute('height', '10px');
+      if (opt_childrenCallback) {
+        const children = opt_childrenCallback(iframe, flyingCarpet);
+        children.forEach(child => {
+          flyingCarpet.appendChild(child);
+        });
+      }
 
-    parent.appendChild(flyingCarpet);
-    return flyingCarpet.build().then(() => {
-      const resource = Resource.forElement(flyingCarpet);
-      resource.measure();
-      return flyingCarpet.layoutCallback();
-    }).then(() => {
+      return iframe.addElement(flyingCarpet);
+    }).then(flyingCarpet => {
       viewport.setScrollTop(parseInt(top, 10));
       return flyingCarpet;
     }, error => {

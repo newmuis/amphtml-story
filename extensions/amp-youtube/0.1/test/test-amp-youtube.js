@@ -16,6 +16,7 @@
 
 import '../amp-youtube';
 import {listenOncePromise} from '../../../../src/event-helper';
+import {adopt} from '../../../../src/runtime';
 import {Services} from '../../../../src/services';
 import {VideoEvents} from '../../../../src/video-interface';
 import * as sinon from 'sinon';
@@ -27,8 +28,8 @@ describes.realWin('amp-youtube', {
   },
 }, function(env) {
   this.timeout(5000);
-  let win, doc;
-  let timer;
+  let sandbox;
+  const timer = Services.timerFor(window);
 
   beforeEach(() => {
     win = env.win;

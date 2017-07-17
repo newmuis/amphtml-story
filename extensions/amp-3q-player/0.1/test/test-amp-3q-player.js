@@ -16,18 +16,15 @@
 
 import '../amp-3q-player';
 import {listenOncePromise} from '../../../../src/event-helper';
+import {adopt} from '../../../../src/runtime';
 import {Services} from '../../../../src/services';
 import {VideoEvents} from '../../../../src/video-interface';
 
 
-describes.realWin('amp-3q-player', {
-  amp: {
-    extensions: ['amp-3q-player'],
-  },
-}, function(env) {
-  let win;
-  let doc;
-  let timer;
+describe('amp-3q-player', function() {
+  this.timeout(10000);
+  let sandbox;
+  const timer = Services.timerFor(window);
 
   beforeEach(() => {
     win = env.win;

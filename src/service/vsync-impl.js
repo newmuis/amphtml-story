@@ -15,12 +15,7 @@
  */
 
 import {Pass} from '../pass';
-import {
-  ampdocServiceFor,
-  documentStateFor,
-  viewerForDoc,
-  viewerPromiseForDoc,
-} from '../services';
+import {Services} from '../services';
 import {cancellation} from '../error';
 import {dev, rethrowAsync} from '../log';
 import {registerServiceBuilder, getService} from '../service';

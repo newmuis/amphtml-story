@@ -32,9 +32,13 @@ function createIframeWithApis(fixture) {
   let iframe;
   let lastIO = null;
   const platform = Services.platformFor(fixture.win);
-  return poll('frame to be in DOM', () => {
-    return fixture.doc.querySelector('amp-ad > iframe');
-  }, undefined, 5000).then(iframeElement => {
+  return pollForLayout(fixture.win, 1, 5500).then(() => {
+    // test amp-ad will create an iframe
+    return poll('frame to be in DOM', () => {
+      return fixture.doc.querySelector('iframe');
+    });
+  }).then(iframeElement => {
+    // test the created iframe will have correct src.
     iframe = iframeElement;
     return new Promise(resolve => {
       if (iframe.contentWindow.context) {

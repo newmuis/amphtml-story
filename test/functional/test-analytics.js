@@ -22,7 +22,7 @@ import {
 import {
   triggerAnalyticsEvent,
 } from '../../src/analytics';
-import {timerFor} from '../../src/services';
+import {Services} from '../../src/services';
 import * as sinon from 'sinon';
 
 

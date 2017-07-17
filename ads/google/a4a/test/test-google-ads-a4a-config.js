@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {ampdocServiceFor} from '../../../../src/services';
+import {Services} from '../../../../src/services';
 import {installDocService} from '../../../../src/service/ampdoc-impl';
 import {
   googleAdsIsA4AEnabled,

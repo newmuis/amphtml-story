@@ -16,15 +16,13 @@
 
 import '../amp-nexxtv-player';
 import {listenOncePromise} from '../../../../src/event-helper';
+import {adopt} from '../../../../src/runtime';
+import {Services} from '../../../../src/services';
 import {VideoEvents} from '../../../../src/video-interface';
 
 
-describes.realWin('amp-nexxtv-player', {
-  amp: {
-    extensions: ['amp-nexxtv-player'],
-  },
-}, env => {
-  let win, doc;
+  let sandbox;
+  const timer = Services.timerFor(window);
 
   beforeEach(() => {
     win = env.win;

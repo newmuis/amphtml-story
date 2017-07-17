@@ -19,7 +19,7 @@ import {Layout} from './layout';
 import {getData} from './event-helper';
 import {loadPromise} from './event-helper';
 import {preconnectForElement} from './preconnect';
-import {isArray, toWin} from './types';
+import {isArray} from './types';
 import {Services} from './services';
 import {user} from './log';
 

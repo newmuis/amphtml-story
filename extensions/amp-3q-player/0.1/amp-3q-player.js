@@ -26,9 +26,6 @@ import {listen, getData} from '../../../src/event-helper';
 import {VideoEvents} from '../../../src/video-interface';
 import {Services} from '../../../src/services';
 
-const TAG = 'amp-3q-player';
-
-
 /**
  * @implements {../../../src/video-interface.VideoInterface}
  */

@@ -32,7 +32,7 @@ import {
 import {dev, user} from '../../../src/log';
 import {getMode} from '../../../src/mode';
 import {Services} from '../../../src/services';
-import {toArray, toWin} from '../../../src/types';
+import {toArray} from '../../../src/types';
 import {
   removeElement,
   childElementByAttr,

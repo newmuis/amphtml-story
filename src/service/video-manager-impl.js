@@ -30,12 +30,7 @@ import {
   VideoAttributes,
   VideoEvents,
 } from '../video-interface';
-import {
-  viewerForDoc,
-  viewportForDoc,
-  vsyncFor,
-  platformFor,
-} from '../services';
+import {Services} from '../services';
 import {
   installPositionObserverServiceForDoc,
   PositionObserverFidelity,
@@ -178,8 +173,9 @@ export class VideoManager {
           this.entries_[i].updateVisibility();
         }
       };
-      this.viewport_.onScroll(scrollListener);
-      this.viewport_.onChanged(scrollListener);
+      const viewport = Services.viewportForDoc(this.ampdoc_);
+      viewport.onScroll(scrollListener);
+      viewport.onChanged(scrollListener);
       this.scrollListenerInstalled_ = true;
     }
   }
@@ -290,19 +286,7 @@ class VideoEntry {
     this.isVisible_ = false;
 
     /** @private @const {!../service/vsync-impl.Vsync} */
-    this.vsync_ = Services.vsyncFor(this.ampdoc_.win);
-
-    /** @private @const */
-    this.actionSessionManager_ = new VideoSessionManager();
-
-    this.actionSessionManager_.onSessionEnd(
-        () => analyticsEvent(this, VideoAnalyticsEvents.SESSION));
-
-    /** @private @const */
-    this.visibilitySessionManager_ = new VideoSessionManager();
-
-    this.visibilitySessionManager_.onSessionEnd(
-        () => analyticsEvent(this, VideoAnalyticsEvents.SESSION_VISIBLE));
+    this.vsync_ = Services.vsyncFor(ampdoc.win);
 
     /** @private @const */
     this.actionSessionManager_ = new VideoSessionManager();
@@ -597,7 +581,7 @@ class VideoEntry {
    * @private
    */
   loadedVideoVisibilityChanged_() {
-    if (!viewerForDoc(this.ampdoc_).isVisible()) {
+    if (!Services.viewerForDoc(this.ampdoc_).isVisible()) {
       return;
     }
 

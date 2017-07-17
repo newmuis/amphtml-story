@@ -20,13 +20,10 @@ import {VideoEvents} from '../../../../src/video-interface';
 import '../amp-video';
 
 
-describes.realWin('amp-video', {
-  amp: {
-    extensions: ['amp-video'],
-  },
-}, env => {
-  let win, doc;
-  let timer;
+describe(TAG, () => {
+
+  let sandbox;
+  const timer = Services.timerFor(window);
 
   beforeEach(() => {
     win = env.win;

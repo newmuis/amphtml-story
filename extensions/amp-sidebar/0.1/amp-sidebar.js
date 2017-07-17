@@ -21,11 +21,10 @@ import {Services} from '../../../src/services';
 import {Toolbar} from './toolbar';
 import {closestByTag, tryFocus, isRTL} from '../../../src/dom';
 import {dev} from '../../../src/log';
-import {isExperimentOn} from '../../../src/experiments';
+import {Services} from '../../../src/services';
 import {setStyles, toggle} from '../../../src/style';
 import {debounce} from '../../../src/utils/rate-limit';
 import {removeFragment, parseUrl} from '../../../src/url';
-import {toArray} from '../../../src/types';
 
 /** @const */
 const TAG = 'amp-sidebar toolbar';
@@ -59,16 +58,7 @@ export class AmpSidebar extends AMP.BaseElement {
     /** @private {?string} */
     this.side_ = null;
 
-    /** @private {Array} */
-    this.toolbars_ = [];
-
-    /** @private {boolean} */
-    this.isToolbarExperimentEnabled_ = isExperimentOn(this.win, TAG);
-
     const platform = Services.platformFor(this.win);
-
-    /** @private @const {boolean} */
-    this.isIos_ = platform.isIos();
 
     /** @private @const {boolean} */
     this.isIos_ = platform.isIos();
@@ -81,6 +71,9 @@ export class AmpSidebar extends AMP.BaseElement {
 
     /** @private {boolean} */
     this.bottomBarCompensated_ = false;
+
+    /** @private @const {!../../../src/service/timer-impl.Timer} */
+    this.timer_ = Services.timerFor(this.win);
 
     /** @private {number|string|null} */
     this.openOrCloseTimeOut_ = null;
@@ -339,26 +332,6 @@ export class AmpSidebar extends AMP.BaseElement {
    */
   getHistory_() {
     return Services.historyForDoc(this.getAmpDoc());
-  }
-
-  /**
-   * Get called when animation/transition end when open/close sidebar
-   * @private
-   */
-  onAnimationEnd_() {
-    if (this.isOpen_()) {
-      // On open sidebar
-      const children = this.getRealChildren();
-      this.scheduleLayout(children);
-      this.scheduleResume(children);
-      tryFocus(this.element);
-    } else {
-      // On close sidebar
-      this.vsync_.mutate(() => {
-        toggle(this.element, /* display */false);
-        this.schedulePause(this.getRealChildren());
-      });
-    }
   }
 }
 

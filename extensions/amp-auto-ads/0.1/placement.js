@@ -269,14 +269,8 @@ function getPlacementsFromObject(ampdoc, placementObj, placements) {
       return;
     }
     const attributes = getAttributesFromConfigObj(placementObj);
-    placements.push(new Placement(
-        ampdoc,
-        Services.resourcesForDoc(anchorElement),
-        anchorElement,
-        placementObj['pos'],
-        injector,
-        attributes,
-        margins));
+    placements.push(new Placement(win, Services.resourcesForDoc(anchorElement),
+        anchorElement, placementObj['pos'], injector, attributes, margins));
   });
 }
 

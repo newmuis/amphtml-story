@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+import {Services} from '../../../../src/services';
+import {createIframePromise} from '../../../../testing/iframe';
+import '../amp-fit-text';
 import {
   calculateFontSize_,
   updateOverflow_,
@@ -33,22 +36,27 @@ describes.realWin('amp-fit-text component', {
   });
 
   function getFitText(text, opt_responsive) {
-    const ft = doc.createElement('amp-fit-text');
-    ft.setAttribute('width', '111');
-    ft.setAttribute('height', '222');
-    ft.style.fontFamily = 'Arial';
-    ft.style.fontSize = '17px';
-    ft.style.lineHeight = '17px';
-    ft.style.overflow = 'hidden';
-    ft.style.width = '111px';
-    ft.style.height = '222px';
-    ft.style.position = 'relative';
-    if (opt_responsive) {
-      ft.setAttribute('layout', 'responsive');
-    }
-    ft.textContent = text;
-    doc.body.appendChild(ft);
-    return ft.build().then(() => ft.layoutCallback()).then(() => ft);
+    return createIframePromise().then(iframe => {
+      const ft = iframe.doc.createElement('amp-fit-text');
+      ft.setAttribute('width', '111');
+      ft.setAttribute('height', '222');
+      ft.style.fontFamily = 'Arial';
+      ft.style.fontSize = '17px';
+      ft.style.lineHeight = '17px';
+      ft.style.overflow = 'hidden';
+      ft.style.width = '111px';
+      ft.style.height = '222px';
+      ft.style.position = 'relative';
+      if (opt_responsive) {
+        ft.setAttribute('layout', 'responsive');
+      }
+      ft.textContent = text;
+      iframe.doc.body.appendChild(ft);
+      return Services.timerFor(window).promise(16).then(() => {
+        ft.implementation_.layoutCallback();
+        return ft;
+      });
+    });
   }
 
   it('renders', () => {

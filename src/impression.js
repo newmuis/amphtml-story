@@ -71,15 +71,7 @@ export function maybeTrackImpression(win) {
 }
 
 
-/**
- * Actually perform the impression request if it has been provided via
- * the click param in the viewer arguments.
- * @param {!Window} win
- * @param {!./service/viewer-impl.Viewer} viewer
- * @param {!Function} resolveImpression Call when the impression has been
- *     tracked.
- */
-function trackImpressionFromClickParam(win, viewer, resolveImpression) {
+  const viewer = Services.viewerForDoc(win.document);
   /** @const {string|undefined} */
   const clickUrl = viewer.getParam('click');
 

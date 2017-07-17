@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {Services} from '../../../../src/services';
 import {
   AmpIframe,
   isAdLike,
@@ -23,46 +24,35 @@ import {CommonSignals} from '../../../../src/common-signals';
 import {Services} from '../../../../src/services';
 import {poll} from '../../../../testing/iframe';
 import {
-  createElementWithAttributes,
-  whenUpgradedToCustomElement,
-} from '../../../../src/dom';
+  createIframePromise,
+  poll,
+} from '../../../../testing/iframe';
+import * as sinon from 'sinon';
 
+adopt(window);
 
-describes.realWin('amp-iframe', {
-  allowExternalResources: true,
-  amp: {
-    runtimeOn: true,
-    extensions: ['amp-iframe'],
-    ampdoc: 'single',
-  },
-}, env => {
-  describe('amp-iframe', () => {
-    let iframeSrc;
-    let clickableIframeSrc;
-    let timer;
-    let ranJs;
-    let content;
-    let win;
-    let doc;
+describe('amp-iframe', () => {
 
-    beforeEach(() => {
-      iframeSrc = 'http://iframe.localhost:' + location.port +
-        '/test/fixtures/served/iframe.html';
-      clickableIframeSrc = 'http://iframe.localhost:' + location.port +
-        '/test/fixtures/served/iframe-clicktoplay.html';
-      win = env.win;
-      doc = win.document;
-      timer = Services.timerFor(win);
-      ranJs = 0;
-      content = '';
-      timer = Services.timerFor(env.win);
-      win.addEventListener('message', message => {
-        if (!message.data) {
-          return;
-        }
-        if (message.data == 'loaded-iframe') {
-          ranJs++;
-        }
+  const iframeSrc = 'http://iframe.localhost:' + location.port +
+      '/test/fixtures/served/iframe.html';
+  const clickableIframeSrc = 'http://iframe.localhost:' + location.port +
+      '/test/fixtures/served/iframe-clicktoplay.html';
+
+  const timer = Services.timerFor(window);
+  let ranJs = 0;
+  let content = '';
+  let sandbox;
+
+  beforeEach(() => {
+    ranJs = 0;
+    sandbox = sinon.sandbox.create();
+    window.onmessage = function(message) {
+      if (!message.data) {
+        return;
+      }
+      if (message.data == 'loaded-iframe') {
+        ranJs++;
+      }
 
         if (message.data.indexOf('content-iframe:') == 0) {
           content = message.data.replace('content-iframe:', '');
@@ -117,7 +107,8 @@ describes.realWin('amp-iframe', {
       } else {
         doc.body.appendChild(ampIframe);
       }
-      const viewport = Services.viewportForDoc(doc);
+      const top = opt_top || '600px';
+      const viewport = Services.viewportForDoc(iframe.win.document);
       viewport.resize_();
       ampIframe.style.top = '600px';
       if (opt_top != undefined) {

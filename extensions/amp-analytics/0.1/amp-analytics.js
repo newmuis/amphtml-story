@@ -21,14 +21,7 @@ import {expandTemplate} from '../../../src/string';
 import {isArray, isObject} from '../../../src/types';
 import {dict, hasOwn, map} from '../../../src/utils/object';
 import {sendRequest, sendRequestUsingIframe} from './transport';
-import {
-  cryptoFor,
-  timerFor,
-  urlReplacementsForDoc,
-  userNotificationManagerFor,
-  viewerForDoc,
-  xhrFor,
-} from '../../../src/services';
+import {Services} from '../../../src/services';
 import {toggle} from '../../../src/style';
 import {isEnumValue} from '../../../src/types';
 import {parseJson} from '../../../src/json';
@@ -152,7 +145,7 @@ export class AmpAnalytics extends AMP.BaseElement {
         .getAttribute('data-consent-notification-id');
 
     if (this.consentNotificationId_ != null) {
-      this.consentPromise_ = userNotificationManagerFor(this.win)
+      this.consentPromise_ = Services.userNotificationManagerFor(this.win)
           .then(service => service.get(dev().assertString(
               this.consentNotificationId_)));
     }

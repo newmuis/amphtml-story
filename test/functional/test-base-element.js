@@ -20,6 +20,7 @@ import {createAmpElementProtoForTesting} from '../../src/custom-element';
 import {layoutRectLtwh} from '../../src/layout-rect';
 import {listenOncePromise} from '../../src/event-helper';
 import {Services} from '../../src/services';
+import * as sinon from 'sinon';
 
 
 describes.realWin('BaseElement', {amp: true}, env => {
@@ -182,7 +183,7 @@ describes.realWin('BaseElement', {amp: true}, env => {
 
     beforeEach(() => {
       const timer = Services.timerFor(element.win);
-      target = doc.createElement('div');
+      target = document.createElement('div');
 
       event1 = doc.createEvent('Event');
       event1.initEvent('event1', false, true);

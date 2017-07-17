@@ -21,7 +21,7 @@ import {Signals} from '../../src/utils/signals';
 import {VisibilityState} from '../../src/visibility-state';
 import {layoutRectLtwh} from '../../src/layout-rect';
 import {loadPromise} from '../../src/event-helper';
-import {resourcesForDoc} from '../../src/services';
+import {Services} from '../../src/services';
 import * as sinon from 'sinon';
 
 /*eslint "google-camelcase/google-camelcase": 0*/
@@ -561,7 +561,7 @@ describes.fakeWin('Resources startup', {
   beforeEach(() => {
     win = env.win;
     clock = sandbox.useFakeTimers();
-    resources = resourcesForDoc(win.document.body);
+    resources = Services.resourcesForDoc(win.document.body);
     resources.relayoutAll_ = false;
     schedulePassStub = sandbox.stub(resources, 'schedulePass');
   });

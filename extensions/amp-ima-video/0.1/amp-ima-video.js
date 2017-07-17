@@ -34,7 +34,6 @@ import {removeElement} from '../../../src/dom';
 import {user} from '../../../src/log';
 import {VideoEvents} from '../../../src/video-interface';
 import {Services} from '../../../src/services';
-import {isEnumValue} from '../../../src/types';
 
 /** @const */
 const TAG = 'amp-ima-video';

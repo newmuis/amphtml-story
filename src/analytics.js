@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {analyticsForDocOrNull} from './services';
+import {Services} from './services';
 
 /**
  * Helper method to trigger analytics event if amp-analytics is available.

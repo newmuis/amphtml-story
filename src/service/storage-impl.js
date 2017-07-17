@@ -19,7 +19,7 @@ import {getSourceOrigin} from '../url';
 import {dev} from '../log';
 import {dict} from '../utils/object';
 import {parseJson, recreateNonProtoObject} from '../json';
-import {viewerForDoc} from '../services';
+import {Services} from '../services';
 
 /** @const */
 const TAG = 'Storage';

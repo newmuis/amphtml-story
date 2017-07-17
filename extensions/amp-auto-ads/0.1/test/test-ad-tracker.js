@@ -18,6 +18,8 @@
 import {AdTracker, getExistingAds} from '../ad-tracker';
 import {Services} from '../../../../src/services';
 import {layoutRectLtwh} from '../../../../src/layout-rect';
+import {Services} from '../../../../src/services';
+import * as sinon from 'sinon';
 
 
 describes.realWin('ad-tracker', {amp: true}, env => {

@@ -512,7 +512,7 @@ describes.fakeWin('runtime', {
       const promise = adopt(win);
       ext.installExtensionsService(win);
       extensions = Services.extensionsFor(win);
-      return promise;
+      registerStub = sandbox.stub(extel, 'registerExtendedElement');
     });
 
     it('should export properties to global AMP object', () => {
@@ -672,7 +672,7 @@ describes.fakeWin('runtime', {
       const promise = adoptShadowMode(win);
       ext.installExtensionsService(win);
       extensions = Services.extensionsFor(win);
-      return promise;
+      registerStub = sandbox.stub(extel, 'registerExtendedElement');
     });
 
     it('should export properties to global AMP object', () => {

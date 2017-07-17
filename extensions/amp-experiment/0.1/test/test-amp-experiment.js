@@ -17,6 +17,8 @@
 import {AmpExperiment} from '../amp-experiment';
 import {Services} from '../../../../src/services';
 import * as variant from '../variant';
+import {Services} from '../../../../src/services';
+import * as sinon from 'sinon';
 
 
 describes.realWin('amp-experiment', {

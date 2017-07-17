@@ -23,7 +23,7 @@ import {installDocService} from '../../src/service/ampdoc-impl';
 import {
   installExtensionsService,
 } from '../../src/service/extensions-impl';
-import {extensionsFor} from '../../src/services';
+import {Services} from '../../src/services';
 
 
 describes.realWin('crypto-impl', {}, env => {
@@ -104,7 +104,7 @@ describes.realWin('crypto-impl', {}, env => {
     installDocService(win, /* isSingleDoc */ true);
     installExtensionsService(win);
     const extensions = Services.extensionsFor(win);
-    sandbox.stub(extensions, 'preloadExtension', extensionId => {
+    sandbox.stub(extensions, 'loadExtension', extensionId => {
       expect(extensionId).to.equal('amp-crypto-polyfill');
       installCryptoPolyfill(win);
       return Promise.resolve();

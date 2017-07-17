@@ -16,17 +16,15 @@
 
 import '../amp-brid-player';
 import {listenOncePromise} from '../../../../src/event-helper';
+import {adopt} from '../../../../src/runtime';
 import {Services} from '../../../../src/services';
 import {VideoEvents} from '../../../../src/video-interface';
 
 
-describes.realWin('amp-brid-player', {
-  amp: {
-    extensions: ['amp-brid-player'],
-  },
-}, env => {
-  let win, doc;
-  let timer;
+describe('amp-brid-player', () => {
+
+  let sandbox;
+  const timer = Services.timerFor(window);
 
   beforeEach(() => {
     win = env.win;

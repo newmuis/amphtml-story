@@ -16,7 +16,7 @@
 
 import {Services} from './services';
 import {dev, rethrowAsync} from './log';
-import {documentStateFor, performanceFor, resourcesForDoc} from './services';
+import {Services} from './services';
 import {setStyles} from './style';
 import {waitForBody} from './dom';
 import {waitForServices} from './render-delaying-services';
@@ -244,7 +244,7 @@ export function makeBodyVisible(doc, opt_waitForServices) {
     renderStartedNoInline(doc);
   };
   try {
-    waitForBody(doc, () => {
+    Services.documentStateFor(win).onBodyAvailable(() => {
       if (win[bodyVisibleSentinel]) {
         return;
       }

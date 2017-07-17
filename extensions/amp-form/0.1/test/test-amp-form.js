@@ -31,11 +31,7 @@ import '../../../amp-mustache/0.1/amp-mustache';
 import {
   cidServiceForDocForTesting,
 } from '../../../../src/service/cid-impl';
-import {
-  actionServiceForDoc,
-  documentInfoForDoc,
-  timerFor,
-} from '../../../../src/services';
+import {Services} from '../../../../src/services';
 import '../../../amp-selector/0.1/amp-selector';
 import {user} from '../../../../src/log';
 import {whenCalled} from '../../../../testing/test-helper.js';
@@ -1249,7 +1245,7 @@ describes.repeated('', {
     it('should install action handler and handle submit action', () => {
       const form = getForm();
       document.body.appendChild(form);
-      const actions = actionServiceForDoc(form.ownerDocument);
+      const actions = Services.actionServiceForDoc(form.ownerDocument);
 
       sandbox.stub(actions, 'installActionHandler');
       const ampForm = new AmpForm(form);

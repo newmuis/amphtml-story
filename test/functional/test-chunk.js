@@ -158,7 +158,7 @@ describe('chunk', () => {
 
           beforeEach(() => {
             fakeWin = env.win;
-            const viewer = viewerForDoc(env.win.document);
+            const viewer = Services.viewerForDoc(env.win.document);
             env.sandbox.stub(viewer, 'isVisible', () => {
               return true;
             });

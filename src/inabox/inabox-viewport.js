@@ -17,8 +17,7 @@
 import {getFixedContainer} from '../../src/full-overlay-frame-child-helper';
 import {iframeMessagingClientFor} from './inabox-iframe-messaging-client';
 import {Services} from '../services';
-import {Viewport} from '../service/viewport/viewport-impl';
-import {ViewportBindingDef} from '../service/viewport/viewport-binding-def';
+import {Viewport, ViewportBindingDef} from '../service/viewport-impl';
 import {registerServiceBuilderForDoc} from '../service';
 import {
   layoutRectLtwh,
@@ -27,7 +26,6 @@ import {
 import {Observable} from '../observable';
 import {MessageType} from '../../src/3p-frame-messaging';
 import {dev} from '../log';
-import {vsyncFor} from '../../src/services';
 import {px, setStyles} from '../../src/style';
 
 
@@ -37,7 +35,7 @@ const TAG = 'inabox-viewport';
 
 /** @visibleForTesting */
 export function prepareFixedContainer(win, fixedContainer) {
-  return vsyncFor(win).runPromise({
+  return Services.vsyncFor(win).runPromise({
     measure: state => {
       state.boundingRect = fixedContainer./*OK*/getBoundingClientRect();
     },
@@ -64,7 +62,7 @@ export function prepareFixedContainer(win, fixedContainer) {
 
 /** @visibleForTesting */
 export function resetFixedContainer(win, fixedContainer) {
-  return vsyncFor(win).mutatePromise(() => {
+  return Services.vsyncFor(win).mutatePromise(() => {
     setStyles(dev().assertElement(win.document.body), {
       'background': 'transparent',
     });
@@ -240,7 +238,7 @@ export class ViewportBindingInabox {
    * @visibleForTesting
    */
   getChildResources() {
-    return resourcesForDoc(this.win.document).get();
+    return Services.resourcesForDoc(this.win.document).get();
   }
 
   /** @private */

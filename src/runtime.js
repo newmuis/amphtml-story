@@ -33,7 +33,7 @@ import {
   registerExtension,
   stubLegacyElements,
 } from './service/extensions-impl';
-import {ampdocServiceFor, platformFor} from './services';
+import {Services} from './services';
 import {startupChunk} from './chunk';
 import {cssText} from '../build/css';
 import {dev, user, initLogConstructor, setReportError} from './log';
@@ -81,10 +81,8 @@ import {
 import {parseUrl} from './url';
 import {registerElement} from './custom-element';
 import {registerExtendedElement} from './extended-element';
-import {resourcesForDoc} from './services';
 import {setStyle} from './style';
-import {stubElementsForDoc} from './service/custom-element-registry';
-import {waitForBodyPromise} from './dom';
+import {waitForBody} from './dom';
 import * as config from './config';
 
 initLogConstructor();
@@ -272,6 +270,16 @@ function adoptShared(global, callback) {
     }
   }
 
+  /**
+   * Certain extensions can be auto-loaded by runtime based on experiments or
+   * other configurations.
+   */
+  function installAutoLoadExtensions() {
+    if (!getMode().test && isExperimentOn(global, 'amp-lightbox-viewer-auto')) {
+      Services.extensionsFor(global).loadExtension('amp-lightbox-viewer');
+    }
+  }
+
   // Handle high priority extensions now, and if necessary issue
   // requests for new extensions (used for experimental version
   // locking).
@@ -347,10 +355,11 @@ function adoptShared(global, callback) {
  * @return {!Promise}
  */
 export function adopt(global) {
-  return adoptShared(global, (global, extensions) => {
-    const ampdocService = Services.ampdocServiceFor(global);
-    const ampdoc = ampdocService.getAmpDoc();
-    global.AMP.ampdoc = ampdoc;
+  adoptShared(global, {
+    registerElement: prepareAndRegisterElement,
+    registerServiceForDoc: prepareAndRegisterServiceForDoc,
+  }, global => {
+    const viewer = Services.viewerForDoc(global.document);
 
     const viewer = Services.viewerForDoc(global.document);
     global.AMP.viewer = viewer;
@@ -487,7 +496,7 @@ function prepareAndRegisterServiceForDoc(global, extensions,
     name, opt_ctor, opt_factory) {
   // TODO(kmh287, #9292): Refactor to remove opt_factory param and require ctor
   // once #9212 has been in prod for two releases.
-  const ampdocService = ampdocServiceFor(global);
+  const ampdocService = Services.ampdocServiceFor(global);
   const ampdoc = ampdocService.getAmpDoc();
   registerServiceForDoc(ampdoc, name, opt_ctor, opt_factory);
 
@@ -597,9 +606,6 @@ class MultidocManager {
         /* opt_isRuntimeCss */ true);
     // Instal doc services.
     installAmpdocServices(ampdoc, initParams || Object.create(null));
-    // Install auto-load extensions.
-    installAutoLoadExtensions(this.extensions_, ampdoc);
-
     const viewer = Services.viewerForDoc(ampdoc);
 
     /**
@@ -1003,7 +1009,10 @@ function maybeLoadCorrectVersion(win, fnOrStruct) {
   }
   // Mark the element as being replaced, so that the installExtension code
   // assumes it as not-present.
-  Services.extensionsFor(win).reloadExtension(fnOrStruct.n, scriptInHead);
+  scriptInHead.removeAttribute('custom-element');
+  scriptInHead.setAttribute('i-amphtml-loaded-new-version', fnOrStruct.n);
+  Services.extensionsFor(win).loadExtension(fnOrStruct.n,
+      /* stubbing not needed, should have already happened. */ false);
   return true;
 }
 

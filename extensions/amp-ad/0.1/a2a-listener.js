@@ -80,5 +80,5 @@ export function handleMessageEvent(win, event) {
   // We only allow AMP shaped URLs.
   user().assert(isProxyOrigin(url), 'Invalid ad A2A URL %s %s',
       url, origin);
-  viewerForDoc(win.document).navigateTo(url, 'ad-' + origin);
+  Services.viewerForDoc(win.document).navigateTo(url, 'ad-' + origin);
 }

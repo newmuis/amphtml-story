@@ -54,7 +54,7 @@ export class AmpAd extends AMP.BaseElement {
     /** @const {string} */
     const consentId = this.element.getAttribute('data-consent-notification-id');
     const consent = consentId
-        ? Services.userNotificationManagerForDoc(this.element)
+        ? Services.userNotificationManagerFor(this.win)
             .then(service => service.get(consentId))
         : Promise.resolve();
 
@@ -90,7 +90,7 @@ export class AmpAd extends AMP.BaseElement {
 
       const extensionTagName = networkImplementationTag(type);
       this.element.setAttribute('data-a4a-upgrade-type', extensionTagName);
-      return extensionsFor(this.win).loadElementClass(extensionTagName)
+      return Services.extensionsFor(this.win).loadElementClass(extensionTagName)
           .then(ctor => new ctor(this.element))
           .catch(error => {
           // Work around presubmit restrictions.

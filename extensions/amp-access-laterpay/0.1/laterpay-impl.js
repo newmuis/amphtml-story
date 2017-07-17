@@ -97,7 +97,7 @@ export class LaterpayVendor {
     this.accessService_ = accessService;
 
     /** @private @const {!../../../src/service/viewport-impl.Viewport} */
-    this.viewport_ = viewportForDoc(this.ampdoc);
+    this.viewport_ = Services.viewportForDoc(this.ampdoc);
 
     /** @const @private {!JsonObject} For shape see LaterpayConfigDef */
     this.laterpayConfig_ = this.accessService_.getAdapterConfig();
@@ -142,13 +142,13 @@ export class LaterpayVendor {
     }
 
     /** @const @private {!../../../src/service/timer-impl.Timer} */
-    this.timer_ = timerFor(this.ampdoc.win);
+    this.timer_ = Services.timerFor(this.ampdoc.win);
 
     /** @const @private {!../../../src/service/vsync-impl.Vsync} */
-    this.vsync_ = vsyncFor(this.ampdoc.win);
+    this.vsync_ = Services.vsyncFor(this.ampdoc.win);
 
     /** @const @private {!../../../src/service/xhr-impl.Xhr} */
-    this.xhr_ = xhrFor(this.ampdoc.win);
+    this.xhr_ = Services.xhrFor(this.ampdoc.win);
 
     // Install styles.
     installStylesForDoc(this.ampdoc, CSS, () => {}, false, TAG);

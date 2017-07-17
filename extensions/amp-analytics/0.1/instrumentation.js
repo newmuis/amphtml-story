@@ -40,9 +40,7 @@ import {
 } from '../../../src/service';
 import {isEnumValue} from '../../../src/types';
 import {startsWith} from '../../../src/string';
-import {timerFor} from '../../../src/services';
-import {viewerForDoc} from '../../../src/services';
-import {viewportForDoc} from '../../../src/services';
+import {Services} from '../../../src/services';
 
 const SCROLL_PRECISION_PERCENT = 5;
 const VAR_H_SCROLL_BOUNDARY = 'horizontalScrollBoundary';
@@ -149,7 +147,7 @@ export class InstrumentationService {
     /** @private @const {!../../../src/service/viewer-impl.Viewer} */
     this.viewer_ = Services.viewerForDoc(this.ampdoc);
 
-    /** @const {!../../../src/service/viewport/viewport-impl.Viewport} */
+    /** @const {!../../../src/service/viewport-impl.Viewport} */
     this.viewport_ = Services.viewportForDoc(this.ampdoc);
 
     /** @private {boolean} */

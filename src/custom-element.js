@@ -16,16 +16,11 @@
 
 import {AmpEvents} from './amp-events';
 import {CommonSignals} from './common-signals';
-import {ElementStub} from './element-stub';
-import {
-  Layout,
-  applyStaticLayout,
-  isInternalElement,
-  isLayoutSizeDefined,
-  isLoadingAllowed,
-} from './layout';
-import {LayoutDelayMeter} from './layout-delay-meter';
-import {ResourceState} from './service/resource';
+import {Layout, getLayoutClass, getLengthNumeral, getLengthUnits,
+    isInternalElement, isLayoutSizeDefined, isLoadingAllowed,
+    parseLayout, parseLength, getNaturalDimensions,
+    hasNaturalDimensions} from './layout';
+import {ElementStub, stubbedElements} from './element-stub';
 import {Services} from './services';
 import {Signals} from './utils/signals';
 import {createLoaderElement} from '../src/loader';
@@ -36,14 +31,6 @@ import {
 import {getMode} from './mode';
 import {parseSizeList} from './size-list';
 import {reportError} from './error';
-import {
-  ampdocServiceFor,
-  documentStateFor,
-  performanceForOrNull,
-  resourcesForDoc,
-  timerFor,
-  vsyncFor,
-} from './services';
 import * as dom from './dom';
 import {setStyle, setStyles} from './style';
 import {LayoutDelayMeter} from './layout-delay-meter';
@@ -179,7 +166,7 @@ export function stubElements(win) {
   }
   // Repeat stubbing when HEAD is complete.
   if (!win.document.body) {
-    const docState = documentStateFor(win);
+    const docState = Services.documentStateFor(win);
     docState.onBodyAvailable(() => stubElements(win));
   }
 }
@@ -802,8 +789,24 @@ function createBaseCustomElementClass(win) {
         this.classList.remove('i-amphtml-notbuilt');
         this.classList.remove('amp-notbuilt');
         this.signals_.signal(CommonSignals.BUILT);
-        if (this.isInViewport_) {
-          this.updateInViewport_(true);
+      } catch (e) {
+        this.signals_.rejectSignal(CommonSignals.BUILT, e);
+        reportError(e, this);
+        throw e;
+      }
+      if (this.built_ && this.isInViewport_) {
+        this.updateInViewport_(true);
+      }
+      if (this.actionQueue_) {
+        // Only schedule when the queue is not empty, which should be
+        // the case 99% of the time.
+        Services.timerFor(this.ownerDocument.defaultView)
+            .delay(this.dequeueActions_.bind(this), 1);
+      }
+      if (!this.getPlaceholder()) {
+        const placeholder = this.createPlaceholder();
+        if (placeholder) {
+          this.appendChild(placeholder);
         }
         if (this.actionQueue_) {
           // Only schedule when the queue is not empty, which should be
@@ -838,7 +841,7 @@ function createBaseCustomElementClass(win) {
         // If we do early preconnects we delay them a bit. This is kind of
         // an unfortunate trade off, but it seems faster, because the DOM
         // operations themselves are not free and might delay
-        Services.timerFor(toWin(this.ownerDocument.defaultView)).delay(() => {
+        Services.timerFor(this.ownerDocument.defaultView).delay(() => {
           this.implementation_.preconnectCallback(onLayout);
         }, 1);
       }
@@ -1025,17 +1028,9 @@ function createBaseCustomElementClass(win) {
       }
       if (!this.ampdoc_) {
         // Ampdoc can now be initialized.
-        const win = toWin(this.ownerDocument.defaultView);
-        const ampdocService = Services.ampdocServiceFor(win);
-        const ampdoc = ampdocService.getAmpDoc(this);
-        this.ampdoc_ = ampdoc;
-        // Load the pre-stubbed extension if needed.
-        const extensionId = this.tagName.toLowerCase();
-        if (isStub(this.implementation_) &&
-            !ampdoc.declaresExtension(extensionId)) {
-          Services.extensionsFor(win).installExtensionForDoc(
-              ampdoc, extensionId);
-        }
+        const ampdocService = Services.ampdocServiceFor(
+            this.ownerDocument.defaultView);
+        this.ampdoc_ = ampdocService.getAmpDoc(this);
       }
       if (!this.resources_) {
         // Resources can now be initialized since the ampdoc is now available.
@@ -1378,7 +1373,7 @@ function createBaseCustomElementClass(win) {
         } else {
           // Set a minimum delay in case the element loads very fast or if it
           // leaves the viewport.
-          Services.timerFor(toWin(this.ownerDocument.defaultView)).delay(() => {
+          Services.timerFor(this.ownerDocument.defaultView).delay(() => {
             // TODO(dvoytenko, #9177): cleanup `this.ownerDocument.defaultView`
             // once investigation is complete. It appears that we get a lot of
             // errors here once the iframe is destroyed due to timer.
@@ -1926,8 +1921,8 @@ function assertNotTemplate(element) {
 function getVsync(element) {
   // TODO(dvoytenko, #9177): consider removing this and always resolving via
   // `createCustomElementClass(win)` object.
-  return Services.vsyncFor(toWin(element.ownerDocument.defaultView));
-}
+  return Services.vsyncFor(element.ownerDocument.defaultView);
+};
 
 /**
  * Whether the implementation is a stub.

@@ -20,7 +20,7 @@ import {
 } from '../../../ads/google/adsense-amp-auto-ads';
 import {buildUrl} from '../../../ads/google/a4a/url-builder';
 import {dict} from '../../../src/utils/object';
-import {documentInfoForDoc} from '../../../src/services';
+import {Services} from '../../../src/services';
 import {parseUrl} from '../../../src/url';
 
 

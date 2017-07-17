@@ -22,10 +22,6 @@ import {
 } from '../service';
 import {parseUrl, removeFragment, parseQueryString,
   addParamsToUrl} from '../url';
-import {viewerForDoc} from '../services';
-import {viewportForDoc} from '../services';
-import {userNotificationManagerFor} from '../services';
-import {activityForDoc} from '../services';
 import {getTrackImpressionPromise} from '../impression.js';
 import {
   VariableSource,
@@ -103,7 +99,7 @@ export class GlobalVariableSource extends VariableSource {
   /** @override */
   initialize() {
 
-    /** @const {!./viewport/viewport-impl.Viewport} */
+    /** @const {!./viewport-impl.Viewport} */
     const viewport = Services.viewportForDoc(this.ampdoc);
 
     // Returns a random value for cache busters.
@@ -149,21 +145,6 @@ export class GlobalVariableSource extends VariableSource {
     // Returns the referrer URL.
     this.setAsync('DOCUMENT_REFERRER', /** @type {AsyncResolverDef} */(() => {
       return Services.viewerForDoc(this.ampdoc).getReferrerUrl();
-    }));
-
-    // Like DOCUMENT_REFERRER, but returns null if the referrer is of
-    // same domain or the corresponding CDN proxy.
-    this.setAsync('EXTERNAL_REFERRER', /** @type {AsyncResolverDef} */(() => {
-      return Services.viewerForDoc(this.ampdoc).getReferrerUrl()
-          .then(referrer => {
-            if (!referrer) {
-              return null;
-            }
-            const referrerHostname = parseUrl(getSourceUrl(referrer)).hostname;
-            const currentHostname =
-                WindowInterface.getHostname(this.ampdoc.win);
-            return referrerHostname === currentHostname ? null : referrer;
-          });
     }));
 
     // Returns the title of this AMP document.
@@ -251,7 +232,7 @@ export class GlobalVariableSource extends VariableSource {
         // If no `opt_userNotificationId` argument is provided then
         // assume consent is given by default.
       if (opt_userNotificationId) {
-        consent = Services.userNotificationManagerForDoc(this.ampdoc)
+        consent = Services.userNotificationManagerFor(this.ampdoc.win)
               .then(service => {
                 return service.get(opt_userNotificationId);
               });
@@ -485,16 +466,6 @@ export class GlobalVariableSource extends VariableSource {
 
     this.set('BACKGROUND_STATE', () => {
       return Services.viewerForDoc(this.ampdoc).isVisible() ? '0' : '1';
-    });
-
-    this.setAsync('VIDEO_STATE', (id, property) => {
-      const root = this.ampdoc.getRootNode();
-      const video = user().assertElement(
-          root.getElementById(/** @type {string} */ (id)),
-          `Could not find an element with id="${id}" for VIDEO_STATE`);
-      return Services.videoManagerForDoc(this.ampdoc)
-          .getVideoAnalyticsDetails(video)
-          .then(details => details ? details[property] : '');
     });
 
     this.setAsync('STORY_PAGE_INDEX',

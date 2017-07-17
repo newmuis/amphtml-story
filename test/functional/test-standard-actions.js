@@ -272,7 +272,7 @@ describes.sandboxed('StandardActions', {}, () => {
         satisfiesTrust: () => true,
       };
       standardActions.handleAmpTarget(invocation);
-      return bindForDoc(ampdoc).then(() => {
+      return Services.bindForDoc(ampdoc).then(() => {
         expect(spy).to.be.calledOnce;
         expect(spy).to.be.calledWith('{foo: 123}');
       });

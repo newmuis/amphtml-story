@@ -189,8 +189,8 @@ export class AmpIosAppBanner extends AbstractAppBanner {
   constructor(element) {
     super(element);
 
-    /** @private {?../../../src/service/viewer-impl.Viewer} */
-    this.viewer_ = null;
+    /** @private @const {!../../../src/service/viewer-impl.Viewer} */
+    this.viewer_ = Services.viewerForDoc(this.getAmpDoc());
 
     /** @private {?Element} */
     this.metaTag_ = null;
@@ -265,7 +265,7 @@ export class AmpIosAppBanner extends AbstractAppBanner {
       }, OPEN_LINK_TIMEOUT);
       openWindowDialog(this.win, openInAppUrl, '_top');
     } else {
-      timerFor(this.win).delay(() => {
+      Services.timerFor(this.win).delay(() => {
         this.viewer_.sendMessage('navigateTo', dict({'url': installAppUrl}));
       }, OPEN_LINK_TIMEOUT);
       this.viewer_.sendMessage('navigateTo', dict({'url': openInAppUrl}));

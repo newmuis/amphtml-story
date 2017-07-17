@@ -17,12 +17,7 @@
 import {dev, user} from '../log';
 import {endsWith} from '../string';
 import {Services} from '../services';
-import {
-  setStyle,
-  setStyles,
-  computedStyle,
-  getVendorJsPropertyName,
-} from '../style';
+import {getStyle, setStyle, setStyles, computedStyle} from '../style';
 
 const TAG = 'FixedLayer';
 

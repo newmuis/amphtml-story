@@ -15,11 +15,7 @@
  */
 
 import {Observable} from '../../src/observable';
-import {
-  ampdocServiceFor,
-  urlReplacementsForDoc,
-  viewerForDoc,
-} from '../../src/services';
+import {Services} from '../../src/services';
 import {createIframePromise} from '../../testing/iframe';
 import {user} from '../../src/log';
 import {
@@ -322,7 +318,7 @@ describes.sandboxed('UrlReplacements', {}, () => {
         resolve();
       });
     });
-    return urlReplacementsForDoc(win.ampdoc)
+    return Services.urlReplacementsForDoc(win.ampdoc)
         .expandAsync('?url=SOURCE_URL')
         .then(res => {
           expect(res).to.contain('example.com');
@@ -534,7 +530,7 @@ describes.sandboxed('UrlReplacements', {}, () => {
     win.services.viewer = {
       obj: {isVisible: () => true},
     };
-    return urlReplacementsForDoc(win.ampdoc)
+    return Services.urlReplacementsForDoc(win.ampdoc)
         .expandAsync('?sh=BACKGROUND_STATE')
         .then(res => {
           expect(res).to.equal('?sh=0');
@@ -546,7 +542,7 @@ describes.sandboxed('UrlReplacements', {}, () => {
     win.services.viewer = {
       obj: {isVisible: () => false},
     };
-    return urlReplacementsForDoc(win.ampdoc)
+    return Services.urlReplacementsForDoc(win.ampdoc)
         .expandAsync('?sh=BACKGROUND_STATE')
         .then(res => {
           expect(res).to.equal('?sh=1');
@@ -912,7 +908,7 @@ describes.sandboxed('UrlReplacements', {}, () => {
         resolve();
       });
     });
-    return urlReplacementsForDoc(win.ampdoc)
+    return Services.urlReplacementsForDoc(win.ampdoc)
         .expandAsync('?sh=QUERY_PARAM(query_string_param1)&s')
         .then(res => {
           expect(res).to.match(/sh=foo&s/);
@@ -925,7 +921,7 @@ describes.sandboxed('UrlReplacements', {}, () => {
     sandbox.stub(trackPromise, 'getTrackImpressionPromise', () => {
       return Promise.resolve();
     });
-    return urlReplacementsForDoc(win.ampdoc)
+    return Services.urlReplacementsForDoc(win.ampdoc)
         .expandAsync('?sh=QUERY_PARAM(query_string_param1)&s')
         .then(res => {
           expect(res).to.match(/sh=&s/);
@@ -938,7 +934,7 @@ describes.sandboxed('UrlReplacements', {}, () => {
     sandbox.stub(trackPromise, 'getTrackImpressionPromise', () => {
       return Promise.resolve();
     });
-    return urlReplacementsForDoc(win.ampdoc)
+    return Services.urlReplacementsForDoc(win.ampdoc)
         .expandAsync('?sh=QUERY_PARAM(query_string_param1,default_value)&s')
         .then(res => {
           expect(res).to.match(/sh=default_value&s/);
@@ -970,7 +966,7 @@ describes.sandboxed('UrlReplacements', {}, () => {
 
   it('should reject javascript protocol', () => {
     const win = getFakeWindow();
-    const urlReplacements = urlReplacementsForDoc(win.ampdoc);
+    const urlReplacements = Services.urlReplacementsForDoc(win.ampdoc);
     /*eslint no-script-url: 0*/
     return urlReplacements.expandAsync('javascript://example.com/?r=RANDOM')
         .then(

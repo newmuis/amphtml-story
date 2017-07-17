@@ -14,13 +14,7 @@
  * limitations under the License.
  */
 
-import {
-  ampdocServiceFor,
-  cryptoFor,
-  extensionsFor,
-  timerFor,
-  viewerForDoc,
-} from '../../src/services';
+import {Services} from '../../src/services';
 import {
   cidServiceForDocForTesting,
   getProxySourceOrigin,
@@ -112,7 +106,7 @@ describe('cid', () => {
     fakeWin.document.defaultView = fakeWin;
     installDocService(fakeWin, /* isSingleDoc */ true);
     installDocumentStateService(fakeWin);
-    ampdoc = ampdocServiceFor(fakeWin).getAmpDoc();
+    ampdoc = Services.ampdocServiceFor(fakeWin).getAmpDoc();
     installTimerService(fakeWin);
     installPlatformService(fakeWin);
 
@@ -127,7 +121,7 @@ describe('cid', () => {
 
     installViewerServiceForDoc(ampdoc);
     storageGetStub = stubServiceForDoc(sandbox, ampdoc, 'storage', 'get');
-    viewer = viewerForDoc(ampdoc);
+    viewer = Services.viewerForDoc(ampdoc);
     sandbox.stub(viewer, 'whenFirstVisible', function() {
       return whenFirstVisible;
     });
