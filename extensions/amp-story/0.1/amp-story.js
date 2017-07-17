@@ -350,12 +350,15 @@ export class AmpStory extends AMP.BaseElement {
     }
 
     // TODO(newmuis): This will need to be flipped for RTL.
-    const nextScreenAreaThreshold =
-        (1 - NEXT_SCREEN_AREA_RATIO) * this.getViewport().getWidth();
+    const nextScreenAreaMin = this.element.offsetLeft +
+        ((1 - NEXT_SCREEN_AREA_RATIO) * this.element.offsetWidth);
+    const nextScreenAreaMax = this.element.offsetLeft +
+        this.element.offsetWidth;
 
-    if (event.pageX >= nextScreenAreaThreshold) {
+    if (event.pageX >= nextScreenAreaMin && event.pageX < nextScreenAreaMax) {
       this.next_();
-    } else {
+    } else if (event.pageX >= this.element.offsetLeft &&
+        event.pageX < nextScreenAreaMin) {
       this.previous_();
     }
 

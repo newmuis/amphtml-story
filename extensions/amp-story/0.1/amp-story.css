@@ -25,11 +25,53 @@ amp-story {
   height: 100% !important;
   position: relative !important;
   text-rendering: geometricPrecision !important;
+  user-select: none !important;
   width: 100% !important;
 }
 
-body > amp-story {
+html[amp-story],
+html[📖],
+html[amp-story] > body,
+html[📖] > body {
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+}
+
+html[amp-story] > body,
+html[📖] > body  {
+  display: grid !important;
+}
+
+html[amp-story] > body > amp-story,
+html[📖] > body > amp-story {
+  align-self: center;
+  box-shadow: 2px 2px 20px rgba(0, 0, 0, 0.5);
   height: 100vh !important;
+  justify-self: center;
+  max-height: 736px;
+  max-width: 414px;
+}
+
+amp-story:-webkit-full-screen {
+  max-height: none;
+  max-width: none;
+}
+
+amp-story:-moz-full-screen {
+  max-height: none;
+  max-width: none;
+}
+
+amp-story:-ms-fullscreen {
+  max-height: none;
+  max-width: none;
+}
+
+amp-story:fullscreen {
+  max-height: none;
+  max-width: none;
 }
 
 .i-amp-story-system-layer {
