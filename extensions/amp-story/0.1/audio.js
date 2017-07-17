@@ -40,9 +40,11 @@ export class AudioManager {
 
   createPlayable_(elementOrSource, priority) {
     if (elementOrSource instanceof Element) {
-      return new ElementPlayable(elementOrSource, priority);
+      return new ElementPlayable(
+          /** @type {!Element} */ (elementOrSource), priority);
     } else if (elementOrSource instanceof String) {
-      return new BackgroundPlayable(elementOrSource, priority);
+      return new BackgroundPlayable(
+          /** @type {string} */ (elementOrSource), priority);
     }
 
     dev().error('amp-story', 'Played item must be element or source URI.');
@@ -75,16 +77,56 @@ export class AudioManager {
 class Playable {
   constructor(priority) {
     this.priority = priority;
-    this.volume = 1;
   }
 
+  /**
+   * Loads the resources necessary to play this item.
+   */
   load() {}
 
+  /**
+   * @return {boolean} true, if this item's resources have been loaded.
+   */
+  isLoaded() {
+    return false;
+  }
+
+  /**
+   * Causes this item to start playing if it was not already playing.  load()
+   * will be called before play() in all cases.  play() should be a no-op if the
+   * item is already being played.
+   */
   play() {}
 
+  /**
+   * Sets the volume of this item to the specified volume, over the specified
+   * duration of time.
+   *
+   * @param {number} unusedVolume A volume from 0.0 (silent) to 1.0 (loudest).
+   * @param {number} unusedDurationMs The duration over which the new volume
+   *     should be achieved.
+   * @param {function(number): number} unusedEasingFn The easing function which
+   *     describes the curve the volume should be modified.
+   */
+  setVolume(unusedVolume, unusedDurationMs, unusedEasingFn) {}
+
+  /**
+   * Causes this item to stop playing if it was playing.  stop() should be a
+   * no-op if the item is already stopped.
+   */
   stop() {}
+
+  /**
+   * Unloads the resources associated with this item.  Can be called to free up
+   * resources.
+   */
+  unload() {}
 }
 
+
+/**
+ * A playable piece of audio loaded from a URI.
+ */
 class BackgroundPlayable extends Playable {
   constructor(sourceUri, priority) {
     super(priority);
@@ -114,10 +156,15 @@ class BackgroundPlayable extends Playable {
     };
   }
 
+  /** @override */
+  isLoaded() {
+    return !!this.buffer_;
+  }
+
 
   /**
    * 
-   * @param {*} sourceUri 
+   * @param {*} sourceUri
    */
   load() {
     if (this.buffer_) {
@@ -157,8 +204,71 @@ class BackgroundPlayable extends Playable {
       audioSource.source.start(0);
     }
   }
+
+  setVolume(volume, durationMs, easingFn) {
+    console.log(`Setting volume to ${volume} over ${durationMs}`);
+  }
+
+  unload() {
+    this.buffer_ = null;
+  }
 }
 
 class ElementPlayable extends Playable {
+  constructor(element, priority) {
+    super(priority);
 
+    dev().assert(element instanceof HTMLMediaElement,
+        'Only media elements can be played.');
+
+    this.element_ = element;
+  }
+
+  /** @override */
+  load() {
+    console.log('ElementPlayable does not load.');
+  }
+
+  /**
+   * @return {boolean} true, if this item's resources have been loaded.
+   */
+  isLoaded() {
+    return !!this.element_;
+  }
+
+  /** @override */
+  play() {
+    this.element_.play();
+  }
+
+  /** @override */
+  setVolume(volume, durationMs, easingFn) {
+    const startTimeMs = Date.now();
+
+    function stepVolume() {
+      this.vsync_.mutate(() => {
+        const currentTimeMs = Date.now();
+        const elapsedTimeMs = currentTimeMs - startTimeMs;
+        const currentPercentage = elapsedTimeMs / durationMs;
+        this.element_.volume = easingFn(currentPercentage);
+
+        if (currentPercentage < 1) {
+          stepVolume();
+        }
+      });
+    }
+
+    stepVolume();
+  }
+
+  /** @override */
+  stop() {
+    this.element_.pause();
+    this.element_.currentTime = 0;
+  }
+
+  /** @override */
+  unload() {
+    console.log('ElementPlayable does not unload.');
+  }
 }
