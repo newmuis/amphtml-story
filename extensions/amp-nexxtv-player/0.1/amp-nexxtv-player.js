@@ -241,44 +241,6 @@ class AmpNexxtvPlayer extends AMP.BaseElement {
   hideControls() {
   }
 
-  /**
-   * @override
-   */
-  fullscreenEnter() {
-    if (!this.iframe_) {
-      return;
-    }
-    fullscreenEnter(dev().assertElement(this.iframe_));
-  }
-
-  /**
-   * @override
-   */
-  fullscreenExit() {
-    if (!this.iframe_) {
-      return;
-    }
-    fullscreenExit(dev().assertElement(this.iframe_));
-  }
-
-  /** @override */
-  isFullscreen() {
-    if (!this.iframe_) {
-      return false;
-    }
-    return isFullscreenElement(dev().assertElement(this.iframe_));
-  }
-
-  /** @override */
-  getMetadata() {
-    // Not implemented
-  }
-
-  /** @override */
-  preimplementsMediaSessionAPI() {
-    return false;
-  }
-
   /** @override */
   getCurrentTime() {
     // Not supported.

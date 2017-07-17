@@ -444,6 +444,25 @@ class AmpYoutube extends AMP.BaseElement {
     // Not supported.
   }
 
+  /** @override */
+  getCurrentTime() {
+    // Not supported.
+    return 0;
+  }
+
+  /** @override */
+  getDuration() {
+    // Not supported.
+    return 1;
+  }
+
+  /** @override */
+  getPlayedRanges() {
+    // Not supported.
+    return [];
+  }
+};
+
   /**
    * @override
    */
