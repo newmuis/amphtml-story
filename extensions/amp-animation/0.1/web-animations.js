@@ -957,6 +957,17 @@ class CssContextImpl {
   }
 
   /**
+   * @param {string} query
+   * @return {boolean}
+   */
+  supports(query) {
+    if (this.win_.CSS && this.win_.CSS.supports) {
+      return this.win_.CSS.supports(query);
+    }
+    return false;
+  }
+
+  /**
    * @param {string} id
    * @return {?Element}
    */

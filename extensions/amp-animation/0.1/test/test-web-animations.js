@@ -681,7 +681,7 @@ describes.realWin('MeasureScanner', {amp: 1}, env => {
         {target: target2, duration: 300, keyframes: {}},
       ],
     });
-    expect(requests).to.be.null;
+    expect(requests).to.have.length(0);
   });
 
   it('should check supports in sub-animations', () => {
@@ -726,19 +726,19 @@ describes.realWin('MeasureScanner', {amp: 1}, env => {
       supports: 'supported: 1',
       target: target1,
       keyframes: {},
-    })).to.be.null;
+    })).to.have.length(0);
     expect(scan({
       media: 'match',
       supports: 'supported: 0',
       target: target1,
       keyframes: {},
-    })).to.be.null;
+    })).to.have.length(0);
     expect(scan({
       media: 'not-match',
       supports: 'supported: 0',
       target: target1,
       keyframes: {},
-    })).to.be.null;
+    })).to.have.length(0);
   });
 
   it('should find targets by selector', () => {
