@@ -17,7 +17,7 @@
 import {dev, user} from '../log';
 import {endsWith} from '../string';
 import {Services} from '../services';
-import {getStyle, setStyle, setStyles, computedStyle} from '../style';
+import {setStyle, setStyles, computedStyle} from '../style';
 
 const TAG = 'FixedLayer';
 
@@ -258,8 +258,8 @@ export class FixedLayer {
     return this.vsync_.runPromise({
       measure: state => {
         const autoTops = [];
-        const oldTops = [];
         const elements = this.elements_;
+        const styles = [];
 
         // Notice that this code intentionally breaks vsync contract.
         // Unfortunately, there's no way to reliably test whether or not
@@ -269,9 +269,14 @@ export class FixedLayer {
 
         // 1. Set all style top to `auto` and calculate the auto-offset.
         for (let i = 0; i < elements.length; i++) {
-          const fe = elements[i];
-          oldTops.push(getStyle(fe.element, 'top'));
-          setStyle(fe.element, 'top', 'auto');
+          const el = elements[i].element;
+          const style = computedStyle(this.ampdoc.win, el);
+          styles.push(style);
+          if (endsWith(style.position || '', 'sticky')) {
+            setStyle(el, 'position', 'fixed');
+          } else {
+            setStyle(el, 'top', 'auto');
+          }
         }
 
         for (let i = 0; i < elements.length; i++) {
@@ -280,15 +285,18 @@ export class FixedLayer {
 
         // 2. Reset style top.
         for (let i = 0; i < elements.length; i++) {
-          setStyle(elements[i].element, 'top', oldTops[i]);
+          setStyles(elements[i].element, {
+            top: '',
+            position: '',
+          });
         }
 
         // 3. Calculated fixed/sticky info.
         for (let i = 0; i < elements.length; i++) {
           const fe = elements[i];
+          const style = styles[i];
           const element = fe.element;
-          const styles = computedStyle(this.ampdoc.win, element);
-          const position = styles.position || '';
+          const position = style.position || '';
           // Element is indeed fixed. Visibility is added to the test to
           // avoid moving around invisible elements.
           const isFixed = (
@@ -313,16 +321,14 @@ export class FixedLayer {
           // actual calculated value in all other browsers. To find out whether
           // or not the `top` was actually set in CSS, this method compares
           // `offsetTop` with `style.top = 'auto'` and without.
-          let top = styles.top;
+          let top = style.top;
           const currentOffsetTop = element./*OK*/offsetTop;
-          const isImplicitAuto = currentOffsetTop == autoTops[i];
-          if ((top == 'auto' || isImplicitAuto) && top != '0px' ||
-              // This is workaround for http://crbug.com/703816 in Chrome where
-              // `getComputedStyle().top` returns `0px` instead of `auto`.
-              (isSticky && top == '0px' && isImplicitAuto &&
-                  currentOffsetTop != 0)) {
-            top = '';
-            if (currentOffsetTop ==
+          if (isSticky) {
+            if (top === 'auto' || parseInt(top, 10) !== autoTops[i]) {
+              top = '';
+            }
+          } else if (currentOffsetTop === autoTops[i]) {
+            if (currentOffsetTop ===
                     this.committedPaddingTop_ + this.borderTop_) {
               top = '0px';
             } else {
@@ -330,6 +336,8 @@ export class FixedLayer {
             }
           }
 
+          const bottom = style.bottom;
+          const opacity = parseFloat(style.opacity);
           // Transferability requires element to be fixed and top or bottom to
           // be styled with `0`. Also, do not transfer transparent
           // elements - that's a lot of work for no benefit.  Additionally,
@@ -352,8 +360,8 @@ export class FixedLayer {
             sticky: isSticky,
             transferrable: isTransferrable,
             top,
-            zIndex,
-            transform,
+            zIndex: style.zIndex,
+            transform: style.transform,
           };
         }
       },
@@ -554,23 +562,12 @@ export class FixedLayer {
 
     // Update `top`. This is necessary to adjust position to the viewer's
     // paddingTop.
-    if (state.top && (state.fixed || state.sticky)) {
-      if (state.fixed || !this.transfer_) {
-        // Fixed positions always need top offsetting, as well as stickies on
-        // non iOS Safari.
-        setStyle(element, 'top', `calc(${state.top} + ${this.paddingTop_}px)`);
-      } else {
-        // On iOS Safari (this.transfer_ = true), stickies need to be cannot
-        // have an offset because they are already offset by the padding-top.
-        if (this.committedPaddingTop_ === this.paddingTop_) {
-          // So, when the header is shown, just use top.
-          setStyle(element, 'top', state.top);
-        } else {
-          // When the header is not shown, we need to subtract the padding top.
-          setStyle(element, 'top',
-              `calc(${state.top} - ${this.committedPaddingTop_}px)`);
-        }
-      }
+    if (state.top && (state.fixed || (state.sticky && !this.transfer_))) {
+      setStyle(element, 'top', `calc(${state.top} + ${this.paddingTop_}px)`);
+    }
+    // Move element to the fixed layer.
+    if (this.transfer_ && state.fixed && !oldFixed && state.transferrable) {
+      this.transferToTransferLayer_(fe, index, state);
     }
 
     // Move element to the fixed layer.
