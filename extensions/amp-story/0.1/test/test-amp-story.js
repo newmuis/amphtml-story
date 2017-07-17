@@ -32,9 +32,12 @@ describes.realWin('amp-story', {
     sandbox./*OK*/stub(element.implementation_, 'bookend_', bookend);
   }
 
-  function createPages(container, count) {
-    return Array(count).fill(undefined).map(() => {
+  function createPages(container, count, opt_ids) {
+    return Array(count).fill(undefined).map((unused, i) => {
       const page = win.document.createElement('amp-story-page');
+      if (opt_ids && opt_ids[i]) {
+        page.id = opt_ids[i];
+      }
       container.appendChild(page);
       return page;
     });
@@ -62,18 +65,27 @@ describes.realWin('amp-story', {
   });
 
   it('should build', () => {
+    const firstPageId = 'first-page-foo';
+
     const systemLayerRootMock = {};
 
     const systemLayerBuild =
         sandbox.stub(element.implementation_.systemLayer_, 'build')
             .returns(systemLayerRootMock);
 
-    createPages(element, 5);
+    const updateActivePageState =
+        sandbox.stub(element.implementation_.navigationState_,
+            'updateActivePage',
+            NOOP);
+
+    createPages(element, 5, [firstPageId]);
     const appendChild = sandbox.stub(element, 'appendChild', NOOP);
 
     element.build();
 
     expect(appendChild).to.have.been.calledWithExactly(systemLayerRootMock);
+    expect(updateActivePageState).to.have.been.calledWith(0, firstPageId);
+    expect(updateActivePageState).to.have.been.calledOnce;
   });
 
   it('should enter fullscreen when switching pages', () => {
