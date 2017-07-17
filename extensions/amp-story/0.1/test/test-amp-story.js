@@ -19,9 +19,13 @@ describes.realWin('amp-story', {
   let win;
   let element;
 
-  function stubEmptyActivePage() {
-    sandbox./*OK*/stub(element.implementation_, 'getActivePage_',
-        () => document.createElement('amp-story-page'));
+  function appendEmptyPage(container, opt_active) {
+    const page = document.createElement('amp-story-page');
+    if (opt_active) {
+      page.setAttribute('active', true);
+    }
+    container.appendChild(page);
+    return page;
   }
 
   function stubBookend(bookend) {
@@ -77,7 +81,7 @@ describes.realWin('amp-story', {
     const systemLayerSetInFullScreen = sandbox.stub(
         element.implementation_.systemLayer_, 'setInFullScreen', NOOP);
 
-    stubEmptyActivePage();
+    appendEmptyPage(element, /* opt_active */ true);
     stubFullScreenForTesting(/* isSupported */ true, requestFullScreen, NOOP);
 
     element.implementation_.switchTo_(win.document.createElement('div'));
@@ -93,7 +97,7 @@ describes.realWin('amp-story', {
     const enterFullScreen = sandbox.stub(
         element.implementation_, 'enterFullScreen_', NOOP);
 
-    stubEmptyActivePage();
+    appendEmptyPage(element, /* opt_active */ true);
 
     element.implementation_.setAutoFullScreen(false);
     element.implementation_.switchTo_(win.document.createElement('div'));
@@ -108,11 +112,12 @@ describes.realWin('amp-story', {
 
     const bookend = win.document.createElement('section');
 
-    stubEmptyActivePage();
-    stubBookend(bookend);
+    appendEmptyPage(element);
     stubFullScreenForTesting(/* isSupported */ true, NOOP, exitFullScreen);
 
-    element.implementation_.switchTo_(bookend);
+    element.build();
+    element.implementation_.buildBookend_();
+    element.implementation_.showBookend_();
 
     expect(exitFullScreen).to.be.calledOnce;
     expect(systemLayerSetInFullScreen)
@@ -147,6 +152,8 @@ describes.realWin('amp-story', {
   it('should hide bookend when CLOSE_BOOKEND is triggered', () => {
     const hideBookendStub = sandbox.stub(
         element.implementation_, 'hideBookend_', NOOP);
+
+    appendEmptyPage(element);
 
     element.build();
 
@@ -195,7 +202,7 @@ describes.realWin('amp-story', {
     const updateProgressBarStub =
         sandbox.stub(impl.systemLayer_, 'updateProgressBar', NOOP);
 
-    stubEmptyActivePage();
+    appendEmptyPage(element, /* opt_active */ true);
 
     sandbox.stub(impl, 'getPageCount').returns(count);
     sandbox.stub(impl, 'getPageIndex').withArgs(page).returns(index);
@@ -231,6 +238,12 @@ describes.realWin('amp-story', {
 
     expect(pages[0].hasAttribute('active')).to.be.true;
     expect(pages[1].hasAttribute('active')).to.be.false;
+
+    // Stubbing because we need to assert synchronously
+    sandbox.stub(element.implementation_, 'mutateElement', mutator => {
+      mutator();
+      return Promise.resolve();
+    });
 
     const eventObj = createEvent('keydown');
     eventObj.keyCode = KeyCodes.RIGHT_ARROW;
