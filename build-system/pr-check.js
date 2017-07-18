@@ -282,9 +282,13 @@ const command = {
     }
     timedExecOrDie(cmd);
   },
-  runVisualDiffTests: function() {
+  runVisualDiffTests: function(opt_skip) {
     process.env['PERCY_TOKEN'] = atob(process.env.PERCY_TOKEN_ENCODED);
-    timedExec(`ruby build-system/tasks/visual-diff.rb`);
+    let cmd = 'ruby build-system/tasks/visual-diff.rb';
+    if (opt_skip) {
+      cmd += ' --skip';
+    }
+    timedExec(cmd);
   },
   runPresubmitTests: function() {
     timedExecOrDie(`${gulp} presubmit`);
@@ -406,6 +410,9 @@ function main(argv) {
       if (buildTargets.has('RUNTIME')) {
         command.runUnitTests();
       }
+    } else {
+      // Generates a blank Percy build to satisfy the required Github check.
+      command.runVisualDiffTests(/* opt_skip */ true);
     }
     if (buildTargets.has('VALIDATOR_WEBUI')) {
       command.buildValidatorWebUI();
