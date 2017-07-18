@@ -124,9 +124,12 @@ export class AmpStory extends AMP.BaseElement {
     /** @const @private {!VariableService} */
     this.variableService_ = new VariableService();
 
+<<<<<<< HEAD
     /** @const @private {!AudioManager} */
     this.audioManager_ = new AudioManager();
 
+=======
+>>>>>>> d26366cc... Bootstrap analytics and replacement variables for stories (#88)
     /**
      * @private @const {
      *   !function():!Promise<?Array<!./related-articles.RelatedArticleSet>
@@ -177,6 +180,14 @@ export class AmpStory extends AMP.BaseElement {
 =======
     firstPage.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
     this.scheduleResume(firstPage);
+
+    this.navigationState_.installConsumer(new AnalyticsTrigger(this.element));
+    this.navigationState_.installConsumer(this.variableService_);
+
+    this.navigationState_.updateActivePage(0, firstPage.id);
+
+    registerServiceBuilder(this.win, 'story-variable',
+        () => this.variableService_);
 
     // Mark all videos as autoplay
     const videos = this.element.querySelectorAll('amp-video');
@@ -312,7 +323,11 @@ export class AmpStory extends AMP.BaseElement {
       return;
     }
 
+<<<<<<< HEAD
     const activePage = this.activePage_;
+=======
+    const activePage = this.getActivePage_();
+>>>>>>> d26366cc... Bootstrap analytics and replacement variables for stories (#88)
     const pageIndex = this.getPageIndex(page);
 
     if (this.shouldEnterFullScreenOnSwitch_()) {
@@ -325,9 +340,12 @@ export class AmpStory extends AMP.BaseElement {
 
     // TODO(alanorozco): check if autoplay
     this.navigationState_.updateActivePage(pageIndex, page.id);
+<<<<<<< HEAD
 
     this.audioManager_.stop(activePage);
     this.audioManager_.play(page);
+=======
+>>>>>>> d26366cc... Bootstrap analytics and replacement variables for stories (#88)
 
     return this.mutateElement(() => {
       page.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');

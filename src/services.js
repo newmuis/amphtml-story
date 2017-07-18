@@ -240,6 +240,17 @@ export class Services {
           true)));
   }
 
+
+  /**
+   * @param {!Window} win
+   * @return {?Promise<?{pageIndex: number, pageId: string}>}
+   */
+  static storyVariableServiceForOrNull(win) {
+    return (/** @type {!Promise<?{pageIndex: number, pageId: string}>} */ (
+        getElementServiceIfAvailable(win, 'story-variable', 'amp-story',
+            true)));
+  }
+
   /**
    * @param {!Window} win
    * @return {?Promise<?{pageIndex: number, pageId: string}>}
