@@ -46,32 +46,13 @@ module.exports = {
     bundleDelay: 900,
   },
 
-  reporters: process.env.TRAVIS ? ['super-dots', 'mocha'] : ['dots', 'mocha'],
+  reporters: [process.env.TRAVIS ? 'super-dots' : 'progress'],
 
   superDotsReporter: {
-    color: {
-      success : 'green',
-      failure : 'red',
-      ignore  : 'yellow'
-    },
     icon: {
-      success : '●',
-      failure : '●',
-      ignore  : '○',
-    },
-  },
-
-  mochaReporter: {
-    output: 'minimal',
-    colors: {
-      success: 'green',
-      error: 'red',
-      info: 'yellow',
-    },
-    symbols: {
-      success : '●',
-      error: '●',
-      info: '○',
+      success : '✔',
+      failure : '✖',
+      ignore  : '?',
     },
   },
 

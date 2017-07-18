@@ -183,13 +183,11 @@ gulp.task('test', 'Runs tests', argv.nobuild ? [] : ['build'], function(done) {
 
   if (argv.testnames) {
     c.reporters = ['mocha'];
-    c.mochaReporter.output = 'full';
   }
 
   if (argv.files) {
     c.files = [].concat(config.commonTestPaths, argv.files);
-    c.reporters = argv.saucelabs ? ['dots', 'saucelabs', 'mocha'] : ['mocha'];
-    c.mochaReporter.output = argv.saucelabs ? 'minimal' : 'full';
+    c.reporters = ['mocha'];
   } else if (argv.integration) {
     c.files = config.integrationTestPaths;
   } else if (argv.randomize || argv.glob || argv.a4a) {
@@ -302,6 +300,9 @@ gulp.task('test', 'Runs tests', argv.nobuild ? [] : ['build'], function(done) {
       'Started test responses server on localhost:31862'));
 
   new Karma(c, function(exitCode) {
+    console./*OK*/log('\n');
+    util.log(util.colors.yellow(
+        'Shutting down test responses server on localhost:31862'));
     server.emit('kill');
     if (exitCode) {
       var error = new Error(
@@ -317,20 +318,18 @@ gulp.task('test', 'Runs tests', argv.nobuild ? [] : ['build'], function(done) {
     'testnames': '  Lists the name of each test being run',
     'watch': '  Watches for changes in files, runs corresponding test(s)',
     'saucelabs': '  Runs test on saucelabs (requires setup)',
-    'safari': '  Runs tests on Safari',
-    'firefox': '  Runs tests on Firefox',
-    'edge': '  Runs tests on Edge',
-    'ie': '  Runs tests on IE',
-    'unit': '  Run only unit tests.',
+    'safari': '  Runs tests in Safari',
+    'firefox': '  Runs tests in Firefox',
+    'edge': '  Runs tests in Edge',
     'integration': '  Run only integration tests.',
     'compiled': '  Changes integration tests to use production JS ' +
         'binaries for execution',
-    'oldchrome': 'Runs test with an old chrome. Saucelabs only.',
-    'grep': 'Runs tests that match the pattern',
-    'files': 'Runs tests for specific files',
-    'randomize': 'Runs entire test suite in random order',
-    'testlist': 'Runs tests specified in JSON by supplied file',
-    'glob': 'Explicitly expands test paths using glob before passing ' +
+    'oldchrome': '  Runs test with an old chrome. Saucelabs only.',
+    'grep': '  Runs tests that match the pattern',
+    'files': '  Runs tests for specific files',
+    'randomize': '  Runs entire test suite in random order',
+    'testlist': '  Runs tests specified in JSON by supplied file',
+    'glob': '  Explicitly expands test paths using glob before passing ' +
         'to Karma',
     'nohelp': '  Silence help messages that are printed prior to test run',
     'a4a': '  Runs all A4A tests',
