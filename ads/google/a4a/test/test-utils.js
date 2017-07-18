@@ -251,27 +251,6 @@ describe('Google A4A utils', () => {
         });
         const impl = new MockA4AImpl(elem);
         noopMethods(impl, doc, sandbox);
-        return fixture.addElement(elem).then(() => {
-          return googleAdUrl(impl, '', 0, [], []).then(url1 => {
-            expect(url1).to.match(/ady=11/);
-            expect(url1).to.match(/adx=12/);
-          });
-        });
-      });
-    });
-
-    it('should specify that this is canary', () => {
-      return createIframePromise().then(fixture => {
-        setupForAdTesting(fixture);
-        const doc = fixture.doc;
-        doc.win = window;
-        const elem = createElementWithAttributes(doc, 'amp-a4a', {
-          'type': 'adsense',
-          'width': '320',
-          'height': '50',
-        });
-        const impl = new MockA4AImpl(elem);
-        noopMethods(impl, doc, sandbox);
         impl.win.AMP_CONFIG = {type: 'canary'};
         return fixture.addElement(elem).then(() => {
           return googleAdUrl(impl, '', 0, [], []).then(url1 => {

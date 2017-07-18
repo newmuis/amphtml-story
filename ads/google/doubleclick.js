@@ -67,11 +67,6 @@ export function doubleclick(global, data) {
  * @param {!string} url
  */
 function doubleClickWithGpt(global, data, gladeExperiment, url) {
-  const dimensions = [[
-    parseInt(data.overrideWidth || data.width, 10),
-    parseInt(data.overrideHeight || data.height, 10),
-  ]];
-
   // Handle multi-size data parsing, validation, and inclusion into dimensions.
   const multiSizeDataStr = data.multiSize || null;
   const primaryWidth = parseInt(data.overrideWidth || data.width, 10);
@@ -81,7 +76,8 @@ function doubleClickWithGpt(global, data, gladeExperiment, url) {
       multiSizeDataStr,
       primaryWidth,
       primaryHeight,
-      (data.multiSizeValidation || 'true') == 'true'))) {
+      (data.multiSizeValidation || 'true') == 'true',
+      true))) {
     dimensions.unshift([primaryWidth, primaryHeight]);
   } else {
     dimensions = [[primaryWidth, primaryHeight]];

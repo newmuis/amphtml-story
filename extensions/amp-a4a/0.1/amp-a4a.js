@@ -336,6 +336,15 @@ export class AmpA4A extends AMP.BaseElement {
 
     /** @private {string} */
     this.safeframeVersion_ = DEFAULT_SAFEFRAME_VERSION;
+
+    /**
+     * @protected {boolean} Indicates whether the ad is currently in the
+     *    process of being refreshed.
+     */
+    this.isRefreshing = false;
+
+    /** @protected {boolean} */
+    this.isRelayoutNeededFlag = false;
   }
 
   /** @override */
@@ -788,6 +797,43 @@ export class AmpA4A extends AMP.BaseElement {
   }
 
   /**
+   * Refreshes ad slot by fetching a new creative and rendering it. This leaves
+   * the current creative displayed until the next one is ready.
+   *
+   * @param {function()} refreshEndCallback When called, this function will
+   *   restart the refresh cycle.
+   * @return {Promise} A promise that resolves when all asynchronous portions of
+   *   the refresh function complete. This is particularly handy for testing.
+   */
+  refresh(refreshEndCallback) {
+    dev().assert(!this.isRefreshing);
+    this.isRefreshing = true;
+    this.tearDownSlot();
+    this.initiateAdRequest();
+    dev().assert(this.adPromise_);
+    const promiseId = this.promiseId_;
+    return this.adPromise_.then(() => {
+      if (!this.isRefreshing || promiseId != this.promiseId_) {
+        // If this refresh cycle was canceled, such as in a no-content
+        // response case, keep showing the old creative.
+        refreshEndCallback();
+        return;
+      }
+      return this.mutateElement(() => {
+        this.togglePlaceholder(true);
+        // This delay provides a 1 second buffer where the ad loader is
+        // displayed in between the creatives.
+        return Services.timerFor(this.win).promise(1000).then(() => {
+          this.isRelayoutNeededFlag = true;
+          this.getResource().layoutCanceled();
+          Services.resourcesForDoc(this.getAmpDoc())
+              ./*OK*/requireLayout(this.element);
+        });
+      });
+    });
+  }
+
+  /**
    * Attempts to validate the creative signature against every key currently in
    * our possession. This should never be called before at least one key fetch
    * attempt is made.
@@ -1070,6 +1116,25 @@ export class AmpA4A extends AMP.BaseElement {
     this.fromResumeCallback = false;
     this.experimentalNonAmpCreativeRenderMethod_ =
         Services.platformFor(this.win).isIos() ? XORIGIN_MODE.SAFEFRAME : null;
+  }
+
+  /**
+   * Attempts to remove the current frame and free any associated resources.
+   * This function will no-op if this ad slot is currently in the process of
+   * being refreshed.
+   *
+   * @param {boolean=} force Forces the removal of the frame, even if
+   *   this.isRefreshing is true.
+   * @protected
+   */
+  destroyFrame(force = false) {
+    if (!force && this.isRefreshing) {
+      return;
+    }
+    if (this.iframe && this.iframe.parentElement) {
+      this.iframe.parentElement.removeChild(this.iframe);
+      this.iframe = null;
+    }
     if (this.xOriginIframeHandler_) {
       this.xOriginIframeHandler_.freeXOriginIframe();
       this.xOriginIframeHandler_ = null;

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {isExperimentOn} from '../../../src/experiments';
 import {Services} from '../../../src/services';
 import {dev, user} from '../../../src/log';
 import {IntersectionObserverPolyfill} from '../../../src/intersection-observer-polyfill'; // eslint-disable-line max-len
@@ -135,7 +136,11 @@ export class RefreshManager {
     this.visibilityTimeoutId_ = null;
 
     /** @private {boolean} */
-    this.isRefreshable_ = !!(this.config_ && this.refreshInterval_);
+    this.isRefreshable_ = isExperimentOn(this.win_, 'amp-ad-refresh') &&
+        // The network has opted-in.
+        !!(this.config_ &&
+        // The publisher has enabled refresh on this slot.
+        (this.refreshInterval_ || this.refreshInterval_ == ''));
 
     if (this.isRefreshable_) {
       const managerId = String(refreshManagerIdCounter++);
