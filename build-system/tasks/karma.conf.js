@@ -46,7 +46,7 @@ module.exports = {
     bundleDelay: 900,
   },
 
-  reporters: [process.env.TRAVIS ? 'super-dots' : 'progress'],
+  reporters: process.env.TRAVIS ? ['super-dots', 'mocha'] : ['progress'],
 
   superDotsReporter: {
     icon: {
@@ -54,6 +54,10 @@ module.exports = {
       failure : '✖',
       ignore  : '?',
     },
+  },
+
+  mochaReporter: {
+    output: 'minimal',
   },
 
   port: 9876,
