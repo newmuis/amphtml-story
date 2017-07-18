@@ -41,6 +41,7 @@ import {
   getTimingDataAsync,
 } from './variable-source';
 import {isProtocolValid} from '../url';
+import {storyVariableServiceForOrNull} from '../services';
 
 /** @private @const {string} */
 const TAG = 'UrlReplacements';
@@ -461,6 +462,12 @@ export class GlobalVariableSource extends VariableSource {
     this.set('BACKGROUND_STATE', () => {
       return viewerForDoc(this.ampdoc).isVisible() ? '0' : '1';
     });
+
+    this.setAsync('STORY_PAGE_INDEX',
+        () => this.getStoryValue_(storyVariables => storyVariables.pageIndex));
+
+    this.setAsync('STORY_PAGE_ID',
+        () => this.getStoryValue_(storyVariables => storyVariables.pageId));
   }
 
   /**
@@ -548,6 +555,26 @@ export class GlobalVariableSource extends VariableSource {
           'amp-share-tracking should be configured',
           expr);
       return getter(/** @type {!ShareTrackingFragmentsDef} */ (fragments));
+    });
+  }
+
+  /**
+   * Resolves the value via amp-story's service.
+   * @param {function(!{pageIndex: number, pageId: string}):T} getter
+   * @param {string} expr
+   * @return {!Promise<T>}
+   * @template T
+   * @private
+   */
+  getStoryValue_(getter, expr) {
+    if (!this.storyVariables_) {
+      this.storyVariables_ = storyVariableServiceForOrNull(this.ampdoc.win);
+    }
+    return this.storyVariables_.then(storyVariables => {
+      user().assert(storyVariables,
+          'To use variable %s amp-story should be configured',
+          expr);
+      return getter(/** @type {{pageIndex: number}} */ (storyVariables));
     });
   }
 }
