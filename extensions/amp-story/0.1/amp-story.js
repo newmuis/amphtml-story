@@ -26,12 +26,15 @@
  */
 import {AmpStoryGridLayer} from './amp-story-grid-layer';
 import {AmpStoryPage} from './amp-story-page';
+import {AnalyticsTrigger} from './analytics';
 import {Bookend} from './bookend';
 import {CSS} from '../../../build/amp-story-0.1.css';
 import {EventType} from './events';
 import {KeyCodes} from '../../../src/utils/key-codes';
+import {NavigationState} from './navigation-state';
 import {SystemLayer} from './system-layer';
 import {Layout} from '../../../src/layout';
+import {VariableService} from './variable-service';
 import {assertHttpsUrl} from '../../../src/url';
 import {buildFromJson} from './related-articles';
 import {closest} from '../../../src/dom';
@@ -45,6 +48,7 @@ import {once} from '../../../src/utils/function';
 import {
   toggleExperiment,
 } from '../../../src/experiments';
+import {registerServiceBuilder} from '../../../src/service';
 import {urlReplacementsForDoc} from '../../../src/services';
 import {xhrFor} from '../../../src/services';
 
@@ -76,6 +80,9 @@ export class AmpStory extends AMP.BaseElement {
   constructor(element) {
     super(element);
 
+    /** @private {!NavigationState} */
+    this.navigationState_ = new NavigationState();
+
     /**
      * Whether entering into fullscreen automatically on navigation is enabled.
      * @private {boolean}
@@ -96,6 +103,9 @@ export class AmpStory extends AMP.BaseElement {
 
     /** @private {!Array<!Element>} */
     this.pageHistoryStack_ = [];
+
+    /** @const @private {!VariableService} */
+    this.variableService_ = new VariableService();
 
     /**
      * @private @const {
@@ -130,6 +140,14 @@ export class AmpStory extends AMP.BaseElement {
 
     firstPage.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
     this.scheduleResume(firstPage);
+
+    this.navigationState_.installConsumer(new AnalyticsTrigger(this.element));
+    this.navigationState_.installConsumer(this.variableService_);
+
+    this.navigationState_.updateActivePage(0, firstPage.id);
+
+    registerServiceBuilder(this.win, 'story-variable',
+        () => this.variableService_);
 
     // Mark all videos as autoplay
     const videos = this.element.querySelectorAll('amp-video');
@@ -234,14 +252,18 @@ export class AmpStory extends AMP.BaseElement {
     }
 
     const activePage = this.getActivePage_();
+    const pageIndex = this.getPageIndex(page);
 
     if (isFullScreenSupported(this.element) && this.isAutoFullScreenEnabled_) {
       this.enterFullScreen_();
     }
 
     // first page is not counted as part of the progress
-    this.systemLayer_.updateProgressBar(
-        this.getPageIndex(page), this.getPageCount() - 1);
+    // TODO(alanorozco): decouple this using NavigationState
+    this.systemLayer_.updateProgressBar(pageIndex, this.getPageCount() - 1);
+
+    // TODO(alanorozco): check if autoplay
+    this.navigationState_.updateActivePage(pageIndex, page.id);
 
     return this.mutateElement(() => {
       page.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');

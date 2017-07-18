@@ -200,6 +200,16 @@ export function shareTrackingForOrNull(win) {
         true)));
 }
 
+
+/**
+ * @param {!Window} win
+ * @return {?Promise<?{pageIndex: number, pageId: string}>}
+ */
+export function storyVariableServiceForOrNull(win) {
+  return (/** @type {!Promise<?{pageIndex: number, pageId: string}>} */ (
+      getElementServiceIfAvailable(win, 'story-variable', 'amp-story', true)));
+}
+
 /**
  * @param {!Node|!./service/ampdoc-impl.AmpDoc} nodeOrDoc
  * @return {!Promise<!./service/storage-impl.Storage>}
