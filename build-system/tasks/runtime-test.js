@@ -290,7 +290,7 @@ gulp.task('test', 'Runs tests', argv.nobuild ? [] : ['build'], function(done) {
         middleware: [app],
       })
       .on('kill', function () {
-        util.log(yellow(
+        util.log(util.colors.yellow(
             'Shutting down test responses server on localhost:31862'));
         process.nextTick(function() {
           process.exit();
@@ -301,8 +301,6 @@ gulp.task('test', 'Runs tests', argv.nobuild ? [] : ['build'], function(done) {
 
   new Karma(c, function(exitCode) {
     console./*OK*/log('\n');
-    util.log(util.colors.yellow(
-        'Shutting down test responses server on localhost:31862'));
     server.emit('kill');
     if (exitCode) {
       var error = new Error(
