@@ -37,16 +37,4 @@ describes.fakeWin('amp-story variable service', {}, env => {
     expect(variableService.pageIndex).to.equal(123);
     expect(variableService.pageId).to.equal('my-page-id');
   });
-
-  it('should return empty string on pageId if page has no id', () => {
-    variableService.onStateChange({
-      type: StateChangeType.ACTIVE_PAGE,
-      value: {
-        pageIndex: 456,
-      },
-    });
-
-    expect(variableService.pageIndex).to.equal(456);
-    expect(variableService.pageId).to.equal('');
-  });
 });

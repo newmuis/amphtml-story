@@ -1,10 +1,13 @@
 import {AmpStory} from '../amp-story';
+import {AnalyticsTrigger} from '../analytics';
 import {EventType} from '../events';
 import {KeyCodes} from '../../../../src/utils/key-codes';
+import {VariableService} from '../variable-service';
 import {
   stubFullScreenForTesting,
   resetFullScreenForTesting,
 } from '../fullscreen';
+
 
 
 const NOOP = () => {};
@@ -21,6 +24,7 @@ describes.realWin('amp-story', {
 
   function appendEmptyPage(container, opt_active) {
     const page = document.createElement('amp-story-page');
+    page.id = '-empty-page';
     if (opt_active) {
       page.setAttribute('active', true);
     }
@@ -35,9 +39,7 @@ describes.realWin('amp-story', {
   function createPages(container, count, opt_ids) {
     return Array(count).fill(undefined).map((unused, i) => {
       const page = win.document.createElement('amp-story-page');
-      if (opt_ids && opt_ids[i]) {
-        page.id = opt_ids[i];
-      }
+      page.id = opt_ids && opt_ids[i] ? opt_ids[i] : `-page-${i}`;
       container.appendChild(page);
       return page;
     });
@@ -78,6 +80,10 @@ describes.realWin('amp-story', {
             'updateActivePage',
             NOOP);
 
+    const installNavigationStateConsumer =
+        sandbox.stub(element.implementation_.navigationState_,
+            'installConsumer');
+
     createPages(element, 5, [firstPageId]);
     const appendChild = sandbox.stub(element, 'appendChild', NOOP);
 
@@ -86,6 +92,10 @@ describes.realWin('amp-story', {
     expect(appendChild).to.have.been.calledWithExactly(systemLayerRootMock);
     expect(updateActivePageState).to.have.been.calledWith(0, firstPageId);
     expect(updateActivePageState).to.have.been.calledOnce;
+    expect(installNavigationStateConsumer).to.have.been.calledWith(
+        sandbox.match(consumer => consumer instanceof VariableService));
+    expect(installNavigationStateConsumer).to.have.been.calledWith(
+        sandbox.match(consumer => consumer instanceof AnalyticsTrigger));
   });
 
   it('should enter fullscreen when switching pages', () => {

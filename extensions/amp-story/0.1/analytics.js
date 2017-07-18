@@ -65,22 +65,20 @@ export class AnalyticsTrigger {
       case StateChangeType.ACTIVE_PAGE:
         this.onActivePageChange_(
             dev().assertNumber(stateChangeEvent.value.pageIndex),
-            stateChangeEvent.value.pageId ?
-                dev().assertString(stateChangeEvent.value.pageId) :
-                undefined);
+            dev().assertString(stateChangeEvent.value.pageId));
       break;
     }
   }
 
   /**
    * @param {number} pageIndex
-   * @param {string=} opt_pageId
+   * @param {string} pageId
    */
-  onActivePageChange_(pageIndex, opt_pageId) {
+  onActivePageChange_(pageIndex, pageId) {
     if (this.shouldTriggerPageVisible_(pageIndex)) {
       this.triggerEvent_(Events.PAGE_VISIBLE, {
         'pageIndex': pageIndex.toString(),
-        'pageId': opt_pageId,
+        'pageId': pageId,
       });
 
       this.pagesSeen_.add(pageIndex);

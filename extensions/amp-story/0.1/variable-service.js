@@ -38,7 +38,7 @@ export class VariableService {
     switch(stateChangeEvent.type) {
       case StateChangeType.ACTIVE_PAGE:
         this.pageIndex_ = stateChangeEvent.value.pageIndex;
-        this.pageId_ = stateChangeEvent.value.pageId || null;
+        this.pageId_ = stateChangeEvent.value.pageId;
       break;
     }
   }
@@ -54,6 +54,6 @@ export class VariableService {
    * @return {string}
    */
   get pageId() {
-    return this.pageId_ ? dev().assertString(this.pageId_) : '';
+    return dev().assertString(this.pageId_);
   }
 }
