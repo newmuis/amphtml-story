@@ -403,8 +403,8 @@ export class Builder {
    * @protected
    */
   resolveRequests(path, spec, args,
-      target = null, vars = null, timing = null) {
-    const scanner = this.createScanner_(path, target, vars, timing);
+      target = null, index = null, vars = null, timing = null) {
+    const scanner = this.createScanner_(path, target, index, vars, timing);
     return this.vsync_.measurePromise(
         () => scanner.resolveRequests(spec, args));
   }
@@ -423,12 +423,14 @@ export class Builder {
   /**
    * @param {!Array<string>} path
    * @param {?Element} target
+   * @param {?number} index
    * @param {?Object<string, *>} vars
    * @param {?WebAnimationTimingDef} timing
    * @private
    */
-  createScanner_(path, target, vars, timing) {
-    return new MeasureScanner(this, this.css_, path, target, vars, timing);
+  createScanner_(path, target, index, vars, timing) {
+    return new MeasureScanner(this, this.css_, path,
+        target, index, vars, timing);
   }
 }
 
@@ -445,10 +447,11 @@ export class MeasureScanner extends Scanner {
    * @param {!CssContextImpl} css
    * @param {!Array<string>} path
    * @param {?Element} target
+   * @param {?number} index
    * @param {?Object<string, *>} vars
    * @param {?WebAnimationTimingDef} timing
    */
-  constructor(builder, css, path, target, vars, timing) {
+  constructor(builder, css, path, target, index, vars, timing) {
     super();
 
     /** @const @private */
@@ -462,6 +465,9 @@ export class MeasureScanner extends Scanner {
 
     /** @private {?Element} */
     this.target_ = target;
+
+    /** @private {?number} */
+    this.index_ = index;
 
     /** @private {!Object<string, *>} */
     this.vars_ = vars || map();
@@ -546,6 +552,7 @@ export class MeasureScanner extends Scanner {
     });
     this.with_(spec, () => {
       const target = this.target_;
+      const index = this.index_;
       const vars = this.vars_;
       const timing = this.timing_;
       const promise = otherSpecPromise.then(otherSpec => {
@@ -553,7 +560,7 @@ export class MeasureScanner extends Scanner {
           return;
         }
         return this.builder_.resolveRequests(
-            newPath, otherSpec, /* args */ null, target, vars, timing);
+            newPath, otherSpec, /* args */ null, target, index, vars, timing);
       }).then(requests => {
         requests.forEach(request => this.requests_.push(request));
       });
@@ -683,6 +690,7 @@ export class MeasureScanner extends Scanner {
   with_(spec, callback) {
     // Save context.
     const prevTarget = this.target_;
+    const prevIndex = this.index_;
     const prevVars = this.vars_;
     const prevTiming = this.timing_;
 
@@ -693,10 +701,11 @@ export class MeasureScanner extends Scanner {
         [null];
     targets.forEach((target, index) => {
       this.target_ = target || prevTarget;
-      this.css_.withTarget(this.target_, () => {
+      this.index_ = target ? index : prevIndex;
+      this.css_.withTarget(this.target_, this.index_, () => {
         const subtargetSpec =
             this.target_ ?
-            this.matchSubtargets_(this.target_, index, spec) :
+            this.matchSubtargets_(this.target_, this.index_ || 0, spec) :
             spec;
         this.vars_ = this.mergeVars_(subtargetSpec, prevVars);
         this.css_.withVars(this.vars_, () => {
@@ -708,6 +717,7 @@ export class MeasureScanner extends Scanner {
 
     // Restore context.
     this.target_ = prevTarget;
+    this.index_ = prevIndex;
     this.vars_ = prevVars;
     this.timing_ = prevTiming;
   }
@@ -935,6 +945,9 @@ class CssContextImpl {
     /** @private {?Element} */
     this.currentTarget_ = null;
 
+    /** @private {?number} */
+    this.currentIndex_ = null;
+
     /** @private {?Object<string, *>} */
     this.vars_ = null;
 
@@ -1022,7 +1035,7 @@ class CssContextImpl {
    * @template T
    * @protected
    */
-  withTarget(target, callback) {
+  withTarget(target, index, callback) {
     const prev = this.currentTarget_;
     const prevIndex = this.currentIndex_;
     this.currentTarget_ = target;
@@ -1030,21 +1043,6 @@ class CssContextImpl {
     const result = callback(target);
     this.currentTarget_ = prev;
     this.currentIndex_ = prevIndex;
-    return result;
-  }
-
-  /**
-   * @param {?Object<string, *>} vars
-   * @param {function():T} callback
-   * @return {T}
-   * @template T
-   * @protected
-   */
-  withVars(vars, callback) {
-    const prev = this.vars_;
-    this.vars_ = vars;
-    const result = callback();
-    this.vars_ = prev;
     return result;
   }
 
