@@ -175,11 +175,13 @@ export class AmpStory extends AMP.BaseElement {
    * Gets the ID of the next page in the story (after the current page).
    * @param {boolean=} opt_isAutomaticAdvance Whether this navigation was caused
    *     by an automatic advancement after a timeout.
+   * @param {!Element} activePage The element representing the page that the
+   *     user is currently on.
    * @return {?string} Returns the ID of the next page in the story, or null if
    *     the document order should be followed.
    * @private
    */
-  getNextPageId_(opt_isAutomaticAdvance) {
+  getNextPageId_(activePage, opt_isAutomaticAdvance) {
     if (opt_isAutomaticAdvance && activePage.hasAttribute('auto-advance-to')) {
       return activePage.getAttribute('auto-advance-to');
     }
@@ -198,7 +200,7 @@ export class AmpStory extends AMP.BaseElement {
    */
   getNextPage_(opt_isAutomaticAdvance) {
     const activePage = this.getActivePage_();
-    const nextPageId = this.getNextPageId_(opt_isAutomaticAdvance);
+    const nextPageId = this.getNextPageId_(activePage, opt_isAutomaticAdvance);
 
     if (nextPageId) {
       return user().assert(
