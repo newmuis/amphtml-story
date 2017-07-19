@@ -108,34 +108,6 @@ describe('doubleclick-a4a-config', () => {
       expect(elem.getAttribute(EXPERIMENT_ATTRIBUTE)).to.not.be.ok;
     });
 
-    it('should honor url forced FF on non-CDN', () => {
-      mockWin.AMP_MODE = {test: false, localDev: true};
-      mockWin.location = parseUrl(
-          'https://foo.com/some/path/to/content.html?exp=a4a:-1');
-      sandbox.stub(DoubleclickA4aEligibility.prototype,
-          'isCdnProxy', () => false);
-      const elem = testFixture.doc.createElement('div');
-      testFixture.doc.body.appendChild(elem);
-      expect(doubleclickIsA4AEnabled(mockWin, elem)).to.be.true;
-      expect(elem.getAttribute(EXPERIMENT_ATTRIBUTE)).to.equal(
-          MANUAL_EXPERIMENT_ID);
-    });
-
-    it('should not honor url forced FF on non-CDN if prod', () => {
-      // Ensure no selection in order to very experiment attribute.
-      const maybeSelectExperimentStub = sandbox.stub(
-          DoubleclickA4aEligibility.prototype, 'maybeSelectExperiment')
-          .returns(undefined);
-      mockWin.AMP_MODE = {test: false, localDev: false};
-      mockWin.location = parseUrl(
-          'https://somepub.com/some/path/to/content.html?exp=a4a:-1');
-      const elem = testFixture.doc.createElement('div');
-      testFixture.doc.body.appendChild(elem);
-      expect(doubleclickIsA4AEnabled(mockWin, elem)).to.be.false;
-      expect(elem.getAttribute(EXPERIMENT_ATTRIBUTE)).to.not.be.ok;
-      expect(maybeSelectExperimentStub).to.be.calledOnce;
-    });
-
     it('should not enable if data-use-same-domain-rendering-until-deprecated',
         () => {
           const elem = testFixture.doc.createElement('div');
@@ -145,17 +117,6 @@ describe('doubleclick-a4a-config', () => {
           expect(doubleclickIsA4AEnabled(mockWin, elem)).to.be.false;
           expect(elem.getAttribute(EXPERIMENT_ATTRIBUTE)).to.not.be.ok;
         });
-
-    it('should honor beta over url experiment id', () => {
-      mockWin.location = parseUrl(
-          'https://cdn.ampproject.org/some/path/to/content.html?exp=a4a:2');
-      const elem = testFixture.doc.createElement('div');
-      elem.setAttribute(BETA_ATTRIBUTE, 'true');
-      testFixture.doc.body.appendChild(elem);
-      expect(doubleclickIsA4AEnabled(mockWin, elem)).to.be.true;
-      expect(elem.getAttribute(EXPERIMENT_ATTRIBUTE)).to.equal(
-          BETA_EXPERIMENT_ID);
-    });
 
     it('should honor beta over url experiment id', () => {
       mockWin.location = parseUrl(
