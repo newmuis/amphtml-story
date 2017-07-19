@@ -17,6 +17,7 @@ import {AbstractAmpContext} from './ampcontext';
 import {computeInMasterFrame} from './3p';
 import {dev, user} from '../src/log';
 import {dict} from '../src/utils/object';
+import {adConfig} from '../ads/_config';
 
 
 /**
