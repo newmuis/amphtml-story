@@ -282,11 +282,13 @@ const command = {
     }
     timedExecOrDie(cmd);
   },
-  runVisualDiffTests: function(opt_skip) {
+  runVisualDiffTests: function(opt_mode) {
     process.env['PERCY_TOKEN'] = atob(process.env.PERCY_TOKEN_ENCODED);
     let cmd = 'ruby build-system/tasks/visual-diff.rb';
-    if (opt_skip) {
+    if (opt_mode === 'skip') {
       cmd += ' --skip';
+    } else if (opt_mode === 'master') {
+      cmd += ' --master';
     }
     timedExec(cmd);
   },
@@ -307,9 +309,7 @@ function runAllCommands() {
     command.testBuildSystem();
     command.cleanBuild();
     command.buildRuntime();
-    // Revert after a golden version of the blank page has been established.
-    command.runVisualDiffTests(/* opt_skip */ true);
-    command.runVisualDiffTests();
+    command.runVisualDiffTests(/* opt_mode */ 'master');
     command.runJsonAndLintChecks();
     command.runDepAndTypeChecks();
     command.runUnitTests();
@@ -414,7 +414,7 @@ function main(argv) {
       }
     } else {
       // Generates a blank Percy build to satisfy the required Github check.
-      command.runVisualDiffTests(/* opt_skip */ true);
+      command.runVisualDiffTests(/* opt_mode */ 'skip');
     }
     if (buildTargets.has('VALIDATOR_WEBUI')) {
       command.buildValidatorWebUI();
