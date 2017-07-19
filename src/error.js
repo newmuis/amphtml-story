@@ -33,6 +33,9 @@ import {makeBodyVisible} from './style-installer';
 import {startsWith} from './string';
 import {urls} from './config';
 import {AmpEvents} from './amp-events';
+import {triggerAnalyticsEvent} from './analytics';
+import {isExperimentOn} from './experiments';
+import {Services} from './services';
 
 /**
  * @const {string}
@@ -95,8 +98,7 @@ let detectedJsEngine;
  */
 export function reportErrorForWin(win, error, opt_associatedElement) {
   reportError(error, opt_associatedElement);
-  if (error && !!win && isUserErrorMessage(error.message)
-      && !isUserErrorEmbed(error.message)) {
+  if (error && isUserErrorMessage(error.message) && !!win) {
     reportErrorToAnalytics(/** @type {!Error} */(error), win);
   }
 }

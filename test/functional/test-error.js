@@ -546,15 +546,14 @@ describe.configure().run('detectJsEngineFromStack', () => {
 
 describes.fakeWin('user error reporting', {amp: true}, env => {
   let win;
-  let sandbox;
+  sandbox = env.sandbox;
   const error = new Error('ERROR','user error');
   let analyticsEventSpy;
 
   beforeEach(() => {
-    sandbox = env.sandbox;
     win = env.win;
     analyticsEventSpy = sandbox.spy(analytics, 'triggerAnalyticsEvent');
-    toggleExperiment(win, 'user-error-reporting', true);
+    toggleExperiment(window, 'user-error-reporting', true);
   });
 
   it('should trigger triggerAnalyticsEvent with correct arguments', () => {

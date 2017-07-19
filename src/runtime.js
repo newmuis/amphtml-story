@@ -86,7 +86,7 @@ import {waitForBody} from './dom';
 import * as config from './config';
 
 initLogConstructor();
-setReportError(reportError);
+setReportError(reportErrorForWin.bind(null, self));
 
 
 /** @const @private {string} */
