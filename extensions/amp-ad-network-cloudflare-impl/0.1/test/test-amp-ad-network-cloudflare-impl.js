@@ -18,18 +18,11 @@ import {AmpAdNetworkCloudflareImpl} from '../amp-ad-network-cloudflare-impl';
 import {
   AmpAdXOriginIframeHandler, // eslint-disable-line no-unused-vars
 } from '../../../amp-ad/0.1/amp-ad-xorigin-iframe-handler';
-import * as sinon from 'sinon';
 import {cloudflareIsA4AEnabled} from '../cloudflare-a4a-config';
 import {createElementWithAttributes} from '../../../../src/dom';
-import '../../../amp-ad/0.1/amp-ad';
 import * as vendors from '../vendors';
 
-
-describes.realWin('cloudflare-a4a-config', {
-  amp: {
-    extensions: ['amp-ad', 'amp-ad-network-cloudflare-impl'],
-  },
-}, env => {
+describes.realWin('cloudflare-a4a-config', {amp: true}, env => {
   let doc;
   let win;
   beforeEach(() => {
@@ -46,11 +39,7 @@ describes.realWin('cloudflare-a4a-config', {
   });
 });
 
-describes.realWin('amp-ad-network-cloudflare-impl', {
-  amp: {
-    extensions: ['amp-ad', 'amp-ad-network-cloudflare-impl'],
-  },
-}, env => {
+describes.realWin('amp-ad-network-cloudflare-impl', {amp: true}, env => {
 
   let cloudflareImpl;
   let el;
@@ -63,7 +52,8 @@ describes.realWin('amp-ad-network-cloudflare-impl', {
     el.setAttribute('data-cf-network', 'cloudflare');
     el.setAttribute('src',
         'https://firebolt.cloudflaredemo.com/a4a-ad.html');
-    sandbox.stub(AmpAdNetworkCloudflareImpl.prototype, 'getSigningServiceNames',
+    sandbox.stub(
+        AmpAdNetworkCloudflareImpl.prototype, 'getSigningServiceNames',
         () => {
           return ['cloudflare','cloudflare-dev'];
         });
@@ -77,7 +67,6 @@ describes.realWin('amp-ad-network-cloudflare-impl', {
         src: 'https://cf-test.com/path/ad?width=SLOT_WIDTH&height=SLOT_HEIGHT',
       },
     });
-    sandbox.stub(el, 'tryUpgrade_', () => {});
     doc.body.appendChild(el);
     cloudflareImpl = new AmpAdNetworkCloudflareImpl(el);
   });
