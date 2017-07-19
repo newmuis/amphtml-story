@@ -95,7 +95,6 @@ and is comprised of:
 }
 ```
 
-
 ### Conditions
 
 Conditions can specify whether this animation component is included in the final animation. Currently, only `media` expression is supported.
@@ -115,7 +114,6 @@ for [CSS.supports](https://developer.mozilla.org/en-US/docs/Web/API/CSS/supports
 
 If value is specified for an animation component, the animation component will only be included if the
 supports condition will match the current environment.
-
 
 ### Variables
 

@@ -57,13 +57,12 @@ Classic Mode:
 
 ## Attributes
 
-**data-trackid** (required if `data-playlistid` is not defined)
+##### data-trackid 
 
-The ID of a track, an integer.
+This attribute is required if `data-playlistid` is not defined.  
+The value for this attribute is the ID of a track, an integer.
 
-**data-playlistid** (required if `data-trackid` is not defined)
-
-The ID of a playlist, an integer.
+##### data-playlistid
 
 This attribute is required if `data-trackid` is not defined.
 The value for this attribute is the ID of a playlist, an integer.

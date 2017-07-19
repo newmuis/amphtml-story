@@ -85,6 +85,8 @@ Example: Finding the actual width and height
 
 ##### noautoplay
 
+##### noautoplay
+
 By default, a video autoplays.
 * when the video is scrolled out of view, the video is paused
 * when the video is scrolled into view, the video resumes playback

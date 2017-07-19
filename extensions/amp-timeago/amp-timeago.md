@@ -96,11 +96,11 @@ By default, the local is set to <code>en</code>; however, you can specify one of
   <li>zhTW (Taiwanese)</li>
 </ul>
 
-**cutoff** (optional)
+##### cutoff (optional)
 
 Display the original date if time distance is older than cutoff (seconds).
 
-**common attributes**
+##### common attributes
 
 This element includes [common attributes](https://www.ampproject.org/docs/reference/common_attributes) extended to AMP components.
 

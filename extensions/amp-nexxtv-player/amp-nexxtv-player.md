@@ -84,10 +84,9 @@ Indicates the data mode, which can be `static` (default) or `api`.
 
 Indicates the source from which the embedded domain media is played. By default this is set to `https://embed.nexx.cloud/`.
 
-**data-disable-ads** (optional)
+##### data-disable-ads (optional)
 
 Ads are enabled by default. Set value to 1 to disable.
-
 
 ##### common attributes
 
