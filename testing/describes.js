@@ -109,6 +109,7 @@ import {
   installExtensionsService,
   registerExtension,
 } from '../src/service/extensions-impl';
+import {resetLoadingCheckForTests} from '../src/element-stub';
 import {resetScheduledElementForTesting} from '../src/custom-element';
 import {setStyles} from '../src/style';
 import * as sinon from 'sinon';
@@ -769,6 +770,7 @@ class AmpFixture {
     if (env.embed) {
       env.embed.destroy();
     }
+    resetLoadingCheckForTests();
     if (win.customElements && win.customElements.elements) {
       for (const k in win.customElements.elements) {
         resetScheduledElementForTesting(win, k);

@@ -16,16 +16,11 @@
 
 import {Services} from '../services';
 import {dict} from '../utils/object';
-import {user} from '../log';
 
 const GOOGLE_CLIENT_ID_API_META_NAME = 'amp-google-client-id-api';
 const CID_API_SCOPE_WHITELIST = {
   'googleanalytics': 'AMP_ECID_GOOGLE',
 };
-const API_KEYS = {
-  'googleanalytics': 'AIzaSyA65lEHUEizIsNtlbNo-l2K18dT680nsaM',
-};
-const TAG = 'ViewerCidApi';
 
 /**
  * Exposes CID API if provided by the Viewer.
@@ -33,15 +28,8 @@ const TAG = 'ViewerCidApi';
 export class ViewerCidApi {
 
   constructor(ampdoc) {
-
-    /** @private {!./ampdoc-impl.AmpDoc} */
     this.ampdoc_ = ampdoc;
-
-    /** @private {!./viewer-impl.Viewer} */
     this.viewer_ = Services.viewerForDoc(this.ampdoc_);
-
-    /** @private {?Object<string, string>} */
-    this.apiKeyMap_ = null;
   }
 
   /**
@@ -49,10 +37,9 @@ export class ViewerCidApi {
    * @returns {!Promise<boolean>}
    */
   isSupported() {
-    if (!this.viewer_.hasCapability('cid')) {
-      return Promise.resolve(false);
-    }
-    return this.viewer_.isTrustedViewer();
+    return this.viewer_.isTrustedViewer().then(trusted => {
+      return trusted && this.viewer_.hasCapability('cid');
+    });
   }
 
   /**
@@ -61,58 +48,28 @@ export class ViewerCidApi {
    * @return {!Promise<?JsonObject|string|undefined>}
    */
   getScopedCid(scope) {
-    const apiKey = this.isScopeOptedIn(scope);
-    const payload = dict({
+    return this.viewer_.sendMessageAwaitResponse('cid', dict({
       'scope': scope,
-      'clientIdApi': !!apiKey,
-    });
-    if (apiKey) {
-      payload['apiKey'] = apiKey;
-    }
-    return this.viewer_.sendMessageAwaitResponse('cid', payload);
+      'clientIdApi': this.isScopeOptedInForCidApi_(scope),
+    }));
   }
 
   /**
-   * Checks if the page has opted in CID API for the given scope.
-   * Returns the API key that should be used, or null if page hasn't opted in.
-   *
    * @param {string} scope
-   * @return {string|undefined}
+   * @return {boolean}
    */
-  isScopeOptedIn(scope) {
-    if (!this.apiKeyMap_) {
-      this.apiKeyMap_ = this.getOptedInScopes_();
-    }
-    return this.apiKeyMap_[scope];
-  }
-
-  /**
-   * @return {!Object<string, string>}
-   */
-  getOptedInScopes_() {
-    const apiKeyMap = {};
+  isScopeOptedInForCidApi_(scope) {
     const optInMeta = this.ampdoc_.win.document.head./*OK*/querySelector(
         `meta[name=${GOOGLE_CLIENT_ID_API_META_NAME}]`);
-    if (optInMeta && optInMeta.hasAttribute('content')) {
-      const list = optInMeta.getAttribute('content').split(',');
-      list.forEach(item => {
-        item = item.trim();
-        if (item.indexOf('=') > 0) {
-          const pair = item.split('=');
-          const scope = pair[0].trim();
-          apiKeyMap[scope] = pair[1].trim();
-        } else {
-          const clientName = item;
-          const scope = CID_API_SCOPE_WHITELIST[clientName];
-          if (scope) {
-            apiKeyMap[scope] = API_KEYS[clientName];
-          } else {
-            user().error(TAG,
-                `Unsupported client for Google CID API: ${clientName}`);
-          }
-        }
-      });
+    if (!optInMeta || !optInMeta.hasAttribute('content')) {
+      return false;
     }
-    return apiKeyMap;
+    const whiteListedVendors = optInMeta.getAttribute('content').split(',');
+    for (let i = 0; i < whiteListedVendors.length; ++i) {
+      if (CID_API_SCOPE_WHITELIST[whiteListedVendors[i]] === scope) {
+        return true;
+      }
+    }
+    return false;
   }
 }

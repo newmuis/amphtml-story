@@ -31,13 +31,21 @@
   <button on="tap:myAmpUserNotificationId.dismiss" role="button" tabindex="0">Accept</button>
   <button on="tap:myAmpUserNotificationId.optoutOfCid" role="button">Opt Out</button>
 </amp-user-notification>
-<amp-analytics type="googleanalytics">
+<amp-analytics>
   <script type="application/json">
     {
+      "requests": {
+        "blocking": "http://localhost:8000/?cid=CLIENT_ID(AMP_ECID_GOOGLE,myAmpUserNotificationId)",
+        "nonBlocking": "http://localhost:8000/?cid=CLIENT_ID(AMP_ECID_GOOGLE)"
+      },
       "triggers": {
-        "pageview": {
+        "blocking": {
           "on": "visible",
-          "request": "pageview"
+          "request": "blocking"
+        },
+        "nonBlocking": {
+          "on": "visible",
+          "request": "nonBlocking"
         }
       }
     }
