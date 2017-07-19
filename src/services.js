@@ -24,7 +24,6 @@ import {
 } from './service';
 import {
   getElementServiceForDoc,
-  getElementServiceForDocInEmbedScope,
   getElementServiceIfAvailable,
   getElementServiceIfAvailableForDoc,
   getElementServiceIfAvailableForDocInEmbedScope,
@@ -124,11 +123,12 @@ export class Services {
 
   /**
    * @param {!Node|!./service/ampdoc-impl.AmpDoc} nodeOrDoc
-   * @return {!Promise<!../extensions/amp-bind/0.1/bind-impl.Bind>}
+   * @return {!Promise<?../extensions/amp-bind/0.1/bind-impl.Bind>}
    */
-  static bindForDoc(nodeOrDoc) {
-    return /** @type {!Promise<!../extensions/amp-bind/0.1/bind-impl.Bind>} */ (
-        getElementServiceForDocInEmbedScope(nodeOrDoc, 'bind', 'amp-bind'));
+  static bindForDocOrNull(nodeOrDoc) {
+    return /** @type {!Promise<?../extensions/amp-bind/0.1/bind-impl.Bind>} */ (
+        getElementServiceIfAvailableForDocInEmbedScope(
+            nodeOrDoc, 'bind', 'amp-bind'));
   }
 
   /**
