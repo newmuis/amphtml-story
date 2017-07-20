@@ -52,6 +52,7 @@ import {registerServiceBuilder} from '../../../src/service';
 import {urlReplacementsForDoc} from '../../../src/services';
 import {xhrFor} from '../../../src/services';
 import {isFiniteNumber} from '../../../src/types';
+import {AudioManager} from './audio';
 
 
 
@@ -116,6 +117,9 @@ export class AmpStory extends AMP.BaseElement {
 
     /** @const @private {!VariableService} */
     this.variableService_ = new VariableService();
+
+    /** @const @private {!AudioManager} */
+    this.audioManager_ = new AudioManager();
 
     /**
      * @private @const {
@@ -298,6 +302,11 @@ export class AmpStory extends AMP.BaseElement {
 
     // TODO(alanorozco): check if autoplay
     this.navigationState_.updateActivePage(pageIndex, page.id);
+
+    if (page.hasAttribute('background-audio')) {
+      this.audioManager_.load(page.getAttribute('background-audio'))
+          .then(id => this.audioManager_.play(id));
+    }
 
     return this.mutateElement(() => {
       page.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');

@@ -42,7 +42,7 @@ export class AudioManager {
     if (elementOrSource instanceof Element) {
       return new ElementPlayable(
           /** @type {!Element} */ (elementOrSource), priority);
-    } else if (elementOrSource instanceof String) {
+    } else if (typeof elementOrSource === 'string') {
       return new BackgroundPlayable(
           /** @type {string} */ (elementOrSource), priority);
     }
@@ -55,7 +55,8 @@ export class AudioManager {
     const playable = this.createPlayable_(elementOrSource, priority);
     this.playables_[id] = playable;
 
-    return id;
+    return playable.load()
+        .then(() => id);
   }
 
   play(id) {
@@ -80,7 +81,8 @@ class Playable {
   }
 
   /**
-   * Loads the resources necessary to play this item.
+   * Loads the resources necessary to play this item.  Should be a no-op if
+   * called when the item is already loaded.
    */
   load() {}
 
@@ -118,7 +120,7 @@ class Playable {
 
   /**
    * Unloads the resources associated with this item.  Can be called to free up
-   * resources.
+   * resources.  Should be a no-op if called when the item is not yet loaded.
    */
   unload() {}
 }
@@ -161,54 +163,59 @@ class BackgroundPlayable extends Playable {
     return !!this.buffer_;
   }
 
-
-  /**
-   * 
-   * @param {*} sourceUri
-   */
+  /** @override */
   load() {
-    if (this.buffer_) {
+    if (this.isLoaded()) {
       return Promise.resolve(this.buffer_);
     }
 
     return xhrFor(this.win)
         .fetch(this.sourceUri_)
-        .then(response => this.decodeAudioData_(response))
+        .then(response => response.arrayBuffer())
+        .then(arrayBuffer => this.decodeAudioData_(arrayBuffer))
         .then(buffer => this.buffer_ = buffer);
   }
 
 
-  decodeAudioData_(response) {
+  /**
+   * Transforms an ArrayBuffer into an audio buffer.
+   * @param {!ArrayBuffer} arrayBuffer The array buffer containing the bytes of
+   *     the audio to be decoded.
+   * @return {!Promise<!AudioBuffer>}
+   * @private
+   */
+  decodeAudioData_(arrayBuffer) {
     return new Promise((resolve, reject) => {
-      context.decodeAudioData(response.arrayBuffer(),
-          buffer => resolve(buffer), error => reject(error));
+      context.decodeAudioData(arrayBuffer,
+          audioBuffer => resolve(audioBuffer), error => reject(error));
     });
   }
 
-
+  /** @override */
   play() {
     this.preloadBuffer()
         .then(buffer => this.createSource_(buffer))
         .then(source => this.playSource_(source));
   }
 
-
   /**
    * @param {!AudioSource} audioSource
    * @private
    */
   playSource_(audioSource) {
-    if (!audioSource.source.start) {
-      audioSource.source.noteOn(0);
+    if (audioSource.source.start) {
     } else {
       audioSource.source.start(0);
+      audioSource.source.noteOn(0);
     }
   }
 
+  /** @override */
   setVolume(volume, durationMs, easingFn) {
     console.log(`Setting volume to ${volume} over ${durationMs}`);
   }
 
+  /** @override */
   unload() {
     this.buffer_ = null;
   }
@@ -217,6 +224,7 @@ class BackgroundPlayable extends Playable {
 class ElementPlayable extends Playable {
   constructor(element, priority) {
     super(priority);
+
 
     dev().assert(element instanceof HTMLMediaElement,
         'Only media elements can be played.');
