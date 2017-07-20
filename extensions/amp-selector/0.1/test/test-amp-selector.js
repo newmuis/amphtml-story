@@ -806,7 +806,7 @@ describes.realWin('amp-selector', {
     });
 
     describe('clear action',() => {
-      it('should clear selection of a single select', function* () {
+      it('should clear selection of a single select', () => {
         const ampSelector = getSelector({
           attributes: {
             id: 'ampSelector',
@@ -817,7 +817,7 @@ describes.realWin('amp-selector', {
           },
         });
         ampSelector.children[1].setAttribute('selected', '');
-        yield ampSelector.build();
+        ampSelector.build();
 
         const button = win.document.createElement('button');
         button.setAttribute('on', 'tap:ampSelector.clear');
@@ -828,7 +828,7 @@ describes.realWin('amp-selector', {
         expect(ampSelector.children[1].hasAttribute('selected')).to.be.false;
       });
 
-      it('should clear selection of a multiselect', function* () {
+      it('should clear selection of a multiselect', () => {
         const ampSelector = getSelector({
           attributes: {
             id: 'ampSelector',
@@ -840,7 +840,7 @@ describes.realWin('amp-selector', {
         });
         ampSelector.children[0].setAttribute('selected', '');
         ampSelector.children[3].setAttribute('selected', '');
-        yield ampSelector.build();
+        ampSelector.build();
 
         const button = win.document.createElement('button');
         button.setAttribute('on', 'tap:ampSelector.clear');
