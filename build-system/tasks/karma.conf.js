@@ -55,9 +55,9 @@ module.exports = {
       ignore  : 'yellow'
     },
     icon: {
-      success : '⚫',
-      failure : '⚫',
-      ignore  : '⚪',
+      success : '●',
+      failure : '●',
+      ignore  : '○',
     },
   },
 
@@ -69,9 +69,9 @@ module.exports = {
       info: 'yellow',
     },
     symbols: {
-      success : '⚫',
-      error: '⚫',
-      info: '⚪',
+      success : '●',
+      error: '●',
+      info: '○',
     },
   },
 
