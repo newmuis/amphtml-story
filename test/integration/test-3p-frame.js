@@ -114,10 +114,10 @@ describe.configure().ifNewChrome().run('3p-frame', () => {
 
   it('add attributes', () => {
     const div = document.createElement('div');
-    div.setAttribute('data-foo', 'foo');
-    div.setAttribute('data-bar', 'bar');
-    div.setAttribute('foo', 'nope');
-    div.setAttribute('data-vars-bar', 'nope');
+    div.setAttribute('data-foo-bar', 'foobar');
+    div.setAttribute('data-hello', 'world');
+    div.setAttribute('foo-bar', 'nope');
+    div.setAttribute('data-vars-hello', 'nope');
     let obj = {};
     addDataAndJsonAttributes_(div, obj);
     expect(obj).to.deep.equal({

@@ -18,7 +18,6 @@ import {dev, user} from './log';
 import {getContextMetadata} from '../src/iframe-attributes';
 import {tryParseJson} from './json';
 import {getMode} from './mode';
-import {dashToCamelCase} from './string';
 import {dict} from './utils/object';
 import {parseUrl, assertHttpsUrl} from './url';
 import {urls} from './config';
@@ -134,13 +133,12 @@ export function getIframe(
  * visibleForTesting
  */
 export function addDataAndJsonAttributes_(element, attributes) {
-  for (let i = 0; i < element.attributes.length; i++) {
-    const attr = element.attributes[i];
-    if (!startsWith(attr.name, 'data-')
-      // data-vars- is reserved for amp-analytics
-      // see https://github.com/ampproject/amphtml/blob/master/extensions/amp-analytics/analytics-vars.md#variables-as-data-attribute
-      || startsWith(attr.name, 'data-vars-')) {
-      continue;
+  const dataset = element.dataset;
+  for (const name in dataset) {
+    // data-vars- is reserved for amp-analytics
+    // see https://github.com/ampproject/amphtml/blob/master/extensions/amp-analytics/analytics-vars.md#variables-as-data-attribute
+    if (!startsWith(name, 'vars')) {
+      attributes[name] = dataset[name];
     }
   }
   const json = element.getAttribute('json');
