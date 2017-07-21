@@ -58,6 +58,9 @@ const ACTIVE_PAGE_ATTRIBUTE_NAME = 'active';
 /** @private @const {string} */
 const RELATED_ARTICLES_ATTRIBUTE_NAME = 'related-articles';
 
+/** @private @const {number} */
+const FULLSCREEN_THRESHOLD = 1024;
+
 
 /**
  * @param {!Element} el
@@ -235,7 +238,7 @@ export class AmpStory extends AMP.BaseElement {
 
     const activePage = this.getActivePage_();
 
-    if (isFullScreenSupported(this.element) && this.isAutoFullScreenEnabled_) {
+    if (this.shouldEnterFullScreenOnSwitch_()) {
       this.enterFullScreen_();
     }
 
@@ -250,6 +253,21 @@ export class AmpStory extends AMP.BaseElement {
       this.schedulePause(activePage);
       this.scheduleResume(page);
     });
+  }
+
+
+  /**
+   * @return {boolean}
+   * @private
+   */
+  shouldEnterFullScreenOnSwitch_() {
+    const {width, height} = this.getViewport().getSize();
+
+    const inFullScreenThreshold =
+        width <= FULLSCREEN_THRESHOLD && height <= FULLSCREEN_THRESHOLD;
+
+    return inFullScreenThreshold && isFullScreenSupported(this.element)
+        && this.isAutoFullScreenEnabled_;
   }
 
 

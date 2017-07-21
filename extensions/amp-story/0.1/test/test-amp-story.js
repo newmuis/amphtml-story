@@ -49,6 +49,11 @@ describes.realWin('amp-story', {
     return eventObj;
   }
 
+  function stubViewportSize(width, height) {
+    sandbox./*OK*/stub(element.implementation_.getViewport(), 'getSize', () =>
+        ({width, height}));
+  }
+
   beforeEach(() => {
     win = env.win;
     element = win.document.createElement('amp-story');
@@ -83,6 +88,7 @@ describes.realWin('amp-story', {
 
     appendEmptyPage(element, /* opt_active */ true);
     stubFullScreenForTesting(/* isSupported */ true, requestFullScreen, NOOP);
+    stubViewportSize(320, 480); // "mobile" as long as both dimensions <= 1024px
 
     element.implementation_.switchTo_(win.document.createElement('div'));
 
@@ -98,8 +104,23 @@ describes.realWin('amp-story', {
         element.implementation_, 'enterFullScreen_', NOOP);
 
     appendEmptyPage(element, /* opt_active */ true);
+    stubViewportSize(320, 480); // "mobile" as long as both dimensions <= 1024px
 
     element.implementation_.setAutoFullScreen(false);
+    element.implementation_.switchTo_(win.document.createElement('div'));
+
+    expect(enterFullScreen).to.not.have.been.called;
+  });
+
+  it('should not enter fullscreen when switching if on "desktop"', () => {
+    const requestFullScreen = sandbox.spy();
+
+    const enterFullScreen = sandbox.stub(
+        element.implementation_, 'enterFullScreen_', NOOP);
+
+    appendEmptyPage(element, /* opt_active */ true);
+    stubViewportSize(1200, 1200); // "desktop" as long as one dimension > 1024px
+
     element.implementation_.switchTo_(win.document.createElement('div'));
 
     expect(enterFullScreen).to.not.have.been.called;
