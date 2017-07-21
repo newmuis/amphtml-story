@@ -21,7 +21,7 @@ import {
 import {dev, user} from '../../../src/log';
 import {getMode} from '../../../src/mode';
 import {resolveRelativeUrl} from '../../../src/url';
-import {utf8Decode} from '../../../src/utils/bytes';
+import {utf8EncodeSync, utf8Decode} from '../../../src/utils/bytes';
 import {parseJson} from '../../../src/json';
 
 
@@ -32,8 +32,6 @@ export class AmpAdNetworkFakeImpl extends AmpA4A {
    */
   constructor(element) {
     super(element);
-    user().assert(TextEncoder, '<amp-ad type="fake"> requires browser'
-        + ' support for TextEncoder() function.');
   }
 
   /** @override */
@@ -71,10 +69,15 @@ export class AmpAdNetworkFakeImpl extends AmpA4A {
         // mode is only allowed in `localDev` and primarily used for A4A
         // Envelope for testing. See DEVELOPING.md for more info.
         if (this.element.getAttribute('fakesig') == 'true') {
-          return response.text().then(
-              responseText => new Response(
-                  this.transformCreativeLocalDev_(responseText),
-                  {status, headers}));
+          // In the fake signature mode the content is the plain AMP HTML
+          // and the signature is "FAKESIG". This mode is only allowed in
+          // `localDev` and primarily used for A4A Envelope for testing.
+          // See DEVELOPING.md for more info.
+          const creative = this.transformCreativeLocalDev_(deserialized);
+          return {
+            creative: utf8EncodeSync(creative).buffer,
+            signature: 'FAKESIG',
+          };
         }
       }
       // Normal mode: the content is a JSON structure with two fieleds:
@@ -82,9 +85,8 @@ export class AmpAdNetworkFakeImpl extends AmpA4A {
       const decoded = parseJson(deserialized);
       dev().info('AMP-AD-FAKE', 'Decoded response text =', decoded['creative']);
       dev().info('AMP-AD-FAKE', 'Decoded signature =', decoded['signature']);
-      const encoder = new TextEncoder('utf-8');
       return {
-        creative: encoder.encode(decoded['creative']).buffer,
+        creative: utf8EncodeSync(decoded['creative']).buffer,
         signature: base64DecodeToBytes(decoded['signature']),
       };
     });
