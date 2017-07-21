@@ -102,7 +102,6 @@ import {contentad} from '../ads/contentad';
 import {criteo} from '../ads/criteo';
 import {csa} from '../ads/google/csa';
 import {dable} from '../ads/dable';
-import {directadvert} from '../ads/directadvert';
 import {distroscale} from '../ads/distroscale';
 import {ezoic} from '../ads/ezoic';
 import {dotandads} from '../ads/dotandads';
@@ -199,7 +198,6 @@ const AMP_EMBED_ALLOWED = {
   _ping_: true,
   bringhub: true,
   dable: true,
-  engageya: true,
   'mantis-recommend': true,
   mywidget: true,
   outbrain: true,
@@ -274,7 +272,6 @@ register('contentad', contentad);
 register('criteo', criteo);
 register('csa', csa);
 register('dable', dable);
-register('directadvert', directadvert);
 register('distroscale', distroscale);
 register('dotandads', dotandads);
 register('doubleclick', doubleclick);
