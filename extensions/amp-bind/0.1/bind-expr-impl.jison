@@ -330,6 +330,10 @@ object_literal:
       %{
         $$ = new AstNode(AstNodeType.OBJECT_LITERAL, [$object]);
       %}
+  | '{' object ',' '}'
+      %{
+        $$ = new AstNode(AstNodeType.OBJECT_LITERAL, [$2]);
+      %}
   ;
 
 object:
