@@ -26,12 +26,15 @@
  */
 import {AmpStoryGridLayer} from './amp-story-grid-layer';
 import {AmpStoryPage} from './amp-story-page';
+import {AnalyticsTrigger} from './analytics';
 import {Bookend} from './bookend';
 import {CSS} from '../../../build/amp-story-0.1.css';
 import {EventType} from './events';
 import {KeyCodes} from '../../../src/utils/key-codes';
+import {NavigationState} from './navigation-state';
 import {SystemLayer} from './system-layer';
 import {Layout} from '../../../src/layout';
+import {VariableService} from './variable-service';
 import {assertHttpsUrl} from '../../../src/url';
 import {buildFromJson} from './related-articles';
 import {closest} from '../../../src/dom';
@@ -45,8 +48,11 @@ import {once} from '../../../src/utils/function';
 import {
   toggleExperiment,
 } from '../../../src/experiments';
+import {registerServiceBuilder} from '../../../src/service';
 import {urlReplacementsForDoc} from '../../../src/services';
 import {xhrFor} from '../../../src/services';
+import {isFiniteNumber} from '../../../src/types';
+
 
 
 /** @private @const {number} */
@@ -57,6 +63,11 @@ const ACTIVE_PAGE_ATTRIBUTE_NAME = 'active';
 
 /** @private @const {string} */
 const RELATED_ARTICLES_ATTRIBUTE_NAME = 'related-articles';
+
+const TIME_REGEX = {
+  MILLISECONDS: /^(\d+)ms$/,
+  SECONDS: /^(\d+)s$/,
+};
 
 /** @private @const {number} */
 const FULLSCREEN_THRESHOLD = 1024;
@@ -79,6 +90,9 @@ export class AmpStory extends AMP.BaseElement {
   constructor(element) {
     super(element);
 
+    /** @private {!NavigationState} */
+    this.navigationState_ = new NavigationState();
+
     /**
      * Whether entering into fullscreen automatically on navigation is enabled.
      * @private {boolean}
@@ -99,6 +113,9 @@ export class AmpStory extends AMP.BaseElement {
 
     /** @private {!Array<!Element>} */
     this.pageHistoryStack_ = [];
+
+    /** @const @private {!VariableService} */
+    this.variableService_ = new VariableService();
 
     /**
      * @private @const {
@@ -133,6 +150,15 @@ export class AmpStory extends AMP.BaseElement {
 
     firstPage.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
     this.scheduleResume(firstPage);
+    this.maybeScheduleAutoAdvance_();
+
+    this.navigationState_.installConsumer(new AnalyticsTrigger(this.element));
+    this.navigationState_.installConsumer(this.variableService_);
+
+    this.navigationState_.updateActivePage(0, firstPage.id);
+
+    registerServiceBuilder(this.win, 'story-variable',
+        () => this.variableService_);
 
     // Mark all videos as autoplay
     const videos = this.element.querySelectorAll('amp-video');
@@ -167,14 +193,35 @@ export class AmpStory extends AMP.BaseElement {
 
 
   /**
+   * Gets the ID of the next page in the story (after the current page).
+   * @param {boolean=} opt_isAutomaticAdvance Whether this navigation was caused
+   *     by an automatic advancement after a timeout.
+   * @param {!Element} activePage The element representing the page that the
+   *     user is currently on.
+   * @return {?string} Returns the ID of the next page in the story, or null if
+   *     the document order should be followed.
+   * @private
+   */
+  getNextPageId_(activePage, opt_isAutomaticAdvance) {
+    if (opt_isAutomaticAdvance && activePage.hasAttribute('auto-advance-to')) {
+      return activePage.getAttribute('auto-advance-to');
+    }
+
+    return activePage.getAttribute('advance-to');
+  }
+
+
+  /**
    * Gets the next page that the user should be advanced to, upon navigation.
+   * @param {boolean=} opt_isAutomaticAdvance Whether this navigation was caused
+   *     by an automatic advancement after a timeout.
    * @return {?Element} The element representing the page that the user should
    *     be advanced to.
    * @private
    */
-  getNextPage_() {
+  getNextPage_(opt_isAutomaticAdvance) {
     const activePage = this.getActivePage_();
-    const nextPageId = activePage.getAttribute('advance-to');
+    const nextPageId = this.getNextPageId_(activePage, opt_isAutomaticAdvance);
 
     if (nextPageId) {
       return user().assert(
@@ -194,11 +241,13 @@ export class AmpStory extends AMP.BaseElement {
 
   /**
    * Advance to the next screen in the story, if there is one.
+   * @param {boolean=} opt_isAutomaticAdvance Whether this navigation was caused
+   *     by an automatic advancement after a timeout.
    * @private
    */
-  next_() {
+  next_(opt_isAutomaticAdvance) {
     const activePage = this.getActivePage_();
-    const nextPage = this.getNextPage_();
+    const nextPage = this.getNextPage_(opt_isAutomaticAdvance);
     if (!nextPage) {
       this.showBookend_();
       return;
@@ -237,14 +286,18 @@ export class AmpStory extends AMP.BaseElement {
     }
 
     const activePage = this.getActivePage_();
+    const pageIndex = this.getPageIndex(page);
 
     if (this.shouldEnterFullScreenOnSwitch_()) {
       this.enterFullScreen_();
     }
 
     // first page is not counted as part of the progress
-    this.systemLayer_.updateProgressBar(
-        this.getPageIndex(page), this.getPageCount() - 1);
+    // TODO(alanorozco): decouple this using NavigationState
+    this.systemLayer_.updateProgressBar(pageIndex, this.getPageCount() - 1);
+
+    // TODO(alanorozco): check if autoplay
+    this.navigationState_.updateActivePage(pageIndex, page.id);
 
     return this.mutateElement(() => {
       page.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
@@ -252,7 +305,36 @@ export class AmpStory extends AMP.BaseElement {
     }, page).then(() => {
       this.schedulePause(activePage);
       this.scheduleResume(page);
-    });
+    }).then(() => this.maybeScheduleAutoAdvance_());
+  }
+
+
+  /**
+   * If the auto-advance-delay property is set, a timer is set for that
+   * duration, after which next_() will be invoked.
+   * @private
+   */
+  maybeScheduleAutoAdvance_() {
+    const activePage = this.getActivePage_();
+    const autoAdvanceDelay = activePage.getAttribute('auto-advance-delay');
+
+    if (!autoAdvanceDelay) {
+      return;
+    }
+
+    let delayMs;
+    if (TIME_REGEX.MILLISECONDS.test(autoAdvanceDelay)) {
+      delayMs = Number(TIME_REGEX.MILLISECONDS.exec(autoAdvanceDelay)[1]);
+    } else if (TIME_REGEX.SECONDS.test(autoAdvanceDelay)) {
+      delayMs = Number(TIME_REGEX.SECONDS.exec(autoAdvanceDelay)[1]) * 1000;
+    }
+
+    user().assert(isFiniteNumber(delayMs) && delayMs > 0,
+        `Invalid automatic advance delay '${autoAdvanceDelay}' ` +
+        `for page '${activePage.id}'.`);
+
+    this.win.setTimeout(
+        () => this.next_(true /* opt_isAutomaticAdvance */), delayMs);
   }
 
 
