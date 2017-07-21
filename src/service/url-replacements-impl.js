@@ -360,6 +360,12 @@ export class GlobalVariableSource extends VariableSource {
           .toLowerCase();
     });
 
+    // Returns the user agent.
+    this.set('USER_AGENT', () => {
+      const nav = this.ampdoc.win.navigator;
+      return nav.userAgent;
+    });
+
     // Returns the time it took to load the whole page. (excludes amp-* elements
     // that are not rendered by the system yet.)
     this.setTimingResolver_(
