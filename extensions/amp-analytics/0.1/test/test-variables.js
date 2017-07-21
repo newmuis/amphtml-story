@@ -63,7 +63,7 @@ describe('amp-analytics.VariableService', function() {
     it('expands nested vars', () => {
       return variables.expandTemplate('${1}', new ExpansionOptions(vars))
           .then(actual =>
-          expect(actual).to.equal('123%252524%25257B4%25257D')
+          expect(actual).to.equal('123%24%7B4%7D')
       );
     });
 
@@ -84,11 +84,11 @@ describe('amp-analytics.VariableService', function() {
     it('limits the recursion to n', () => {
       return variables.expandTemplate('${1}', new ExpansionOptions(vars, 3))
           .then(actual =>
-          expect(actual).to.equal('1234%25252524%2525257B1%2525257D'))
+          expect(actual).to.equal('1234%24%7B1%7D'))
           .then(() =>
           variables.expandTemplate('${1}', new ExpansionOptions(vars, 5))
               .then(actual => expect(actual).to
-                  .equal('123412%252525252524%25252525257B3%25252525257D')
+                  .equal('123412%24%7B3%7D')
       ));
     });
 
