@@ -298,9 +298,11 @@ class Scanner {
       return false;
     }
 
-    // WebAnimationDef: (!WebMultiAnimationDef|!WebCompAnimationDef|!WebKeyframeAnimationDef)
+    // WebAnimationDef: (!WebMultiAnimationDef|!WebSpecAnimationDef|!WebCompAnimationDef|!WebKeyframeAnimationDef)
     if (spec.animations) {
       this.onMultiAnimation(/** @type {!WebMultiAnimationDef} */ (spec));
+    } else if (spec.switch) {
+      this.onSwitchAnimation(/** @type {!WebSwitchAnimationDef} */ (spec));
     } else if (spec.animation) {
       this.onCompAnimation(/** @type {!WebCompAnimationDef} */ (spec));
     } else if (spec.keyframes) {
@@ -325,6 +327,12 @@ class Scanner {
    * @abstract
    */
   onMultiAnimation(unusedSpec) {}
+
+  /**
+   * @param {!WebSwitchAnimationDef} unusedSpec
+   * @abstract
+   */
+  onSwitchAnimation(unusedSpec) {}
 
   /**
    * @param {!WebCompAnimationDef} unusedSpec
@@ -533,6 +541,20 @@ export class MeasureScanner extends Scanner {
   /** @override */
   onMultiAnimation(spec) {
     this.with_(spec, () => this.scan(spec.animations));
+  }
+
+  /** @override */
+  onSwitchAnimation(spec) {
+    // The first to match will be used; the rest will be ignored.
+    this.with_(spec, () => {
+      for (let i = 0; i < spec.switch.length; i++) {
+        const candidate = spec.switch[i];
+        if (this.scan(candidate)) {
+          // First matching candidate is applied and the rest are ignored.
+          break;
+        }
+      }
+    });
   }
 
   /** @override */
