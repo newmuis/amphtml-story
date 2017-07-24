@@ -15,7 +15,9 @@
  */
 
 import {dev} from '../../../src/log';
-import {MessageType} from '../../../src/3p-frame-messaging';
+import {
+  IFRAME_TRANSPORT_EVENTS_TYPE,
+} from '../../../src/iframe-transport-common';
 import {SubscriptionApi} from '../../../src/iframe-helper';
 
 /** @private @const {string} */
@@ -46,13 +48,16 @@ export class IframeTransportMessageQueue {
 
     /**
      * @private
-     * {!Array<!../../../src/3p-frame-messaging.IframeTransportEvent>}
+     * {!Array<!../../../src/iframe-transport-common.IframeTransportEvent>}
      */
     this.pendingEvents_ = [];
 
+    /** @private {string} */
+    this.messageType_ = IFRAME_TRANSPORT_EVENTS_TYPE;
+
     /** @private {!../../../src/iframe-helper.SubscriptionApi} */
     this.postMessageApi_ = new SubscriptionApi(this.frame_,
-        MessageType.SEND_IFRAME_TRANSPORT_EVENTS,
+        this.messageType_,
         true,
         () => {
           this.setIsReady();
@@ -89,7 +94,7 @@ export class IframeTransportMessageQueue {
 
   /**
    * Enqueues an event to be sent to a cross-domain iframe.
-   * @param {!../../../src/3p-frame-messaging.IframeTransportEvent} event
+   * @param {!../../../src/iframe-transport-common.IframeTransportEvent} event
    * Identifies the event and which Transport instance (essentially which
    * creative) is sending it.
    */
@@ -112,7 +117,7 @@ export class IframeTransportMessageQueue {
    */
   flushQueue_() {
     if (this.isReady() && this.queueSize()) {
-      this.postMessageApi_.send(MessageType.IFRAME_TRANSPORT_EVENTS,
+      this.postMessageApi_.send(IFRAME_TRANSPORT_EVENTS_TYPE,
           /** @type {!JsonObject} */
           ({events: this.pendingEvents_}));
       this.pendingEvents_ = [];
