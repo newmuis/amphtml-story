@@ -187,25 +187,18 @@ describe('FixedLayer', () => {
         visibility: 'visible',
         _top: '',
         get top() {
-          if (elem.computedStyle.transition &&
-              elem.style.transition !== '' &&
-              elem.style.transition !== 'none') {
-            return this._oldTop;
-          }
           if (elem.style.bottom) {
             return elem.autoTop || this._top;
           }
           return this._top;
         },
         set top(val) {
-          this._oldTop = this._top;
           this._top = val;
         },
         bottom: '',
         zIndex: '',
         transform: '',
         position: '',
-        transition: '',
       },
       matches: () => true,
       compareDocumentPosition: other => {
@@ -581,21 +574,6 @@ describe('FixedLayer', () => {
       // See http://crbug.com/703816.
       element5.computedStyle['position'] = 'sticky';
       element5.computedStyle['top'] = '0px';
-      element5.autoOffsetTop = 0;
-      element5.overrideOffsetTop = 0;
-
-      expect(vsyncTasks).to.have.length(1);
-      const state = {};
-      vsyncTasks[0].measure(state);
-
-      expect(state['F4'].sticky).to.be.true;
-      expect(state['F4'].top).to.equal('0px');
-    });
-
-    it('should work around top=0 for sticky when offset = 0', () => {
-      // See http://crbug.com/703816.
-      element5.computedStyle['position'] = 'sticky';
-      element5.computedStyle['top'] = '0px';
       element5.autoTop = '0px';
 
       expect(vsyncTasks).to.have.length(1);
@@ -627,7 +605,7 @@ describe('FixedLayer', () => {
       element1.offsetWidth = 10;
       element1.offsetHeight = 10;
       element5.computedStyle['position'] = 'sticky';
-      element5.autoOffsetTop = 12;
+      element5.autoTop = '12px';
 
       expect(vsyncTasks).to.have.length(1);
       const state = {};
@@ -737,7 +715,7 @@ describe('FixedLayer', () => {
       vsyncTasks[0].measure(state);
 
       expect(state['F0'].fixed).to.be.true;
-      expect(state['F0'].top).to.equal('');
+      expect(state['F0'].top).to.equal('0px');
 
       expect(state['F4'].sticky).to.be.true;
       expect(state['F4'].top).to.equal('0px');
@@ -812,7 +790,7 @@ describe('FixedLayer', () => {
       expect(fe.element.style.top).to.equal('calc(17px + 11px)');
     });
 
-    it('should not mutate element to sticky top if transfer needed', () => {
+    it('should add needed padding to sticky top if transferring', () => {
       const fe = fixedLayer.elements_[4];
       fixedLayer.transfer_ = true;
       fe.element.style.top = '';
@@ -822,7 +800,21 @@ describe('FixedLayer', () => {
       });
 
       expect(fe.stickyNow).to.be.true;
-      expect(fe.element.style.top).to.equal('');
+      expect(fe.element.style.top).to.equal('17px');
+    });
+
+    it('should not add unneeded padding to sticky top if transferring', () => {
+      const fe = fixedLayer.elements_[4];
+      fixedLayer.transfer_ = true;
+      fixedLayer.paddingTop_ = 0;
+      fe.element.style.top = '';
+      fixedLayer.mutateElement_(fe, 1, {
+        sticky: true,
+        top: '17px',
+      });
+
+      expect(fe.stickyNow).to.be.true;
+      expect(fe.element.style.top).to.equal('calc(17px - 11px)');
     });
 
     it('should mutate element to sticky with top', () => {
