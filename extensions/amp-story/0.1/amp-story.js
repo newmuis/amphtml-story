@@ -69,6 +69,9 @@ const TIME_REGEX = {
   SECONDS: /^(\d+)s$/,
 };
 
+/** @private @const {number} */
+const FULLSCREEN_THRESHOLD = 1024;
+
 
 /**
  * @param {!Element} el
@@ -285,7 +288,7 @@ export class AmpStory extends AMP.BaseElement {
     const activePage = this.getActivePage_();
     const pageIndex = this.getPageIndex(page);
 
-    if (isFullScreenSupported(this.element) && this.isAutoFullScreenEnabled_) {
+    if (this.shouldEnterFullScreenOnSwitch_()) {
       this.enterFullScreen_();
     }
 
@@ -332,6 +335,21 @@ export class AmpStory extends AMP.BaseElement {
 
     this.win.setTimeout(
         () => this.next_(true /* opt_isAutomaticAdvance */), delayMs);
+  }
+
+
+  /**
+   * @return {boolean}
+   * @private
+   */
+  shouldEnterFullScreenOnSwitch_() {
+    const {width, height} = this.getViewport().getSize();
+
+    const inFullScreenThreshold =
+        width <= FULLSCREEN_THRESHOLD && height <= FULLSCREEN_THRESHOLD;
+
+    return inFullScreenThreshold && isFullScreenSupported(this.element)
+        && this.isAutoFullScreenEnabled_;
   }
 
 
