@@ -169,7 +169,7 @@ class BackgroundPlayable extends Playable {
       return Promise.resolve(this.buffer_);
     }
 
-    return xhrFor(this.win)
+    return xhrFor(window)
         .fetch(this.sourceUri_)
         .then(response => response.arrayBuffer())
         .then(arrayBuffer => this.decodeAudioData_(arrayBuffer))
@@ -193,7 +193,7 @@ class BackgroundPlayable extends Playable {
 
   /** @override */
   play() {
-    this.preloadBuffer()
+    this.load()
         .then(buffer => this.createSource_(buffer))
         .then(source => this.playSource_(source));
   }
@@ -204,8 +204,8 @@ class BackgroundPlayable extends Playable {
    */
   playSource_(audioSource) {
     if (audioSource.source.start) {
-    } else {
       audioSource.source.start(0);
+    } else {
       audioSource.source.noteOn(0);
     }
   }
