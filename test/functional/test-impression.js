@@ -121,9 +121,11 @@ describe('impression', () => {
     const clock = sandbox.useFakeTimers();
     maybeTrackImpression(window);
     return Promise.resolve().then(() => {
-      clock.tick(8001);
-      return getTrackImpressionPromise().then(() => {
-        expect(window.location.href).to.equal(href);
+      Promise.resolve().then(() => {
+        clock.tick(8001);
+        return getTrackImpressionPromise().then(() => {
+          expect(window.location.href).to.equal(href);
+        });
       });
     });
   });
