@@ -90,9 +90,7 @@ function checkLinks() {
         util.log(
             util.colors.red('ERROR'),
             'Possible dead link(s) found in',
-            util.colors.magenta(markdownFiles[index]),
-            '(please update, or whitelist in',
-            'build-system/tasks/check-links.js).');
+            util.colors.magenta(markdownFiles[index]));
       } else {
         util.log(
             util.colors.green('SUCCESS'),
@@ -103,11 +101,15 @@ function checkLinks() {
     if (deadLinksFound) {
         util.log(
             util.colors.red('ERROR'),
-            'Possible dead link(s) found in this PR.',
             'Please update',
             util.colors.magenta(filesWithDeadLinks.join(',')),
             'or whitelist in build-system/tasks/check-links.js');
-            process.exit(1);
+        util.log(
+            util.colors.yellow('NOTE:'),
+            'If the links above are examples that aren\'t meant to work,',
+            'surrounding them with backticks or <code></code> will exempt them',
+            'from the link checker.');
+        process.exit(1);
     } else {
         util.log(
             util.colors.green('SUCCESS'),
