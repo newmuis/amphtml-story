@@ -420,10 +420,10 @@ export class VideoEventTracker extends EventTracker {
   constructor(root) {
     super(root);
 
-    /** @private @const {!Observable<!Event>} */
+    /** @private {?Observable<!Event>} */
     this.sessionObservable_ = new Observable();
 
-    /** @private @const */
+    /** @private {?Function} */
     this.boundOnSession_ = e => {
       this.sessionObservable_.fire(e);
     };
@@ -436,10 +436,12 @@ export class VideoEventTracker extends EventTracker {
 
   /** @override */
   dispose() {
+    const root = this.root.getRoot();
     Object.keys(VideoAnalyticsEvents).forEach(key => {
-      this.root.getRoot().removeEventListener(
-          VideoAnalyticsEvents[key], this.boundOnSession_);
+      root.removeEventListener(VideoAnalyticsEvents[key], this.boundOnSession_);
     });
+    this.boundOnSession_ = null;
+    this.sessionObservable_ = null;
   }
 
   /** @override */
@@ -452,17 +454,33 @@ export class VideoEventTracker extends EventTracker {
 
     const endSessionWhenInvisible = videoSpec['end-session-when-invisible'];
     const excludeAutoplay = videoSpec['exclude-autoplay'];
+    const interval = videoSpec['interval'];
     const on = config['on'];
+
+    let intervalCounter = 0;
 
     return this.sessionObservable_.add(event => {
       const type = event.type;
-      const details = /** @type {!VideoAnalyticsDetailsDef} */ (getData(event));
-      const isVisibleType = type === VideoAnalyticsEvents.SESSION_VISIBLE;
+      const isVisibleType = (type === VideoAnalyticsEvents.SESSION_VISIBLE);
       const normalizedType =
           isVisibleType ? VideoAnalyticsEvents.SESSION : type;
+      const details = /** @type {!VideoAnalyticsDetailsDef} */ (getData(event));
 
       if (normalizedType !== on) {
         return;
+      }
+
+      if (normalizedType === VideoAnalyticsEvents.SECONDS_PLAYED && !interval) {
+        user().error(TAG, 'video-seconds-played requires interval spec ' +
+            'with non-zero value');
+        return;
+      }
+
+      if (normalizedType === VideoAnalyticsEvents.SECONDS_PLAYED) {
+        intervalCounter++;
+        if (intervalCounter % interval !== 0) {
+          return;
+        }
       }
 
       if (isVisibleType && !endSessionWhenInvisible) {

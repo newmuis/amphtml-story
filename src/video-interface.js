@@ -406,6 +406,16 @@ export const VideoAnalyticsEvents = {
    * @event video-session-visible
    */
   SESSION_VISIBLE: 'video-session-visible',
+
+  /**
+   * video-seconds-played
+   *
+   * Indicates that a video was playing when the
+   * video-seconds-played interval fired.
+   * @property {!VideoAnalyticsDetailsDef} details
+   * @event video-session-visible
+   */
+  SECONDS_PLAYED: 'video-seconds-played',
 };
 
 
