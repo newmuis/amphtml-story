@@ -64,22 +64,6 @@ describe('3p ampcontext.js', () => {
     win.name = generateSerializedAttributes();
     const context = new AmpContext(win);
     expect(context).to.be.ok;
-
-    // Resetting since a message is sent on construction.
-    windowPostMessageSpy.reset();
-    win.onerror('message');
-    expect(windowPostMessageSpy).to.be.called;
-    expect(windowPostMessageSpy).to.be.calledWith(serializeMessage(
-        'user-error-in-iframe',
-        '1-291921',
-        {'message': 'message'},
-        '$internalRuntimeVersion$'
-      ));
-  });
-
-  it('should add metadata to window.context using name as per 3P.', () => {
-    win.name = generateSerializedAttributes();
-    const context = new AmpContext(win);
     expect(context.location).to.deep.equal({
       'hash': '',
       'host': 'foo.com',
@@ -101,6 +85,7 @@ describe('3p ampcontext.js', () => {
   it('should add metadata to window.context using name as per A4A.', () => {
     win.name = generateSerializedAttributesA4A();
     const context = new AmpContext(win);
+    expect(context).to.be.ok;
     expect(context.location).to.deep.equal({
       'hash': '',
       'host': 'foo.com',
@@ -122,6 +107,7 @@ describe('3p ampcontext.js', () => {
   it('should add metadata to window.context using window var.', () => {
     win.AMP_CONTEXT_DATA = generateAttributes();
     const context = new AmpContext(win);
+    expect(context).to.be.ok;
     expect(context.location).to.deep.equal({
       'hash': '',
       'host': 'foo.com',

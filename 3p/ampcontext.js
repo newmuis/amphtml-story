@@ -21,6 +21,7 @@ import {nextTick} from './3p';
 import {tryParseJson} from '../src/json';
 import {isObject} from '../src/types';
 import {AmpEvents} from '../src/amp-events';
+import {parseUrl} from '../src/url';
 
 export class AbstractAmpContext {
 
