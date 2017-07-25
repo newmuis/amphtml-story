@@ -701,7 +701,7 @@ export class AmpForm {
               container.appendChild(rendered);
               const renderedEvent = createCustomEvent(
                   this.win_,
-                  AmpEvents.TEMPLATE_RENDERED,
+                  AmpEvents.DOM_UPDATE,
                   /* detail */ null,
                   {bubbles: true});
               container.dispatchEvent(renderedEvent);
