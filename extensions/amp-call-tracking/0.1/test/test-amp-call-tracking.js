@@ -15,7 +15,7 @@
  */
 
 import '../amp-call-tracking';
-import {clearResponseCache} from '../amp-call-tracking';
+import {clearResponseCacheForTesting} from '../amp-call-tracking';
 import {createIframePromise} from '../../../../testing/iframe';
 import {Services} from '../../../../src/services';
 import * as sinon from 'sinon';
@@ -61,7 +61,7 @@ describes.realWin('amp-call-tracking', {
   function mockXhrResponse(url, response) {
     xhrMock
         .expects('fetchJson')
-        .withArgs(url)
+        .withArgs(url, sandbox.match(init => init.credentials == 'include'))
         .returns(Promise.resolve({
           json() {
             return Promise.resolve(response);
@@ -75,6 +75,17 @@ describes.realWin('amp-call-tracking', {
     expect(hyperlink.getAttribute('href')).to.equal(href);
     expect(hyperlink.textContent).to.equal(textContent);
   }
+
+  beforeEach(() => {
+    sandbox = sinon.sandbox.create();
+  });
+
+  afterEach(() => {
+    clearResponseCacheForTesting();
+
+    xhrMock.verify();
+    sandbox.restore();
+  });
 
   it('should render with required response fields', () => {
     const url = 'https://example.com/test.json';
