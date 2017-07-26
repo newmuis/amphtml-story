@@ -20,14 +20,17 @@
 </head>
 <body>
   <div class='fill'></div>
-  <amp-ad width=300 height=250
-        type="_ping_"
-        data-id='0'
-        data-url='https://example.com/a?b=c&d=e'
-        data-valid='true'
-        data-custom-value=123
-        data-other_value="foo">
-  </amp-ad>
+  <!-- amp-lightbox is used for ad container testing, no script needed -->
+  <amp-lightbox>
+    <amp-ad width=300 height=250
+          type="_ping_"
+          data-id='0'
+          data-url='https://example.com/a?b=c&d=e'
+          data-valid='true'
+          data-custom-value=123
+          data-other_value="foo">
+    </amp-ad>
+  </amp-lightbox>
 </body>
 <div class='fill'></div>
 </html>

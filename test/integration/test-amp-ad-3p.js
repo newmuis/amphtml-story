@@ -24,6 +24,7 @@ import {
   toggleExperiment,
   resetExperimentTogglesForTesting,
 } from '../../src/experiments';
+import {layoutRectLtwh} from '../../src/layout-rect';
 
 // TODO(@alanorozco): Inline this once 3p-use-ampcontext experiment is removed
 function createIframeWithApis(fixture) {
@@ -104,49 +105,13 @@ function createIframeWithApis(fixture) {
       expect(context.referrer).to.contain(
           'http://localhost:' + location.port);
     }
-
-    expect(context.canonicalUrl).to.equal(
-        'https://www.example.com/doubleclick.html');
-    expect(context.clientId).to.be.defined;
-    expect(context.data).to.deep.equal({
-      width: 300,
-      height: 250,
-      type: '_ping_',
-      ampSlotIndex: '0',
-      id: '0',
-      url: 'https://example.com/a?b=c&d=e',
-      valid: 'true',
-      customValue: '123',
-      'other_value': 'foo',
-    });
-
-    // make sure the context.data is the same instance as the data param passed
-    // into the vendor function. see #10628
-    expect(context.data).to.equal(
-        iframe.contentWindow.networkIntegrationDataParamForTesting);
-
-    expect(context.pageViewId).to.be.greaterThan(0);
     expect(context.startTime).to.be.a('number');
-    expect(context.container).to.be.defined;
-    expect(context.initialIntersection).to.be.defined;
-    // check for rootBounds as native IO doesn't support it with CORS
-    expect(context.initialLayoutRect).to.be.defined;
-    expect(context.initialLayoutRect.top).to.be.defined;
-    expect(context.initialIntersection.rootBounds).to.be.defined;
-    expect(context.isMaster).to.be.defined;
-    expect(context.computeInMasterFrame).to.be.defined;
-    expect(context.location).to.deep.equal({
-      hash: '',
-      host: 'localhost:9876',
-      hostname: 'localhost',
-      href: 'http://localhost:9876/context.html',
-      origin: 'http://localhost:9876',
-      pathname: '/context.html',
-      port: '9876',
-      protocol: 'http:',
-      search: '',
-    });
-    expect(context.sourceUrl).to.be.a('string');
+    // Edge has different opinion about window.location in srcdoc iframe.
+    // Nevertheless this only happens in test. In real world AMP will not
+    // in srcdoc iframe.
+    expect(context.sourceUrl).to.equal(platform.isEdge()
+        ? 'http://localhost:9876/context.html'
+        : 'about:srcdoc');
   }).then(() => {
     // test iframe will send out render-start to amp-ad
     return poll('render-start message received', () => {
