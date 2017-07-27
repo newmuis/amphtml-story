@@ -38,6 +38,7 @@ import {cidServiceForDocForTesting} from
     '../../../../src/service/cid-impl';
 import {Services} from '../../../../src/services';
 import * as sinon from 'sinon';
+import * as log from '../../../../src/log';
 
 import {AmpDocSingle} from '../../../../src/service/ampdoc-impl';
 
