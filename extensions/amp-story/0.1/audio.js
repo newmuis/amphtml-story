@@ -177,7 +177,9 @@ class Playable {
    * @return {!Promise} A promise that is resolved once the resource has been
    *     loaded.
    */
-  load() {}
+  load() {
+    return Promise.resolve();
+  }
 
   /**
    * @return {boolean} true, if this item's resources have been loaded.
@@ -349,11 +351,6 @@ class MediaElementPlayable extends Playable {
   }
 
   /** @override */
-  load() {
-    return Promise.resolve();
-  }
-
-  /** @override */
   isLoaded() {
     return !!this.element_;
   }
@@ -392,10 +389,5 @@ class MediaElementPlayable extends Playable {
   stop() {
     this.element_.pause();
     this.element_.currentTime = 0;
-  }
-
-  /** @override */
-  unload() {
-    console.log('MediaElementPlayable does not unload.');
   }
 }
