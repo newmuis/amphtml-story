@@ -239,19 +239,10 @@ const EXPERIMENTS = [
     name: 'Use slot width/height attribute for AdSense size format',
   },
   {
-    id: 'ad-loader-v1',
-    name: 'New ad loader version 1',
-    cleanupIssue: 'https://github.com/ampproject/amphtml/issues/8261',
-  },
-  {
-    id: 'user-error-reporting',
-    name: 'Report error to publishers',
-    spec: 'https://github.com/ampproject/amphtml/issues/6415',
-  },
-  {
-    id: 'disable-rtc',
-    name: 'Disable AMP RTC',
-    spec: 'https://github.com/ampproject/amphtml/issues/8551',
+    id: 'amp-form-verifiers',
+    name: 'Asynchronous form verifiers',
+    cleanupIssue: 'https://github.com/ampproject/amphtml/issues/9174',
+    spec: 'https://github.com/ampproject/amphtml/issues/8736',
   },
   {
     id: 'amp-position-observer',
