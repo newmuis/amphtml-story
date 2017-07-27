@@ -22,7 +22,12 @@ import {
 import {VideoEvents} from '../../../src/video-interface';
 import {Services} from '../../../src/services';
 import {assertAbsoluteHttpOrHttpsUrl} from '../../../src/url';
-import {removeElement} from '../../../src/dom';
+import {
+  removeElement,
+  fullscreenEnter,
+  fullscreenExit,
+  isFullscreenElement,
+} from '../../../src/dom';
 import {getData, listen} from '../../../src/event-helper';
 
 /**
@@ -284,6 +289,25 @@ class AmpBridPlayer extends AMP.BaseElement {
   /** @override */
   hideControls() {
     // Not supported.
+  }
+
+  /**
+   * @override
+   */
+  fullscreenEnter() {
+    fullscreenEnter(dev().assertElement(this.iframe_));
+  }
+
+  /**
+   * @override
+   */
+  fullscreenExit() {
+    fullscreenExit(dev().assertElement(this.iframe_));
+  }
+
+  /** @override */
+  isFullscreen() {
+    return isFullscreenElement(dev().assertElement(this.iframe_));
   }
 
   /** @override */

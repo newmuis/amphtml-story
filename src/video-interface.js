@@ -211,6 +211,19 @@ export const VideoAttributes = {
    * to the corner when scrolled out of view and has been interacted with.
    */
   DOCK: 'dock',
+  /**
+   * fullscreen-on-landscape
+   *
+   * If enabled, this automatically expands the currently visible video and
+   * playing to fullscreen when the user changes the device's orientation to
+   * landscape if the video was started following a user interaction
+   * (not autoplay)
+   *
+   * Dependent upon browser support of
+   * http://caniuse.com/#feat=screen-orientation
+   * and http://caniuse.com/#feat=fullscreen
+   */
+  FULLSCREEN_ON_LANDSCAPE: 'fullscreen-on-landscape',
 };
 
 

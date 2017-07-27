@@ -231,6 +231,25 @@ class AmpOoyalaPlayer extends AMP.BaseElement {
   hideControls() {
   }
 
+  /**
+   * @override
+   */
+  fullscreenEnter() {
+    fullscreenEnter(dev().assertElement(this.iframe_));
+  }
+
+  /**
+   * @override
+   */
+  fullscreenExit() {
+    fullscreenExit(dev().assertElement(this.iframe_));
+  }
+
+  /** @override */
+  isFullscreen() {
+    return isFullscreenElement(dev().assertElement(this.iframe_));
+  }
+
   /** @override */
   getCurrentTime() {
     // Not supported.

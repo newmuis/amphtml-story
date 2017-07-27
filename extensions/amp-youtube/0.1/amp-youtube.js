@@ -22,7 +22,6 @@ import {
   isFullscreenElement,
 } from '../../../src/dom';
 import {tryParseJson} from '../../../src/json';
-import {removeElement} from '../../../src/dom';
 import {getData, listen} from '../../../src/event-helper';
 import {isLayoutSizeDefined} from '../../../src/layout';
 import {dev, user} from '../../../src/log';
@@ -442,6 +441,25 @@ class AmpYoutube extends AMP.BaseElement {
    */
   hideControls() {
     // Not supported.
+  }
+
+  /**
+   * @override
+   */
+  fullscreenEnter() {
+    fullscreenEnter(dev().assertElement(this.iframe_));
+  }
+
+  /**
+   * @override
+   */
+  fullscreenExit() {
+    fullscreenExit(dev().assertElement(this.iframe_));
+  }
+
+  /** @override */
+  isFullscreen() {
+    return isFullscreenElement(dev().assertElement(this.iframe_));
   }
 
   /** @override */
