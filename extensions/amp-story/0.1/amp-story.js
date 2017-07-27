@@ -303,10 +303,8 @@ export class AmpStory extends AMP.BaseElement {
     // TODO(alanorozco): check if autoplay
     this.navigationState_.updateActivePage(pageIndex, page.id);
 
-    if (page.hasAttribute('background-audio')) {
-      this.audioManager_.load(page.getAttribute('background-audio'))
-          .then(id => this.audioManager_.play(id));
-    }
+    this.audioManager_.stop(activePage);
+    this.audioManager_.play(page);
 
     return this.mutateElement(() => {
       page.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
