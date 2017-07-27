@@ -144,18 +144,20 @@ export class AmpStory extends AMP.BaseElement {
       this.onKeyDown_(e);
     }, true);
 
-    const firstPage = user().assertElement(
-        this.element.querySelector('amp-story-page'),
+    const startPage = user().assertElement(
+        this.getPageFromUrl_() || this.element.querySelector('amp-story-page'),
         'Story must have at least one page.');
+    const startIndex = this.getRealChildren().indexOf(startPage);
+    this.systemLayer_.updateProgressBar(startIndex, this.getPageCount() - 1);
 
-    firstPage.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
-    this.scheduleResume(firstPage);
+    startPage.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
+    this.scheduleResume(startPage);
     this.maybeScheduleAutoAdvance_();
 
     this.navigationState_.installConsumer(new AnalyticsTrigger(this.element));
     this.navigationState_.installConsumer(this.variableService_);
 
-    this.navigationState_.updateActivePage(0, firstPage.id);
+    this.navigationState_.updateActivePage(startIndex, startPage.id);
 
     registerServiceBuilder(this.win, 'story-variable',
         () => this.variableService_);
@@ -178,6 +180,26 @@ export class AmpStory extends AMP.BaseElement {
   /** @override */
   isLayoutSupported(layout) {
     return layout == Layout.CONTAINER;
+  }
+
+
+  /**
+   * Gets the page referred to by the fragment in the URL, or defaults to the
+   * first page of the story if none is specified.
+   * @return {?Element} The element representing the page referred to by the URL
+   *     fragment.
+   */
+  getPageFromUrl_() {
+    const pageFragment = this.win.location.hash.substring(1);
+    if (!pageFragment) {
+      return null;
+    }
+
+    try {
+      return this.element.querySelector(`amp-story-page#${pageFragment}`);
+    } catch (e) {
+      return null;
+    }
   }
 
 
@@ -264,7 +286,12 @@ export class AmpStory extends AMP.BaseElement {
    * @private
    */
   previous_() {
-    const previousPage = this.pageHistoryStack_.pop();
+    // TODO(newmuis): Using the previous element sibling as a fallback will not
+    // work with branching; we may need to build a graph of the branches and
+    // follow a path that can arrive back at the beginning of the story.
+    const activePage = this.getActivePage_();
+    const previousPage =
+        this.pageHistoryStack_.pop() || activePage.previousElementSibling;
     if (!previousPage) {
       return;
     }
@@ -302,6 +329,7 @@ export class AmpStory extends AMP.BaseElement {
     return this.mutateElement(() => {
       page.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
       activePage.removeAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME);
+      history.replaceState(null, null, '#' + page.id);
     }, page).then(() => {
       this.schedulePause(activePage);
       this.scheduleResume(page);
