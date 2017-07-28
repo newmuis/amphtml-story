@@ -187,18 +187,25 @@ describe('FixedLayer', () => {
         visibility: 'visible',
         _top: '',
         get top() {
+          if (elem.computedStyle.transition &&
+              elem.style.transition !== '' &&
+              elem.style.transition !== 'none') {
+            return this._oldTop;
+          }
           if (elem.style.bottom) {
             return elem.autoTop || this._top;
           }
           return this._top;
         },
         set top(val) {
+          this._oldTop = this._top;
           this._top = val;
         },
         bottom: '',
         zIndex: '',
         transform: '',
         position: '',
+        transition: '',
       },
       matches: () => true,
       compareDocumentPosition: other => {
@@ -739,15 +746,9 @@ describe('FixedLayer', () => {
 
       expect(state['F0'].fixed).to.be.true;
       expect(state['F0'].top).to.equal('0px');
-      expect(element1.style.transition).to.equal('none');
 
       expect(state['F4'].sticky).to.be.true;
       expect(state['F4'].top).to.equal('0px');
-      expect(element5.style.transition).to.equal('none');
-
-      vsyncTasks[0].mutate({});
-      expect(element1.style.transition).to.equal('');
-      expect(element5.style.transition).to.equal('');
     });
 
     it('should mutate element to fixed without top', () => {
