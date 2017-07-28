@@ -48,6 +48,11 @@ export const MessageType = {
   SEND_POSITIONS: 'send-positions',
   POSITION: 'position',
 
+  // For amp-analytics' iframe-transport
+  SEND_IFRAME_TRANSPORT_EVENTS: 'send-iframe-transport-events',
+  IFRAME_TRANSPORT_EVENTS: 'iframe-transport-events',
+};
+
 /**
  * Listens for the specified event on the element.
  * @param {!EventTarget} element
@@ -128,3 +133,4 @@ export let IframeTransportEvent;
 //   { transportId: "2", message: "hello" }, // Another
 //   { transportId: "3", message: "goodbye" } // And another
 // ]
+
