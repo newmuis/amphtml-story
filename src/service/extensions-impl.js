@@ -269,27 +269,6 @@ export class Extensions {
   }
 
   /**
-   * Returns the promise that will be resolved when the extension has been
-   * loaded. If necessary, adds the extension script to the page.
-   * @param {!./ampdoc-impl.AmpDoc} ampdoc
-   * @param {string} extensionId
-   * @return {!Promise<!ExtensionDef>}
-   */
-  installExtensionForDoc(ampdoc, extensionId) {
-    const rootNode = ampdoc.getRootNode();
-    let extLoaders = rootNode[LOADER_PROP];
-    if (!extLoaders) {
-      extLoaders = rootNode[LOADER_PROP] = map();
-    }
-    if (extLoaders[extensionId]) {
-      return extLoaders[extensionId];
-    }
-    stubElementIfNotKnown(ampdoc.win, extensionId);
-    return extLoaders[extensionId] = this.preloadExtension(extensionId)
-        .then(() => this.installExtensionInDoc_(ampdoc, extensionId));
-  }
-
-  /**
    * Reloads the new version of the extension.
    * @param {string} extensionId
    * @param {!Element} oldScriptElement
@@ -304,7 +283,8 @@ export class Extensions {
     }
     oldScriptElement.removeAttribute('custom-element');
     oldScriptElement.setAttribute('i-amphtml-loaded-new-version', extensionId);
-    return this.preloadExtension(extensionId);
+    return this.loadExtension(extensionId,
+        /* stubbing not needed, should have already happened. */ false);
   }
 
   /**

@@ -403,10 +403,9 @@ describes.fakeWin('runtime', {
     const s1 = addExisting(1);
     const s2 = addExisting(4);
     const s3 = addExisting(5);
-
-    let bodyResolver;
-    const bodyPromise = new Promise(resolve => {
-      bodyResolver = resolve;
+    const bodyCallbacks = new Observable();
+    sandbox.stub(dom, 'waitForBody', (unusedDoc, callback) => {
+      bodyCallbacks.add(callback);
     });
     sandbox.stub(dom, 'waitForBodyPromise', () => bodyPromise);
 
@@ -448,7 +447,7 @@ describes.fakeWin('runtime', {
       progress += 'not expected 2';
     }, 'version123'));
     // Add legacy element (5) and eagarly ask for its load as ElementStub does.
-    Services.extensionsFor(win).preloadExtension('amp-test-element5', false);
+    Services.extensionsFor(win).loadExtension('amp-test-element5', false);
     win.AMP.push(regularExtension(amp => {
       expect(amp).to.equal(win.AMP);
       progress += '5';
