@@ -225,7 +225,6 @@ See [amp-ad rules](https://github.com/ampproject/amphtml/blob/master/extensions/
 - [Criteo](../../ads/criteo.md)
 - [CSA](../../ads/google/csa.md)
 - [CxenseDisplay](../../ads/eas.md)
-- [Dable](../../ads/dable.md)
 - [Dianomi](../../ads/dianomi.md)
 - [Directadvert](../../ads/directadvert.md)
 - [DistroScale](../../ads/distroscale.md)
@@ -315,7 +314,6 @@ See [amp-ad rules](https://github.com/ampproject/amphtml/blob/master/extensions/
 
 - [Bringhub](../../ads/bringhub.md)
 - [Dable](../../ads/dable.md)
-- [Engageya](../../ads/engageya.md)
 - [Outbrain](../../ads/outbrain.md)
 - [Taboola](../../ads/taboola.md)
 - [ZergNet](../../ads/zergnet.md)
