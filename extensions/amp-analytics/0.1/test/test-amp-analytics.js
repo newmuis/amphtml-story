@@ -24,6 +24,10 @@ import {installCryptoService} from '../../../../src/service/crypto-impl';
 import {instrumentationServiceForDocForTesting} from '../instrumentation';
 import {variableServiceFor} from '../variables';
 import {
+  installVariableService,
+  variableServiceFor,
+} from '../variables';
+import {
   installUserNotificationManagerForTesting,
 } from '../../../amp-user-notification/0.1/amp-user-notification';
 import {adopt} from '../../../../src/runtime';
@@ -110,8 +114,8 @@ describes.realWin('amp-analytics', {
       viewer = windowApi.services.viewer.obj;
       ins = instrumentationServiceForDocForTesting(ampdoc);
       installVariableService(iframe.win);
-      installUserNotificationManager(iframe.win);
-      return Services.userNotificationManagerFor(iframe.win).then(manager => {
+      installUserNotificationManagerForTesting(ampdoc);
+      return Services.userNotificationManagerForDoc(ampdoc).then(manager => {
         uidService = manager;
       });
     });
