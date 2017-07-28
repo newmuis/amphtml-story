@@ -141,9 +141,13 @@ amp-story-page {
   position: absolute !important;
   right: 0 !important;
   top: 0 !important;
+<<<<<<< HEAD
   /* Position the page outside of the viewport.  This is so that pages may be
    * pre-rendered without being user-visible. */
   transform: translateX(100%) !important;
+=======
+  transition: transform 1s;
+>>>>>>> Added 3d parallax
 }
 
 amp-story-page[active] {

@@ -51,7 +51,8 @@ import {
 import {registerServiceBuilder} from '../../../src/service';
 import {urlReplacementsForDoc} from '../../../src/services';
 import {xhrFor} from '../../../src/services';
-import {isFiniteNumber} from '../../../src/types';
+import {isFiniteNumber, toArray} from '../../../src/types';
+import {installParallaxHandler} from './parallax';
 import {AudioManager} from './audio';
 
 
@@ -166,6 +167,9 @@ export class AmpStory extends AMP.BaseElement {
 
     registerServiceBuilder(this.win, 'story-variable',
         () => this.variableService_);
+
+    // Install parallax handlers if no opt-out is detected
+    this.parallaxService_ = installParallaxHandler(this.win, toArray(this.getPages()));
   }
 
 
@@ -251,6 +255,7 @@ export class AmpStory extends AMP.BaseElement {
    */
   next_(opt_isAutomaticAdvance) {
     const activePage = this.activePage_;
+    this.parallaxService_.animateLeave(activePage);
     const nextPage = this.getNextPage_(opt_isAutomaticAdvance);
     if (!nextPage) {
       this.showBookend_();

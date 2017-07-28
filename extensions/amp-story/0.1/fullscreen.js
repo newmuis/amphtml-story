@@ -31,6 +31,9 @@ const requestFullScreenImpl = function(el) {
   } else {
     dev().warn('Ignored fullscreen request.');
   }
+  if ('orientation' in screen) {
+    screen.orientation.lock('portrait');
+  }
 };
 
 
@@ -50,6 +53,10 @@ const exitFullScreenImpl = function(el) {
     doc.msExitFullscreen();
   } else {
     dev().warn('Ignored fullscreen request.');
+  }
+
+  if ('orientation' in screen) {
+    screen.orientation.unlock('portrait');
   }
 };
 
