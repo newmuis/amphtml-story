@@ -697,10 +697,6 @@ describe('installActionHandler', () => {
     expect(handlerSpy).to.not.be.called;
 
     action.invoke_(target, 'submit', /* args */ null,
-        'button', 'tap', ActionTrust.MEDIUM);
-    expect(handlerSpy).to.not.be.called;
-
-    action.invoke_(target, 'submit', /* args */ null,
         'button', 'tap', ActionTrust.HIGH);
     expect(handlerSpy).to.be.calledOnce;
   });
@@ -848,9 +844,9 @@ describe('Action interceptor', () => {
 
   it('should dequeue actions after handler set', () => {
     action.invoke_(target, 'method1', /* args */ null, 'source1', 'event1',
-        ActionTrust.MEDIUM);
+        ActionTrust.HIGH);
     action.invoke_(target, 'method2', /* args */ null, 'source2', 'event2',
-        ActionTrust.MEDIUM);
+        ActionTrust.HIGH);
 
     expect(Array.isArray(getQueue())).to.be.true;
     expect(getActionHandler()).to.be.undefined;
@@ -877,7 +873,7 @@ describe('Action interceptor', () => {
     expect(inv1.event).to.equal('event2');
 
     action.invoke_(target, 'method3', /* args */ null, 'source3', 'event3',
-        ActionTrust.MEDIUM);
+        ActionTrust.HIGH);
     expect(handler).to.have.callCount(3);
     const inv2 = handler.getCall(2).args[0];
     expect(inv2.target).to.equal(target);
@@ -931,10 +927,6 @@ describe('Action common handler', () => {
 
     action.invoke_(target, 'foo', /* args */ null, 'source1', 'event1',
         ActionTrust.LOW);
-    expect(handler).to.not.be.called;
-
-    action.invoke_(target, 'foo', /* args */ null, 'source1', 'event1',
-        ActionTrust.MEDIUM);
     expect(handler).to.not.be.called;
 
     action.invoke_(target, 'foo', /* args */ null, 'source1', 'event1',
