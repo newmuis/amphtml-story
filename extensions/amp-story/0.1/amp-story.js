@@ -51,7 +51,7 @@ import {
 import {registerServiceBuilder} from '../../../src/service';
 import {urlReplacementsForDoc} from '../../../src/services';
 import {xhrFor} from '../../../src/services';
-import {isFiniteNumber} from '../../../src/types';
+import {isFiniteNumber, toArray} from '../../../src/types';
 
 
 
@@ -123,6 +123,9 @@ export class AmpStory extends AMP.BaseElement {
      * }
      */
     this.loadRelatedArticles_ = once(() => this.loadRelatedArticlesImpl_());
+
+    /** @private {?Element} */
+    this.activePage_ = null;
   }
 
   /** @override */
@@ -144,34 +147,37 @@ export class AmpStory extends AMP.BaseElement {
       this.onKeyDown_(e);
     }, true);
 
-    const firstPage = user().assertElement(
+    toArray(this.getPages()).forEach(page => {
+      this.setAsOwner(page);
+    });
+
+    this.activePage_ = user().assertElement(
         this.element.querySelector('amp-story-page'),
         'Story must have at least one page.');
-
-    firstPage.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
-    this.scheduleResume(firstPage);
-    this.maybeScheduleAutoAdvance_();
+    this.activePage_.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
 
     this.navigationState_.installConsumer(new AnalyticsTrigger(this.element));
     this.navigationState_.installConsumer(this.variableService_);
 
-    this.navigationState_.updateActivePage(0, firstPage.id);
+    this.navigationState_.updateActivePage(0, this.activePage_.id);
 
     registerServiceBuilder(this.win, 'story-variable',
         () => this.variableService_);
-
-    // Mark all videos as autoplay
-    const videos = this.element.querySelectorAll('amp-video');
-    for (const video of videos) {
-      video.setAttribute('autoplay', '');
-    }
   }
 
 
   /** @override */
   layoutCallback() {
+    this.scheduleLayout(this.activePage_);
+    this.maybeScheduleAutoAdvance_();
     this.preloadNext_();
     return Promise.resolve();
+  }
+
+
+  /** @override */
+  viewportCallback(inViewport) {
+    this.updateInViewport(this.activePage_, inViewport);
   }
 
 
@@ -181,14 +187,9 @@ export class AmpStory extends AMP.BaseElement {
   }
 
 
-  /**
-   * Gets the amp-story-page that is currently being shown.
-   * @return {!Element} The element representing the page currently being shown.
-   * @private
-   */
-  getActivePage_() {
-    const activePage = this.element.querySelector('amp-story-page[active]');
-    return dev().assert(activePage, 'There is no active page.');
+  /** @override */
+  prerenderAllowed() {
+    return true;
   }
 
 
@@ -220,7 +221,7 @@ export class AmpStory extends AMP.BaseElement {
    * @private
    */
   getNextPage_(opt_isAutomaticAdvance) {
-    const activePage = this.getActivePage_();
+    const activePage = this.activePage_;
     const nextPageId = this.getNextPageId_(activePage, opt_isAutomaticAdvance);
 
     if (nextPageId) {
@@ -246,7 +247,7 @@ export class AmpStory extends AMP.BaseElement {
    * @private
    */
   next_(opt_isAutomaticAdvance) {
-    const activePage = this.getActivePage_();
+    const activePage = this.activePage_;
     const nextPage = this.getNextPage_(opt_isAutomaticAdvance);
     if (!nextPage) {
       this.showBookend_();
@@ -285,7 +286,7 @@ export class AmpStory extends AMP.BaseElement {
       return;
     }
 
-    const activePage = this.getActivePage_();
+    const activePage = this.activePage_;
     const pageIndex = this.getPageIndex(page);
 
     if (this.shouldEnterFullScreenOnSwitch_()) {
@@ -302,9 +303,12 @@ export class AmpStory extends AMP.BaseElement {
     return this.mutateElement(() => {
       page.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
       activePage.removeAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME);
+      this.activePage_ = page;
     }, page).then(() => {
       this.schedulePause(activePage);
+      this.updateInViewport(activePage, false);
       this.scheduleResume(page);
+      this.updateInViewport(page, true);
     }).then(() => this.maybeScheduleAutoAdvance_());
   }
 
@@ -315,7 +319,7 @@ export class AmpStory extends AMP.BaseElement {
    * @private
    */
   maybeScheduleAutoAdvance_() {
-    const activePage = this.getActivePage_();
+    const activePage = this.activePage_;
     const autoAdvanceDelay = activePage.getAttribute('auto-advance-delay');
 
     if (!autoAdvanceDelay) {
@@ -474,6 +478,7 @@ export class AmpStory extends AMP.BaseElement {
       this.buildBookend_();
     } else {
       this.schedulePreload(next);
+      this.scheduleLayout(next);
     }
   }
 

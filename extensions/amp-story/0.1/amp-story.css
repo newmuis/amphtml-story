@@ -136,15 +136,16 @@ amp-story:fullscreen {
 /** Page level */
 amp-story-page {
   bottom: 0 !important;
-  display: none !important;
+  display: block !important;
   left: 0 !important;
   position: absolute !important;
   right: 0 !important;
   top: 0 !important;
+  transform: translateX(100%);
 }
 
 amp-story-page[active] {
-  display: block !important;
+  transform: translateX(0);
 }
 
 /** Grid level */
