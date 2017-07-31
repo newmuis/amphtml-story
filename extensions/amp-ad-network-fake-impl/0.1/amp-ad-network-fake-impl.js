@@ -21,8 +21,6 @@ import {
 import {dev, user} from '../../../src/log';
 import {getMode} from '../../../src/mode';
 import {resolveRelativeUrl} from '../../../src/url';
-import {utf8EncodeSync, utf8Decode} from '../../../src/utils/bytes';
-import {parseJson} from '../../../src/json';
 
 
 export class AmpAdNetworkFakeImpl extends AmpA4A {
@@ -69,26 +67,21 @@ export class AmpAdNetworkFakeImpl extends AmpA4A {
         // mode is only allowed in `localDev` and primarily used for A4A
         // Envelope for testing. See DEVELOPING.md for more info.
         if (this.element.getAttribute('fakesig') == 'true') {
-          // In the fake signature mode the content is the plain AMP HTML
-          // and the signature is "FAKESIG". This mode is only allowed in
-          // `localDev` and primarily used for A4A Envelope for testing.
-          // See DEVELOPING.md for more info.
-          const creative = this.transformCreativeLocalDev_(deserialized);
-          return {
-            creative: utf8EncodeSync(creative).buffer,
-            signature: 'FAKESIG',
-          };
+          return response.text().then(
+              responseText => new Response(
+                  this.transformCreativeLocalDev_(responseText),
+                  {status, headers}));
         }
       }
-      // Normal mode: the content is a JSON structure with two fieleds:
+      // Normal mode: the content is a JSON structure with two fields:
       // `creative` and `signature`.
-      const decoded = parseJson(deserialized);
-      dev().info('AMP-AD-FAKE', 'Decoded response text =', decoded['creative']);
-      dev().info('AMP-AD-FAKE', 'Decoded signature =', decoded['signature']);
-      return {
-        creative: utf8EncodeSync(decoded['creative']).buffer,
-        signature: base64DecodeToBytes(decoded['signature']),
-      };
+      return response.json().then(decoded => {
+        dev().info(
+            'AMP-AD-FAKE', 'Decoded response text =', decoded['creative']);
+        dev().info('AMP-AD-FAKE', 'Decoded signature =', decoded['signature']);
+        headers.set(AMP_SIGNATURE_HEADER, decoded['signature']);
+        return new Response(decoded['creative'], {status, headers});
+      });
     });
   }
 
