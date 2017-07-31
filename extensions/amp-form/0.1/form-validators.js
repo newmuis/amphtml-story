@@ -385,6 +385,15 @@ export class InteractAndSubmitValidator extends ShowAllOnSubmitValidator {
 }
 
 
+/** @private visible for testing */
+export class InteractAndSubmitValidator extends ShowAllOnSubmitValidator {
+  /** @override */
+  shouldValidateOnInteraction(unusedInput) {
+    return true;
+  }
+}
+
+
 /**
  * Returns the form validator instance.
  *
