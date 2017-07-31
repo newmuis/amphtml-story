@@ -364,18 +364,6 @@ event.valueAsNumber</pre>
   </tr>
 </table>
 
-### form
-<table>
-  <tr>
-    <th>Action</th>
-    <th>Description</th>
-  </tr>
-  <tr>
-    <td><code>submit</code></td>
-    <td>Submits the form.</td>
-  </tr>
-</table>
-
 ## Special targets
 
 The following are targets provided by the AMP system that have special requirements:
