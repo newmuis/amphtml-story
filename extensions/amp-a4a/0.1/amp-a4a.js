@@ -59,9 +59,6 @@ import {getContextMetadata} from '../../../src/iframe-attributes';
 // import '../../amp-ad/0.1/amp-ad-ui';
 // import '../../amp-ad/0.1/amp-ad-xorigin-iframe-handler';
 
-/** @type {string} */
-const METADATA_STRING = '<script type="application/json" amp-ad-metadata>';
-
 /** @type {Array<string>} */
 const METADATA_STRINGS = [
   '<script amp-ad-metadata type=application/json>',
