@@ -143,11 +143,11 @@ amp-story-page {
   top: 0 !important;
   /* Position the page outside of the viewport.  This is so that pages may be
    * pre-rendered without being user-visible. */
-  transform: translateX(100%);
+  transform: translateX(100%) !important;
 }
 
 amp-story-page[active] {
-  transform: translateX(0);
+  transform: translateX(0) !important;
 }
 
 /** Grid level */
