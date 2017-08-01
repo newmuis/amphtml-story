@@ -1566,6 +1566,17 @@ describes.realWin('amp-ad-network-doubleclick-impl', realWinConfig, env => {
         expect(iframe.getAttribute('style')).to.match(/height: 50/);
       });
     });
+
+    it('should issue an ad request even with bad multi-size data attr', () => {
+      stubForAmpCreative();
+      sandbox.stub(impl, 'sendXhrRequest', mockSendXhrRequest);
+      impl.element.setAttribute('data-multi-size', '201x50');
+      impl.onLayoutMeasure();
+      return impl.layoutCallback().then(() => {
+        expect(impl.adUrl_).to.be.ok;
+        expect(impl.adUrl_.length).to.be.ok;
+      });
+    });
   });
 
   describe('#correlator clear experiment', () => {
