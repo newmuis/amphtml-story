@@ -28,26 +28,33 @@ import {Layout} from '../../../src/layout';
 
 export class AmpStoryPage extends AMP.BaseElement {
   /** @override */
+  buildCallback() {
+    const mediaSet = this.element.querySelectorAll('amp-audio, amp-video');
+    for (const mediaItem of mediaSet) {
+      mediaItem.setAttribute('preload', 'auto');
+    }
+  }
+
+
+  /** @override */
   isLayoutSupported(layout) {
     return layout == Layout.CONTAINER;
   }
 
+
   /** @override */
-  pauseCallback() {
-    this.pauseAllMedia_();
+  viewportCallback(inViewport) {
+    if (inViewport) {
+      this.playAllMedia_();
+    } else {
+      this.pauseAllMedia_();
+    }
   }
 
 
   /** @override */
-  resumeCallback() {
-    this.playAllMedia_();
-  }
-
-
-  /** @override */
-  layoutCallback() {
-    this.playAllMedia_();
-    return Promise.resolve();
+  prerenderAllowed() {
+    return true;
   }
 
 

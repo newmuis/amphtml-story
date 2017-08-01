@@ -42,6 +42,11 @@ const VOLUME_CHANGE_DURATION_MS = 500;
  */
 const VOLUME_EASING_FN = input => input;
 
+/**
+ * @const {string}
+ */
+const PLAYABLE_ID_PREFIX = 'i-amphtml-playable-';
+
 
 export class AudioManager {
   constructor() {
@@ -57,6 +62,8 @@ export class AudioManager {
 
   /**
    * @param {!Element} sourceElement The element causing audio to be played.
+   * @return {!Playable} The {@link Playable} instance to play the audio
+   *     represented by the specified sourceElement.
    */
   createPlayable_(sourceElement) {
     if (!(sourceElement instanceof Element)) {
@@ -90,7 +97,7 @@ export class AudioManager {
     }
 
     if (!sourceElement.id) {
-      sourceElement.id = `__el${this.nextId_++}`;
+      sourceElement.id = `${PLAYABLE_ID_PREFIX}${this.nextId_++}`;
     }
 
     this.playables_[sourceElement.id] = playable;
@@ -98,32 +105,31 @@ export class AudioManager {
   }
 
   play(sourceElement) {
-    this.load(sourceElement)
-        .then(() => {
-          const playable = this.getPlayable_(sourceElement);
-          if (!playable || playable.isPlaying()) {
-            return;
-          }
+    this.load(sourceElement).then(() => {
+      const playable = this.getPlayable_(sourceElement);
+      if (!playable || playable.isPlaying()) {
+        return;
+      }
 
-          // Stop all siblings.
-          for (let el = sourceElement.parentElement.firstElementChild; el;
-              el = el.nextElementSibling) {
-            if (el === sourceElement) {
-              continue;
-            }
+      // Stop all siblings.
+      for (let el = sourceElement.parentElement.firstElementChild; el;
+          el = el.nextElementSibling) {
+        if (el === sourceElement) {
+          continue;
+        }
 
-            this.stop(el);
-          }
+        this.stop(el);
+      }
 
-          // Reduce the volume of ancestors.
-          for (let el = sourceElement.parentElement; el;
-              el = el.parentElement) {
-            this.setVolume(el, REDUCED_VOLUME);
-          }
+      // Reduce the volume of ancestors.
+      for (let el = sourceElement.parentElement; el;
+          el = el.parentElement) {
+        this.setVolume(el, REDUCED_VOLUME);
+      }
 
-          // Play the audio.
-          playable.play();
-        });
+      // Play the audio.
+      playable.play();
+    });
   }
 
   /**
