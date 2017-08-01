@@ -39,6 +39,7 @@ import {
   extractAmpAnalyticsConfig,
   addCsiSignalsToAmpAnalyticsConfig,
   QQID_HEADER,
+  maybeAppendErrorParameter,
 } from '../../../ads/google/a4a/utils';
 import {
   googleLifecycleReporterFactory,
@@ -67,6 +68,17 @@ const ADSENSE_BASE_URL = 'https://googleads.g.doubleclick.net/pagead/ads';
 
 /** @const {string} */
 const TAG = 'amp-ad-network-adsense-impl';
+
+/**
+ * See `VisibilityState` enum.
+ * @const {!Object<string, string>}
+ */
+const visibilityStateCodes = {
+  'visible': '1',
+  'hidden': '2',
+  'prerender': '3',
+  'unloaded': '5',
+};
 
 /**
  * Shared state for AdSense ad slots. This is used primarily for ad request url
@@ -205,6 +217,12 @@ export class AmpAdNetworkAdsenseImpl extends AmpA4A {
 
     return googleAdUrl(
         this, ADSENSE_BASE_URL, startTime, parameters, experimentIds);
+  }
+
+  /** @override */
+  onNetworkFailure(error, adUrl) {
+    dev().info(TAG, 'network error, attempt adding of error parameter', error);
+    return {adUrl: maybeAppendErrorParameter(adUrl, 'n')};
   }
 
   /** @override */
