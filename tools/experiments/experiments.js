@@ -239,17 +239,10 @@ const EXPERIMENTS = [
     name: 'Use slot width/height attribute for AdSense size format',
   },
   {
-    id: 'amp-form-verifiers',
-    name: 'Asynchronous form verifiers',
-    cleanupIssue: 'https://github.com/ampproject/amphtml/issues/9174',
-    spec: 'https://github.com/ampproject/amphtml/issues/8736',
-  },
-  {
-    id: 'amp-position-observer',
-    name: 'Amp extension for monitoring position of an element within viewport',
-    cleanupIssue: 'https://github.com/ampproject/amphtml/issues/10875',
-    spec: 'https://github.com/ampproject/amphtml/blob/master/extensions/' +
-      'amp-position-observer/amp-position-observer.md',
+    id: 'input-debounced',
+    name: 'A debounced input event for AMP actions',
+    cleanupIssue: 'https://github.com/ampproject/amphtml/issues/9413',
+    spec: 'https://github.com/ampproject/amphtml/issues/9277',
   },
   {
     id: 'inabox-position-api',
