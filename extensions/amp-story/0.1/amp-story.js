@@ -51,8 +51,8 @@ import {
 import {registerServiceBuilder} from '../../../src/service';
 import {urlReplacementsForDoc} from '../../../src/services';
 import {xhrFor} from '../../../src/services';
-import {isFiniteNumber, toArray} from '../../../src/types';
-
+import {isFiniteNumber} from '../../../src/types';
+import {AudioManager} from './audio';
 
 
 /** @private @const {number} */
@@ -116,6 +116,9 @@ export class AmpStory extends AMP.BaseElement {
 
     /** @const @private {!VariableService} */
     this.variableService_ = new VariableService();
+
+    /** @const @private {!AudioManager} */
+    this.audioManager_ = new AudioManager();
 
     /**
      * @private @const {
@@ -299,6 +302,9 @@ export class AmpStory extends AMP.BaseElement {
 
     // TODO(alanorozco): check if autoplay
     this.navigationState_.updateActivePage(pageIndex, page.id);
+
+    this.audioManager_.stop(activePage);
+    this.audioManager_.play(page);
 
     return this.mutateElement(() => {
       page.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
