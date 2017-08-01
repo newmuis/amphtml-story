@@ -147,7 +147,7 @@ export class AmpStory extends AMP.BaseElement {
       this.onKeyDown_(e);
     }, true);
 
-    toArray(this.getPages()).forEach(page => {
+    Array.prototype.forEach.call(this.getPages(), page => {
       this.setAsOwner(page);
     });
 
