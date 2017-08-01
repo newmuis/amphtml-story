@@ -1692,7 +1692,6 @@ describes.realWin('CustomElement Loading Indicator', {amp: true}, env => {
 
   it('should turn off when exits viewport', () => {
     stubInA4A(false);
-    element.isInViewport_ = true;
     const toggle = sandbox.spy(element, 'toggleLoading_');
     element.viewportCallback(false);
     expect(toggle).to.be.calledOnce;
