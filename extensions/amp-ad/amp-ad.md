@@ -79,7 +79,7 @@ Most ad networks require further configuration, which can be passed to the netwo
 
 ##### data-vars-foo-bar
 
-Attributes starting with `data-vars-` are reserved for [`amp-analytics` vars](https://github.com/ampproject/amphtml/blob/master/extensions/amp-analytics/analytics-vars.md#variables-as-data-attribute). 
+Attributes starting with `data-vars-` are reserved for [`amp-analytics` vars](https://github.com/ampproject/amphtml/blob/master/extensions/amp-analytics/analytics-vars.md#variables-as-data-attribute).
 
 ##### json (optional)
 
