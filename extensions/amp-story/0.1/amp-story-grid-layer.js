@@ -70,10 +70,17 @@ const TEMPLATE_CLASS_NAMES = {
 };
 
 export class AmpStoryGridLayer extends AMP.BaseElement {
+  /** @override */
   buildCallback() {
     this.applyTemplateClassName_();
     this.setOwnCssGridStyles_();
     this.setDescendentCssGridStyles_();
+  }
+
+
+  /** @override */
+  prerenderAllowed() {
+    return true;
   }
 
 
