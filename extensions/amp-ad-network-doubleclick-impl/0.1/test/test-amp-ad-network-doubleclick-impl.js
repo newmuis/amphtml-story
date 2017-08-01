@@ -1683,9 +1683,14 @@ describes.realWin('amp-ad-network-doubleclick-impl', realWinConfig, env => {
           impl.win.experimentBranches[CORRELATOR_CLEAR_EXP_NAME] === undefined);
     });
 
-    it('only registers one onViewabilityChange handler', () => {
+    it('set experiment for second block', () => {
+      forceExperimentBranch(impl.win, CORRELATOR_CLEAR_EXP_NAME,
+          CORRELATOR_CLEAR_EXP_BRANCHES.EXPERIMENT);
       impl.buildCallback();
       expect(onVisibilityChangedHandler).to.be.ok;
+      onVisibilityChangedHandler();
+      expect(isInExperiment(element, CORRELATOR_CLEAR_EXP_BRANCHES.EXPERIMENT))
+          .to.be.true;
       onVisibilityChangedHandler = null;
       const elem2 = createElementWithAttributes(doc, 'amp-ad', {
         type: 'doubleclick',
@@ -1695,6 +1700,8 @@ describes.realWin('amp-ad-network-doubleclick-impl', realWinConfig, env => {
       doc.body.appendChild(elem2);
       new AmpAdNetworkDoubleclickImpl(elem2).buildCallback();
       expect(onVisibilityChangedHandler).to.not.be.ok;
+      expect(isInExperiment(elem2, CORRELATOR_CLEAR_EXP_BRANCHES.EXPERIMENT))
+          .to.be.true;
     });
   });
 });
