@@ -60,7 +60,7 @@ describe.configure().skipSauceLabs().run('amp-bind', function() {
   }
 
   /** @return {!Promise} */
-  function waitForBindApplication() {
+  function waitForSetState() {
     // Bind should be available, but need to wait for actions to resolve
     // service promise for bind and call setState.
     return fixture.awaitEvent(BindEvents.SET_STATE, ++numSetStates);
@@ -123,7 +123,7 @@ describe.configure().skipSauceLabs().run('amp-bind', function() {
       submitButton.click();
 
       // The <amp-form> has on="submit-success:AMP.setState(...)".
-      return waitForBindApplication().then(() => {
+      return waitForSetState().then(() => {
         // References to XHR JSON data should work on submit-success.
         expect(xhrText.textContent).to.equal('John Miller');
         // Illegal bindings/values should not be applied to DOM.
@@ -177,11 +177,11 @@ describe.configure().skipSauceLabs().run('amp-bind', function() {
       expect(checkbox.hasAttribute('checked')).to.be.false;
       expect(checkbox.checked).to.be.true;
       button.click();
-      return waitForBindApplication().then(() => {
+      return waitForSetState().then(() => {
         expect(checkbox.hasAttribute('checked')).to.be.false;
         expect(checkbox.checked).to.be.false;
         button.click();
-        return waitForBindApplication();
+        return waitForSetState();
       }).then(() => {
         // When Bind checks the box back to true, it adds the checked attr.
         expect(checkbox.hasAttribute('checked')).to.be.true;
@@ -216,7 +216,7 @@ describe.configure().skipSauceLabs().run('amp-bind', function() {
           carousel.querySelector('div.amp-carousel-button-next');
       nextSlideButton.click();
 
-      return waitForBindApplication().then(() => {
+      return waitForSetState().then(() => {
         expect(slideNumber.textContent).to.equal('1');
       });
     });
@@ -234,7 +234,7 @@ describe.configure().skipSauceLabs().run('amp-bind', function() {
       const button = fixture.doc.getElementById('goToSlideOne');
       button.click();
 
-      return waitForBindApplication().then(() => {
+      return waitForSetState().then(() => {
         expect(secondSlide.getAttribute('aria-hidden')).to.be.equal('false');
         expect(firstSlide.getAttribute('aria-hidden')).to.equal('true');
       });
@@ -532,7 +532,7 @@ describe.configure().skipSauceLabs().run('amp-bind', function() {
 
   describe('with <amp-list>', () => {
     beforeEach(() => {
-      return setupWithFixture('test/fixtures/bind-list.html');
+      return setupWithFixture('test/fixtures/bind-list.html', 1);
     });
 
     it('should support binding to src', () => {
@@ -544,8 +544,7 @@ describe.configure().skipSauceLabs().run('amp-bind', function() {
       });
     });
 
-    // TODO(choumx): Fix this flaky test.
-    it.skip('should evaluate bindings in template', () => {
+    it('should evaluate bindings in template', () => {
       const list = fixture.doc.getElementById('list');
       return fixture.awaitEvent(AmpEvents.DOM_UPDATE, 1).then(() => {
         list.querySelectorAll('span.foobar').forEach(span => {
