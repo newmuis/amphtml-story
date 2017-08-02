@@ -38,11 +38,18 @@ import {
   PositionObserverFidelity,
   PositionInViewportEntryDef,
 } from './position-observer-impl';
+import {map} from '../utils/object';
 import {layoutRectLtwh, RelativePositions} from '../layout-rect';
+import {
+  EMPTY_METADATA,
+  parseSchemaImage,
+  parseOgImage,
+  parseFavicon,
+  setMediaSession,
+} from '../mediasession-helper';
 import {Animation} from '../animation';
 import * as st from '../style';
 import * as tr from '../transition';
-
 /**
  * @const {number} Percentage of the video that should be in viewport before it
  * is considered visible.
@@ -493,58 +500,6 @@ class VideoEntry {
     /** @private {number} */
     this.dockVisibleHeight_ = 0;
 
-    /** @private {?./position-observer/position-observer-worker.PositionInViewportEntryDef} */
-    this.dockLastPosition_ = null;
-
-    /** @private {boolean} */
-    this.dockPreviouslyInView_ = false;
-
-    // Dragging Variables
-
-    /** @private {boolean} */
-    this.dragListenerInstalled_ = false;
-
-    /** @private {boolean} */
-    this.isTouched_ = false;
-
-    /** @private {boolean} */
-    this.isDragging_ = false;
-
-    /** @private {boolean} */
-    this.userInteractedWithAutoPlay_ = false;
-
-    /** @private {boolean} */
-    this.playCalledByAutoplay_ = false;
-
-    /** @private {boolean} */
-    this.pauseCalledByAutoplay_ = false;
-
-    /** @private {?Element} */
-    this.internalElement_ = null;
-
-    /** @private {?Element} */
-    this.draggingMask_ = null;
-
-    /** @private {boolean} */
-    this.muted_ = false;
-
-    // Dockabled Video Variables
-
-    /** @private {Object} */
-    this.inlineVidRect_ = null;
-
-    /** @private {Object} */
-    this.minimizedRect_ = null;
-
-    /** @private {string} */
-    this.dockPosition_ = DockPositions.INLINE;
-
-    /** @private {string} */
-    this.dockState_ = DockStates.INLINE;
-
-    /** @private {number} */
-    this.dockVisibleHeight_ = 0;
-
     /** @private {?PositionInViewportEntryDef} */
     this.dockLastPosition_ = null;
 
@@ -592,10 +547,13 @@ class VideoEntry {
     this.hasFullscreenOnLandscape = fsOnLandscapeAttr == ''
                                     || fsOnLandscapeAttr == 'always';
 
+    // Media Session API Variables
+
+    /** @private {!../video-interface.VideoMetaDef} */
+    this.metadata_ = EMPTY_METADATA;
+
     listenOncePromise(element, VideoEvents.LOAD)
         .then(() => this.videoLoaded());
-
-
     listen(element, VideoEvents.PAUSE, () => this.videoPaused_());
     listen(element, VideoEvents.PLAYING, () => this.videoPlayed_());
     listen(element, VideoEvents.MUTED, () => this.muted_ = true);
@@ -625,6 +583,23 @@ class VideoEntry {
    */
   videoPlayed_() {
     this.isPlaying_ = true;
+
+    if (!this.video.preimplementsMediaSessionAPI()) {
+      const playHandler = () => {
+        this.video.play(/*isAutoplay*/ false);
+      };
+      const pauseHandler = () => {
+        this.video.pause();
+      };
+      // Update the media session
+      setMediaSession(
+          this.ampdoc_,
+          this.metadata_,
+          playHandler,
+          pauseHandler
+      );
+    }
+
     this.actionSessionManager_.beginSession();
     if (this.isVisible_) {
       this.visibilitySessionManager_.beginSession();
@@ -671,6 +646,8 @@ class VideoEntry {
       this.inlineVidRect_ = this.video.element./*OK*/getBoundingClientRect();
     });
 
+    this.fillMediaSessionMetadata_();
+
     this.updateVisibility();
     if (this.isVisible_) {
       // Handles the case when the video becomes visible before loading
@@ -688,18 +665,14 @@ class VideoEntry {
     }
 
     if (this.video.getMetadata()) {
-      this.metadata_ = map(
-          /** @type {!../mediasession-helper.MetadataDef} */
-          (this.video.getMetadata())
-      );
+      const mapped = map(this.video.getMetadata());
+      this.metadata_ = /** @type {!../video-interface.VideoMetaDef} */ (mapped);
     }
 
-    const doc = this.ampdoc_.win.document;
-
     if (!this.metadata_.artwork || this.metadata_.artwork.length == 0) {
-      const posterUrl = parseSchemaImage(doc)
-                        || parseOgImage(doc)
-                        || parseFavicon(doc);
+      const posterUrl = parseSchemaImage(this.ampdoc_)
+                        || parseOgImage(this.ampdoc_)
+                        || parseFavicon(this.ampdoc_);
 
       if (posterUrl) {
         this.metadata_.artwork = [{
@@ -713,7 +686,7 @@ class VideoEntry {
                     || this.video.element.getAttribute('aria-label')
                     || this.internalElement_.getAttribute('title')
                     || this.internalElement_.getAttribute('aria-label')
-                    || doc.title;
+                    || this.ampdoc_.win.document.title;
       if (title) {
         this.metadata_.title = title;
       }

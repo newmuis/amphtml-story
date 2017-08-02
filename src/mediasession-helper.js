@@ -15,21 +15,8 @@
  */
 
 import {tryParseJson} from './json';
-import {isProtocolValid} from './url';
-import {isObject, isArray} from './types';
-import {dev, user} from './log';
 
-/**
- * @typedef {{
- *   artwork: Array,
- *   title: string,
- *   album: string,
- *   artist: string,
- * }}
- */
-export let MetadataDef;
-
-/** @const {MetadataDef} Dummy metadata used to fix a bug */
+/** @const {./video-interface.VideoMetaDef} Dummy metadata used to fix a bug */
 export const EMPTY_METADATA = {
   'title': '',
   'artist': '',
@@ -41,23 +28,22 @@ export const EMPTY_METADATA = {
 
 /**
  * Updates the Media Session API's metadata
- * @param {!Window} win
- * @param {!MetadataDef} metadata
+ * @param {!./service/ampdoc-impl.AmpDoc} ampdoc
+ * @param {!./video-interface.VideoMetaDef} metadata
  * @param {function()=} playHandler
  * @param {function()=} pauseHandler
  */
-export function setMediaSession(win,
+export function setMediaSession(ampdoc,
                                 metadata,
                                 playHandler,
                                 pauseHandler) {
+  const win = ampdoc.win;
   const navigator = win.navigator;
   if ('mediaSession' in navigator && win.MediaMetadata) {
     // Clear mediaSession (required to fix a bug when switching between two
     // videos)
     navigator.mediaSession.metadata = new win.MediaMetadata(EMPTY_METADATA);
-
     // Add metadata
-    validateMetadata(metadata);
     navigator.mediaSession.metadata = new win.MediaMetadata(metadata);
 
     navigator.mediaSession.setActionHandler('play', playHandler);
@@ -71,10 +57,11 @@ export function setMediaSession(win,
 /**
  * Parses the schema.org json-ld formatted meta-data, looks for the page's
  * featured image and returns it
- * @param {!Document} doc
+ * @param {!./service/ampdoc-impl.AmpDoc} ampdoc
  * @return {string|undefined}
  */
-export function parseSchemaImage(doc) {
+export function parseSchemaImage(ampdoc) {
+  const doc = ampdoc.win.document;
   const schema = doc.querySelector('script[type="application/ld+json"]');
   if (!schema) {
     // No schema element found
@@ -107,10 +94,11 @@ export function parseSchemaImage(doc) {
 
 /**
  * Parses the og:image if it exists and returns it
- * @param {!Document} doc
+ * @param {!./service/ampdoc-impl.AmpDoc} ampdoc
  * @return {string|undefined}
  */
-export function parseOgImage(doc) {
+export function parseOgImage(ampdoc) {
+  const doc = ampdoc.win.document;
   const metaTag = doc.querySelector('meta[property="og:image"]');
   if (metaTag) {
     return metaTag.getAttribute('content');
@@ -121,10 +109,11 @@ export function parseOgImage(doc) {
 
 /**
  * Parses the website's Favicon and returns it
- * @param {!Document} doc
+ * @param {!./service/ampdoc-impl.AmpDoc} ampdoc
  * @return {string|undefined}
  */
-export function parseFavicon(doc) {
+export function parseFavicon(ampdoc) {
+  const doc = ampdoc.win.document;
   const linkTag = doc.querySelector('link[rel="shortcut icon"]')
                   || doc.querySelector('link[rel="icon"]');
   if (linkTag) {
@@ -133,19 +122,3 @@ export function parseFavicon(doc) {
     return;
   }
 }
-
-/**
- * @private
- */
-function validateMetadata(metadata) {
-  // Ensure src of artwork has valid protocol
-  if (metadata && metadata.artwork) {
-    dev().assert(isArray(metadata.artwork));
-    metadata.artwork.forEach(artwork => {
-      if (artwork) {
-        const src = isObject(artwork) ? artwork.src : artwork;
-        user().assert(isProtocolValid(src));
-      }
-    });
-  }
-};
