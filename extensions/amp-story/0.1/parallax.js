@@ -22,7 +22,7 @@ import {Animation} from '../../../src/animation';
 import {viewportForDoc, vsyncFor} from '../../../src/services';
 import * as tr from '../../../src/transition';
 
-const SMOOTHING_PTS = 10;
+const SMOOTHING_PTS = 6;
 const PERSPECTIVE = 100;
 
 /**
@@ -152,19 +152,24 @@ export class ParallaxService {
     }
 
     let mappedX = avgX - this.middleX_;
+    console.log('mappedY(' + (avgY - this.middleY_) + ') = avgY (' + avgY + ') - this.middleY_ (' + this.middleY_ + ')');
     let mappedY = avgY - this.middleY_;
 
-    // Narrow down and limit the range for a smoother/less shaky effect
-    mappedX = mapRange(gamma, -45, 45, -30, 30);
-    mappedY = mapRange(beta, -45, 45, -30, 30);
 
-    if (this.middleY_ != 0 && this.middleX_ != 0) {
-      elements.forEach(element => {
-        if (element.shouldUpdate(viewport)) {
+    // Limit the range for a smoother/less shaky effect
+    mappedX = mapRange(mappedX, -45, 45, -25, 25);
+    mappedY = mapRange(mappedY, -45, 45, -25, 25);
+
+
+    elements.forEach(element => {
+      if (element.shouldUpdate(viewport)) {
+        if (this.middleY_ != 0 && this.middleX_ != 0) {
           element.update(mappedX, mappedY);
+        } else {
+          element.update(0, 0);
         }
-      });
-    }
+      }
+    });
   }
 }
 
