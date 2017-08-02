@@ -116,7 +116,6 @@ declareExtension('amp-springboard-player', '0.1', false);
 declareExtension('amp-sticky-ad', '1.0', true);
 declareExtension('amp-selector', '0.1', true);
 declareExtension('amp-web-push', '0.1', true);
-declareExtension('amp-position-observer', '0.1', false);
 
 /**
  * @deprecated `amp-slides` is deprecated and will be deleted before 1.0.
@@ -612,6 +611,7 @@ function dist() {
       buildExtensions({minify: true, preventRemoveAndMakeDir: true}),
       buildExperiments({minify: true, watch: false, preventRemoveAndMakeDir: true}),
       buildLoginDone({minify: true, watch: false, preventRemoveAndMakeDir: true}),
+      buildWebPushPublisherFiles({minify: true, watch: false, preventRemoveAndMakeDir: true}),
       copyCss(),
     ]);
   }).then(() => {
@@ -1256,3 +1256,4 @@ gulp.task('watch', 'Watches for changes in files, re-build', watch, {
 });
 gulp.task('build-experiments', 'Builds experiments.html/js', buildExperiments);
 gulp.task('build-login-done', 'Builds login-done.html/js', buildLoginDone);
+

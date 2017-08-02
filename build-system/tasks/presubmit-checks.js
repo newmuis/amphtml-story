@@ -669,7 +669,7 @@ var forbiddenTermsSrcInclusive = {
   },
   'decodeURIComponent\\(': {
     message: 'decodeURIComponent throws for malformed URL components. Please ' +
-        'use tryDecodeUriComponent from src/url.js',
+    'use tryDecodeUriComponent from src/url.js',
     whitelist: [
       '3p/integration.js',
       'dist.3p/current/integration.js',
@@ -755,6 +755,7 @@ var forbiddenTermsSrcInclusive = {
       'extensions/amp-ad/0.1/amp-ad-xorigin-iframe-handler.js',
       'extensions/amp-image-lightbox/0.1/amp-image-lightbox.js',
       'extensions/amp-analytics/0.1/transport.js',
+      'extensions/amp-web-push/0.1/iframehost.js',
       'dist.3p/current/integration.js',
     ],
   },
