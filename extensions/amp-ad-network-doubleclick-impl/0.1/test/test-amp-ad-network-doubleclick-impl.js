@@ -37,7 +37,6 @@ import {
   constructSRABlockParameters,
   TFCD,
   resetSraStateForTesting,
-  resetRtcStateForTesting,
   CORRELATOR_CLEAR_EXP_BRANCHES,
   CORRELATOR_CLEAR_EXP_NAME,
 } from '../amp-ad-network-doubleclick-impl';
@@ -313,6 +312,67 @@ describes.realWin('amp-ad-network-doubleclick-impl', realWinConfig, env => {
       // Exact format of amp-analytics element covered in
       // test/functional/test-analytics.js.
       // Just ensure extensions is loaded, and analytics element appended.
+    });
+  });
+
+  describe('centering', () => {
+    const size = {width: '300px', height: '150px'};
+
+    function verifyCss(iframe, expectedSize) {
+      expect(iframe).to.be.ok;
+      const style = window.getComputedStyle(iframe);
+      expect(style.top).to.equal('50%');
+      expect(style.left).to.equal('50%');
+      expect(style.width).to.equal(expectedSize.width);
+      expect(style.height).to.equal(expectedSize.height);
+      // We don't know the exact values by which the frame will be translated,
+      // as this can vary depending on whether we use the height/width
+      // attributes, or the actual size of the frame. To make this less of a
+      // hassle, we'll just match against regexp.
+      expect(style.transform).to.match(new RegExp(
+          'matrix\\(1, 0, 0, 1, -[0-9]+, -[0-9]+\\)'));
+    }
+
+    afterEach(() => document.body.removeChild(impl.element));
+
+    it('centers iframe in slot when height && width', () => {
+      return createImplTag({
+        width: '300',
+        height: '150',
+      }).then(() => {
+        expect(impl.element.getAttribute('width')).to.equal('300');
+        expect(impl.element.getAttribute('height')).to.equal('150');
+        verifyCss(impl.iframe, size);
+      });
+    });
+    it('centers iframe in slot when !height && !width', () => {
+      return createImplTag({
+        layout: 'fixed',
+      }).then(() => {
+        expect(impl.element.getAttribute('width')).to.be.null;
+        expect(impl.element.getAttribute('height')).to.be.null;
+        verifyCss(impl.iframe, size);
+      });
+    });
+    it('centers iframe in slot when !height && width', () => {
+      return createImplTag({
+        width: '300',
+        layout: 'fixed',
+      }).then(() => {
+        expect(impl.element.getAttribute('width')).to.equal('300');
+        expect(impl.element.getAttribute('height')).to.be.null;
+        verifyCss(impl.iframe, size);
+      });
+    });
+    it('centers iframe in slot when height && !width', () => {
+      return createImplTag({
+        height: '150',
+        layout: 'fixed',
+      }).then(() => {
+        expect(impl.element.getAttribute('width')).to.be.null;
+        expect(impl.element.getAttribute('height')).to.equal('150');
+        verifyCss(impl.iframe, size);
+      });
     });
   });
 
@@ -626,8 +686,6 @@ describes.realWin('amp-ad-network-doubleclick-impl', realWinConfig, env => {
       });
     });
   });
-
-
 
   describe('#unlayoutCallback', () => {
     it('should call #resetSlot, remove child iframe, but keep other children',
@@ -1131,322 +1189,6 @@ describes.realWin('amp-ad-network-doubleclick-impl', realWinConfig, env => {
 
     it('should return false if not in experiment', () => {
       expect(impl.delayAdRequestEnabled()).to.be.false;
-    });
-  });
-
-  describe('#RTC', () => {
-    let impl;
-    let xhrMock;
-
-    function mockRtcExecution(rtcResponse, element, opt_textFunction) {
-      impl = new AmpAdNetworkDoubleclickImpl(element);
-      let textFunction = () => {
-        return Promise.resolve(JSON.stringify(rtcResponse));
-      };
-      textFunction = opt_textFunction || textFunction;
-      xhrMock.returns(
-          Promise.resolve({
-            redirected: false,
-            status: 200,
-            text: textFunction,
-          })
-      );
-      impl.populateAdUrlState();
-      return impl.executeRtc_();
-    }
-
-    function setRtcConfig(rtcConfigJson) {
-      const rtcConf = document.getElementById('amp-rtc');
-      rtcConf.innerText = JSON.stringify(rtcConfigJson);
-    }
-
-    beforeEach(() => {
-      resetRtcStateForTesting();
-      return createIframePromise().then(fixture => {
-        setupForAdTesting(fixture);
-        element = createElementWithAttributes(document, 'amp-ad', {
-          'width': '200',
-          'height': '50',
-          'type': 'doubleclick',
-          'layout': 'fixed',
-        });
-        const rtcConf = createElementWithAttributes(
-            document, 'script',
-            {type: 'application/json', id: 'amp-rtc'});
-        rtcConf.innerHTML = JSON.stringify({
-          endpoint: 'https://example-publisher.com/rtc/',
-        });
-        document.head.appendChild(rtcConf);
-        xhrMock = sandbox.stub(Xhr.prototype, 'fetchJson');
-
-      });
-    });
-
-    afterEach(() => {
-      impl = null;
-      xhrMock = null;
-      resetRtcStateForTesting();
-      const rtcConf = document.getElementById('amp-rtc');
-      document.head.removeChild(rtcConf);
-    });
-
-    it('should add just targeting to impl', () => {
-      const targeting = {'sport': 'baseball'};
-      const jsonTargeting = {
-        targeting,
-      };
-      return mockRtcExecution({
-        targeting,
-      }, element).then(() => {
-        expect(impl.jsonTargeting_).to.deep.equal(jsonTargeting);
-      });
-    });
-
-    it('should add just categoryExclusions to impl', () => {
-      const categoryExclusions = {'sport': 'baseball'};
-      const jsonTargeting = {
-        categoryExclusions,
-      };
-      return mockRtcExecution({
-        categoryExclusions,
-      }, element).then(() => {
-        expect(impl.jsonTargeting_).to.deep.equal(jsonTargeting);
-      });
-    });
-
-    it('should add targeting and categoryExclusions to impl', () => {
-      const targeting = {'sport': 'baseball'};
-      const categoryExclusions = {'age': '18-25'};
-      const jsonTargeting = {
-        targeting,
-        categoryExclusions,
-      };
-      return mockRtcExecution({
-        targeting,
-        categoryExclusions,
-      }, element).then(() => {
-        expect(impl.jsonTargeting_).to.deep.equal(jsonTargeting);
-      });
-    });
-
-    it('should deep merge targeting and categoryExclusions from amp-ad', () => {
-      const rtcResponse = {
-        targeting: {'food': {
-          'kids': ['chicken fingers', 'pizza']},
-          'sports': 'baseball'},
-        categoryExclusions: {'age': '18-25'}};
-      const contextualTargeting =
-      '{"targeting": {"food": {"kids": "fries", "adults": "cheese"}}}';
-      const jsonTargeting = {
-        targeting: {
-          'food': {
-            'kids': ['chicken fingers', 'pizza'],
-            'adults': 'cheese',
-          },
-          'sports': 'baseball'},
-        categoryExclusions: {'age': '18-25'}};
-      element = createElementWithAttributes(document, 'amp-ad', {
-        'width': '200',
-        'height': '50',
-        'type': 'doubleclick',
-        'layout': 'fixed',
-        'json': contextualTargeting,
-      });
-      return mockRtcExecution(rtcResponse, element).then(() => {
-        expect(impl.jsonTargeting_).to.deep.equal(jsonTargeting);
-      });
-    });
-
-    it('should send two RTC callouts per page with SWR', () => {
-      const rtcResponse = {
-        targeting: {'food': {
-          'kids': ['chicken fingers', 'pizza']},
-          'sports': 'baseball'},
-        categoryExclusions: {'age': '18-25'}};
-      let contextualTargeting =
-      '{"targeting": {"food": {"kids": "fries", "adults": "cheese"}}}';
-      element = createElementWithAttributes(document, 'amp-ad', {
-        'width': '200',
-        'height': '50',
-        'type': 'doubleclick',
-        'layout': 'fixed',
-        'json': contextualTargeting,
-      });
-      mockRtcExecution(rtcResponse, element);
-
-      contextualTargeting =
-      '{"targeting": {"food": {"adults": "wine"}}}';
-      const secondElement = createElementWithAttributes(
-          document, 'amp-ad', {
-            'width': '200',
-            'height': '50',
-            'type': 'doubleclick',
-            'layout': 'fixed',
-            'json': contextualTargeting,
-          });
-      return mockRtcExecution(rtcResponse, secondElement).then(() => {
-        expect(xhrMock).to.be.calledTwice;
-      });
-    });
-
-    it('should send one RTC callout per page with SWR disabled', () => {
-      setRtcConfig({
-        'endpoint': 'https://example-publisher.com/rtc/',
-        'disableStaleWhileRevalidate': true,
-      });
-      const rtcResponse = {
-        targeting: {'food': {
-          'kids': ['chicken fingers', 'pizza']},
-          'sports': 'baseball'},
-        categoryExclusions: {'age': '18-25'}};
-      let contextualTargeting =
-      '{"targeting": {"food": {"kids": "fries", "adults": "cheese"}}}';
-      element = createElementWithAttributes(document, 'amp-ad', {
-        'width': '200',
-        'height': '50',
-        'type': 'doubleclick',
-        'layout': 'fixed',
-        'json': contextualTargeting,
-      });
-      mockRtcExecution(rtcResponse, element);
-
-      contextualTargeting =
-      '{"targeting": {"food": {"adults": "wine"}}}';
-      const secondElement = createElementWithAttributes(
-          document, 'amp-ad', {
-            'width': '200',
-            'height': '50',
-            'type': 'doubleclick',
-            'layout': 'fixed',
-            'json': contextualTargeting,
-          });
-      return mockRtcExecution(rtcResponse, secondElement).then(() => {
-        expect(xhrMock).to.be.calledOnce;
-      });
-    });
-
-    it('should not send RTC if url invalid', () => {
-      const rtcConf = document.getElementById('amp-rtc');
-      rtcConf.innerText = '{'
-          + '"endpoint": "http://example-publisher.com/rtc/",'
-          + '"sendAdRequestOnFailure": false'
-          + '}';
-
-      const targeting = {'sport': 'baseball'};
-      return mockRtcExecution({
-        targeting,
-      }, element).then(() => {
-        expect(xhrMock).to.not.be.called;
-      });
-    });
-
-    it('should resolve on empty RTC response', () => {
-      return mockRtcExecution('', element).then(() => {
-        // All that we are expecting here is that a Promise.reject doesn't
-        // bubble up
-      }).catch(() => {
-        expect(false).to.be.true;
-      });
-    });
-
-    it('should resolve on RTC failure if specified', () => {
-      const badRtcResponse = 'wrong: "unparseable}';
-      const jsonFunc = () => {
-        return Promise.resolve(JSON.parse(badRtcResponse));
-      };
-      return mockRtcExecution(badRtcResponse, element, jsonFunc).then(() => {
-        // All that we are expecting here is that a Promise.reject doesn't
-        // bubble up
-      }).catch(() => {
-        expect(false).to.be.true;
-      });
-    });
-
-    it('should reject on RTC failure if specified', () => {
-      setRtcConfig({
-        'endpoint': 'https://example-publisher.com/rtc/',
-        'sendAdRequestOnFailure': false,
-      });
-      const badRtcResponse = 'wrong: "unparseable}';
-      const jsonFunc = () => {
-        return Promise.resolve(JSON.parse(badRtcResponse));
-      };
-      return mockRtcExecution(badRtcResponse, element, jsonFunc).then(() => {
-        expect(false).to.be.true;
-      }).catch(err => {
-        expect(err.match(/Unexpected token/)).to.be.ok;
-      });
-    });
-
-    it('should bypass caching if specified', () => {
-      setRtcConfig({
-        'endpoint': 'https://example-publisher.com/rtc/',
-        'sendAdRequestOnFailure': true,
-        'disableStaleWhileRevalidate': true,
-      });
-
-      const targeting = {'sport': 'baseball'};
-      return mockRtcExecution({targeting}, element).then(() => {
-        expect(xhrMock).to.be.calledOnce;
-      });
-    });
-
-    it('should timeout slow response, then do not send without RTC', () => {
-      setRtcConfig({
-        'endpoint': 'https://example-publisher.com/rtc/',
-        'sendAdRequestOnFailure': false,
-      });
-      const targeting = {'sport': 'baseball'};
-      impl = new AmpAdNetworkDoubleclickImpl(element);
-
-      xhrMock.returns(
-          Services.timerFor(window).promise(1200).then(() => {
-            return Promise.resolve({
-              redirected: false,
-              status: 200,
-              json: () => {
-                return Promise.resolve({targeting});
-              },
-            });
-          }));
-      impl.populateAdUrlState();
-      return impl.executeRtc_().then(() => {
-        // this then block should never run.
-        expect(true).to.be.false;
-      }).catch(err => {
-        // Have to get substring, because the error message has
-        // three 0 width blank space characters added to it
-        // automatically by the log constructor.
-        expect(err.substring(0, 7)).to.equal('timeout');
-      });
-    });
-
-    it('should timeout slow response, then send without RTC', () => {
-      setRtcConfig({
-        'endpoint': 'https://example-publisher.com/rtc/',
-      });
-      const targeting = {'sport': 'baseball'};
-
-      impl = new AmpAdNetworkDoubleclickImpl(element);
-
-      xhrMock.returns(
-          Services.timerFor(window).promise(1200).then(() => {
-            return Promise.resolve({
-              redirected: false,
-              status: 200,
-              json: () => {
-                return Promise.resolve({targeting});
-              },
-            });
-          }));
-      impl.populateAdUrlState();
-      return impl.executeRtc_().then(result => {
-        expect(result.artc).to.equal(-1);
-        expect(result.ati).to.equal(3);
-      }).catch(() => {
-        // Should not error.
-        expect(true).to.be.false;
-      });
     });
   });
 
