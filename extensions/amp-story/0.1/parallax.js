@@ -16,12 +16,13 @@
 
 import {setStyles} from '../../../src/style';
 import {toArray} from '../../../src/types';
+import {listen} from '../../../src/event-helper';
 import {mapRange, logRange, sum} from '../../../src/utils/math'
 import {Animation} from '../../../src/animation';
+import {viewportForDoc, vsyncFor} from '../../../src/services';
 import * as tr from '../../../src/transition';
 
 const SMOOTHING_PTS = 10;
-const ANGLE_RANGE = 20;
 const PERSPECTIVE = 100;
 
 /**
@@ -34,6 +35,12 @@ export class ParallaxService {
   */
   constructor(global, pages) {
     const doc = global.document;
+    const viewport = viewportForDoc(doc);
+
+    /** @private {!Window} */
+    this.win_ = global;
+
+    /** @private {Array} */
     this.parallaxElements_ = [];
 
     /** @private {?number} */
@@ -58,7 +65,7 @@ export class ParallaxService {
         }
       );
       // Loop through the layers in the page and assign a z-index following
-      // DOM order
+      // DOM order (manual override will be added in the future)
       let zIndex = 1;
       const layers = this.getLayers(page);
       layers.map(layer => {
@@ -88,20 +95,47 @@ export class ParallaxService {
   }
 
   /**
-   * Update each [amp-fx-parallax] element with the new scroll position.
-   * Notify any listeners.
+   * Calculate the smoothed change in position using the device orientation
+   * change event then update each of the layers will its calculated position.
    * @param {Event} event
    * @param {!Array<!ParallaxElement>} elements
    * @param {!./viewport-impl.Viewport} viewport
    * @private
    */
   parallaxOrientationMutate_(event, elements, viewport) {
+    const window = this.win_;
+    const screen = window.screen;
+    let gamma = event.gamma;
+    let beta = event.beta;
+    let angle;
+
+    // Detect the implementation of orientation angle
+    if ('orientation' in screen)
+    {
+      angle = screen.orientation.angle;
+    } else {
+      angle = window.orientation;
+    }
+
+    // Reverse gamma/beta if the device is in landscape
+    if(window.orientation == 90 || window.orientation == -90) {
+      const tmp = gamma;
+      gamma = beta;
+      beta = tmp;
+    }
+
+    // Flip signs of the angles if the phone is in 'reverse landscape' or
+    // 'reverse portrait'
+    if (angle < 0) {
+      gamma = -gamma;
+      beta = -beta;
+    }
 
     // Smooth the gamma value (X-AXIS)
     if (this.smoothingPointsX_.length > SMOOTHING_PTS) {
       this.smoothingPointsX_.shift();
     }
-    this.smoothingPointsX_.push(event.gamma);
+    this.smoothingPointsX_.push(gamma);
     const avgX = sum(this.smoothingPointsX_) / SMOOTHING_PTS;
     if (this.smoothingPointsX_.length > SMOOTHING_PTS && this.middleX_ == 0) {
       this.middleX_ = avgX;
@@ -111,16 +145,18 @@ export class ParallaxService {
     if (this.smoothingPointsY_.length > SMOOTHING_PTS) {
       this.smoothingPointsY_.shift();
     }
-    this.smoothingPointsY_.push(event.beta);
+    this.smoothingPointsY_.push(beta);
     const avgY = sum(this.smoothingPointsY_) / SMOOTHING_PTS;
     if (this.smoothingPointsY_.length > SMOOTHING_PTS && this.middleY_ == 0) {
       this.middleY_ = avgY;
     }
 
-    const rangeMin = this.middleX_ - ANGLE_RANGE;
-    const rangeMax = this.middleX_ + ANGLE_RANGE;
-    const mappedX = mapRange(avgX, rangeMin, rangeMax, -10, 10);
-    const mappedY = mapRange(avgY, rangeMin, rangeMax, -10, 10);
+    let mappedX = avgX - this.middleX_;
+    let mappedY = avgY - this.middleY_;
+
+    // Narrow down and limit the range for a smoother/less shaky effect
+    mappedX = mapRange(gamma, -45, 45, -30, 30);
+    mappedY = mapRange(beta, -45, 45, -30, 30);
 
     if (this.middleY_ != 0 && this.middleX_ != 0) {
       elements.forEach(element => {
@@ -129,13 +165,6 @@ export class ParallaxService {
         }
       });
     }
-  }
-
-
-  animateLeave(page) {
-    this.parallaxElements_.forEach(layer => {
-      layer.animateLeave();
-    });
   }
 }
 
@@ -173,14 +202,16 @@ export class ParallaxElement {
 
 
   /**
-   * Apply the parallax effect to the offset given how much the page
-   * has moved since the last frame.
+   * Apply the parallax effect to the element given the movements in the
+   * x and y axes
    * @param {number} x The movement of the layer in the x axis
    * @param {number} y The movement of the layer in the y axis
    */
   update(x = 0, y = 0) {
-    this.offsetX_ = logRange(this.scaleFactor_, this.total_, x * this.factor_);
-    this.offsetY_ = logRange(this.scaleFactor_, this.total_, y * this.factor_);
+    // We use a log scale to make elements that are closer to the user (high
+    // z-index) move faster than elements in the background.
+    this.offsetX_ = logRange(this.factor_, this.total_, x);
+    this.offsetY_ = logRange(this.factor_, this.total_, y);
 
     const translateZ = `translateZ(${this.offsetZ_.toFixed(2)}px) `;
     const scale = `scale(${this.scaleFactor_}) `;
@@ -214,27 +245,6 @@ export class ParallaxElement {
    */
   isRectInView_(rect, viewportHeight) {
     return rect.bottom >= 0 && rect.top <= viewportHeight;
-  }
-
-  animateLeave() {
-    Animation.animate(this.element_,
-    tr.setStyles(this.element_, {
-      transform: tr.concat([
-        tr.translateZ(tr.numeric(this.offsetZ_.toFixed(2), this.offsetZ_.toFixed(2))),
-        tr.scale(tr.numeric(this.scaleFactor_, this.scaleFactor_)),
-        tr.translateX(tr.numeric(0, -200))
-      ]),
-    }),
-    2000, 'ease-out').thenAlways(() => {
-
-    });
-    console.log({
-      transform: tr.concat([
-        tr.translateZ(tr.numeric(this.offsetZ_.toFixed(2), this.offsetZ_.toFixed(2))),
-        tr.scale(tr.numeric(this.scaleFactor_, this.scaleFactor_)),
-        tr.translateX(tr.numeric(0, -200))
-      ]),
-    });
   }
 }
 
