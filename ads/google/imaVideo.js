@@ -332,6 +332,9 @@ export function imaVideo(global, data) {
       videoPlayer.appendChild(htmlToElement(child));
     });
   }
+  if (data.imaSettings) {
+    imaSettings = tryParseJson(data.imaSettings);
+  }
 
   contentDiv.appendChild(videoPlayer);
   wrapperDiv.appendChild(contentDiv);
