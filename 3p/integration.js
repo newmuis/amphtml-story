@@ -198,6 +198,7 @@ const AMP_EMBED_ALLOWED = {
   _ping_: true,
   bringhub: true,
   dable: true,
+  engageya: true,
   'mantis-recommend': true,
   mywidget: true,
   outbrain: true,
