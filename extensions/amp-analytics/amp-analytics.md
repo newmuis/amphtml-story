@@ -117,7 +117,7 @@ For some common tracking use cases (e.g., page views, page clicks, scrolling, et
 
 ## Specifying configuration data
 
-In the `<amp-analytics>` element, you specify a JSON configuration object that contains the details for what to measure and where to send the analytics data.
+In the `<amp-analytics>` element, you specify a JSON configuration object that contains the details for what to measure and where to send the analytics data. 
 
 The configuration object for `<amp-analytics>` uses the following format:
 
@@ -159,7 +159,7 @@ be merged together such that:
 2.  Inline configuration takes precedence over vendor configuration.
 
 
-#### Loading remote configuration
+#### Loading remote configuration 
 
 To load a remote configuration, in the `<amp-analytics>` element, specify the `config` attribute and the URL for the configuration data. The URL specified should use the HTTPS scheme. The URL may include [AMP URL vars](../../spec/amp-var-substitutions.md). To access cookies, see the [`data-credentials`](#data-credentials) attribute. The response must follow the [AMP CORS security guidelines](../../spec/amp-cors-requests.md).
 
@@ -495,11 +495,6 @@ The above configuration translates to:
 AMP Access system issues numerous events for different states in the access flow. For details on access triggers (`"on": "access-*"`), see [AMP Access and Analytics](../amp-access/amp-access-analytics.md).
 
 
-#### Video analytics triggers
-
-Video analytics provides several triggers (`"on": "video-*"`) that publishers can use to track different events occurring during a video's lifecycle. More details are available in [AMP Video Analytics](./amp-video-analytics.md).
-
-
 #### Transport
 
 The `transport` configuration object specifies how to send a request. The value is an object with fields that
@@ -557,6 +552,3 @@ If set to `include`, this turns on the ability to read and write cookies on the 
 **data-consent-notification-id**
 
 If provided, the page will not process analytics requests until an [amp-user-notification](../../extensions/amp-user-notification/amp-user-notification.md) with the given HTML element id is confirmed (accepted) by the user. This is an optional attribute.
-
-
-See [amp-analytics rules](https://github.com/ampproject/amphtml/blob/master/extensions/amp-analytics/validator-amp-analytics.protoascii) in the AMP validator specification.
