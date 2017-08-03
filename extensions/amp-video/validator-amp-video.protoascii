@@ -37,7 +37,6 @@ tags: {  # <amp-video>
   attrs: { name: "album" }
   attrs: { name: "alt" }
   attrs: { name: "artist" }
-  attrs: { name: "artwork" }
   attrs: { name: "attribution" }
   attrs: {
     name: "autoplay"
@@ -58,7 +57,6 @@ tags: {  # <amp-video>
   }
   attrs: { name: "placeholder" }
   attrs: { name: "poster" }
-  attrs: { name: "crossorigin" }
   attrs: {
     name: "preload"
     value_regex: "(none|metadata|auto|)"
@@ -75,10 +73,10 @@ tags: {  # <amp-video>
   attrs: { name: "[album]" }
   attrs: { name: "[alt]" }
   attrs: { name: "[artist]" }
-  attrs: { name: "[artwork]" }
   attrs: { name: "[attribution]" }
   attrs: { name: "[controls]" }
   attrs: { name: "[loop]" }
+  attrs: { name: "[title]" }
   attrs: { name: "[poster]" }
   attrs: { name: "[preload]" }
   attrs: { name: "[src]" }
