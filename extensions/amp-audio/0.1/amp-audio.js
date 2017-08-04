@@ -26,9 +26,6 @@ import {
   setMediaSession,
 } from '../../../src/mediasession-helper';
 
-const TAG = 'amp-audio';
-
-
 /**
  * Visible for testing only.
  */
@@ -87,7 +84,7 @@ export class AmpAudio extends AMP.BaseElement {
                   || this.element.getAttribute('aria-label')
                   || doc.title;
     const album = this.element.getAttribute('album');
-    const artwork = this.element.getAttribute('artwork')
+    const poster = this.element.getAttribute('poster')
                    || parseSchemaImage(doc)
                    || parseOgImage(doc)
                    || parseFavicon(doc);
@@ -96,7 +93,7 @@ export class AmpAudio extends AMP.BaseElement {
       'artist': artist || '',
       'album': album || '',
       'artwork': [
-        {'src': artwork || ''},
+        {'src': poster || ''},
       ],
     };
 
