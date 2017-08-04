@@ -717,15 +717,39 @@ describes.realWin('amp-ima-video', {
   });
 
   it('updates UI', () => {
-    const div = doc.createElement('div');
-    div.setAttribute('id', 'c');
-    doc.body.appendChild(div);
+    return createIframePromise().then(iframe => {
+      const div = document.createElement('div');
+      div.setAttribute('id', 'c');
+      iframe.doc.body.appendChild(div);
 
-    imaVideoObj.imaVideo(win, {
-      width: 640,
-      height: 360,
-      src: srcUrl,
-      tag: adTagUrl,
+      imaVideoObj.imaVideo(iframe.win, {
+        width: 640,
+        height: 360,
+        src: srcUrl,
+        tag: adTagUrl,
+      });
+
+      imaVideoObj.updateUi(0, 60);
+      expect(imaVideoObj.getPropertiesForTesting().timeNode.textContent)
+          .to.eql('0:00 / 1:00');
+      expect(imaVideoObj.getPropertiesForTesting().progressLine.style.width)
+          .to.eql('0%');
+      expect(imaVideoObj.getPropertiesForTesting().progressMarkerDiv.style.left)
+          .to.eql('-1%');
+      imaVideoObj.updateUi(30, 60);
+      expect(imaVideoObj.getPropertiesForTesting().timeNode.textContent)
+          .to.eql('0:30 / 1:00');
+      expect(imaVideoObj.getPropertiesForTesting().progressLine.style.width)
+          .to.eql('50%');
+      expect(imaVideoObj.getPropertiesForTesting().progressMarkerDiv.style.left)
+          .to.eql('49%');
+      imaVideoObj.updateUi(60, 60);
+      expect(imaVideoObj.getPropertiesForTesting().timeNode.textContent)
+          .to.eql('1:00 / 1:00');
+      expect(imaVideoObj.getPropertiesForTesting().progressLine.style.width)
+          .to.eql('100%');
+      expect(imaVideoObj.getPropertiesForTesting().progressMarkerDiv.style.left)
+          .to.eql('99%');
     });
 
     imaVideoObj.updateUi(0, 60);
@@ -752,15 +776,32 @@ describes.realWin('amp-ima-video', {
   });
 
   it('formats time', () => {
-    const div = doc.createElement('div');
-    div.setAttribute('id', 'c');
-    doc.body.appendChild(div);
+    return createIframePromise().then(iframe => {
+      const div = document.createElement('div');
+      div.setAttribute('id', 'c');
+      iframe.doc.body.appendChild(div);
 
-    imaVideoObj.imaVideo(win, {
-      width: 640,
-      height: 360,
-      src: srcUrl,
-      tag: adTagUrl,
+      imaVideoObj.imaVideo(iframe.win, {
+        width: 640,
+        height: 360,
+        src: srcUrl,
+        tag: adTagUrl,
+      });
+
+      let formattedTime = imaVideoObj.formatTime(0);
+      expect(formattedTime).to.eql('0:00');
+      formattedTime = imaVideoObj.formatTime(55);
+      expect(formattedTime).to.eql('0:55');
+      formattedTime = imaVideoObj.formatTime(60);
+      expect(formattedTime).to.eql('1:00');
+      formattedTime = imaVideoObj.formatTime(65);
+      expect(formattedTime).to.eql('1:05');
+      formattedTime = imaVideoObj.formatTime(3600);
+      expect(formattedTime).to.eql('1:00:00');
+      formattedTime = imaVideoObj.formatTime(3605);
+      expect(formattedTime).to.eql('1:00:05');
+      formattedTime = imaVideoObj.formatTime(3665);
+      expect(formattedTime).to.eql('1:01:05');
     });
 
     let formattedTime = imaVideoObj.formatTime(0);
@@ -866,11 +907,6 @@ describes.realWin('amp-ima-video', {
           imaVideoObj.getPropertiesForTesting().PlayerStates.PLAYING);
       // TODO - Why doesn't this work?
       //expect(showControlsSpy).to.have.been.called;
-      expect(
-          imaVideoObj.getPropertiesForTesting().playPauseDiv.style.lineHeight)
-          .to.eql('1.4em');
-      expect(imaVideoObj.getPropertiesForTesting().playPauseNode.textContent)
-          .to.eql(imaVideoObj.getPropertiesForTesting().pauseChars);
       expect(playSpy).to.have.been.called;
     });
     const videoMock = {};
@@ -916,11 +952,6 @@ describes.realWin('amp-ima-video', {
           imaVideoObj.getPropertiesForTesting().PlayerStates.PAUSED);
       // TODO - Why doesn't this work?
       //expect(showControlsSpy).to.have.been.called;
-      expect(imaVideoObj.getPropertiesForTesting().playPauseNode.textContent)
-          .to.eql(imaVideoObj.getPropertiesForTesting().playChar);
-      expect(
-          imaVideoObj.getPropertiesForTesting().playPauseDiv.style.lineHeight)
-          .to.eql('');
     });
     const videoMock = {};
     videoMock.pause = function() {};
@@ -969,11 +1000,6 @@ describes.realWin('amp-ima-video', {
           imaVideoObj.getPropertiesForTesting().PlayerStates.PAUSED);
       // TODO - Why doesn't this work?
       //expect(showControlsSpy).to.have.been.called;
-      expect(imaVideoObj.getPropertiesForTesting().playPauseNode.textContent)
-          .to.eql(imaVideoObj.getPropertiesForTesting().playChar);
-      expect(
-          imaVideoObj.getPropertiesForTesting().playPauseDiv.style.lineHeight)
-          .to.eql('');
       expect(removeEventListenerSpy).to.have.been.called;
     });
     const videoMock = {};
@@ -1014,10 +1040,11 @@ describes.realWin('amp-ima-video', {
 
     imaVideoObj.showControls();
 
-    expect(imaVideoObj.getPropertiesForTesting().controlsDiv.style.display)
-        .to.eql('flex');
-    expect(imaVideoObj.getPropertiesForTesting().hideControlsTimeout)
-        .to.be.null;
+      expect(imaVideoObj.getPropertiesForTesting().controlsDiv.style.display)
+          .to.eql('flex');
+      expect(imaVideoObj.getPropertiesForTesting().hideControlsTimeout)
+          .to.be.null;
+    });
   });
 
   it('shows controls when playing', () => {
@@ -1036,10 +1063,11 @@ describes.realWin('amp-ima-video', {
 
     imaVideoObj.showControls();
 
-    expect(imaVideoObj.getPropertiesForTesting().controlsDiv.style.display)
-        .to.eql('flex');
-    expect(imaVideoObj.getPropertiesForTesting().hideControlsTimeout)
-        .not.to.be.undefined;
+      expect(imaVideoObj.getPropertiesForTesting().controlsDiv.style.display)
+          .to.eql('flex');
+      expect(imaVideoObj.getPropertiesForTesting().hideControlsTimeout)
+          .not.to.be.undefined;
+    });
   });
 
   it('hides controls', () => {

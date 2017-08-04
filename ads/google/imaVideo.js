@@ -446,6 +446,27 @@ function htmlToElement(html) {
   return template.content.firstChild;
 }
 
+function createIcon(global, name, fill = '#FFFFFF') {
+  const doc = global.document;
+  const icon = doc.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  icon.setAttributeNS(null, 'fill', fill);
+  icon.setAttributeNS(null, 'height', '100%');
+  icon.setAttributeNS(null, 'width', '100%');
+  icon.setAttributeNS(null, 'viewBox', '0 0 24 24');
+  setStyle(icon, 'filter', 'drop-shadow(0px 0px 14px rgba(0,0,0,0.4))');
+  setStyle(icon, '-webkit-filter', 'drop-shadow(0px 0px 14px rgba(0,0,0,0.4))');
+  icon./*OK*/innerHTML = icons[name];
+  return icon;
+}
+
+function changeIcon(element, name, fill = '#FFFFFF') {
+  element./*OK*/innerHTML = icons[name];
+  if (fill != element.getAttributeNS(null, 'fill')) {
+    element.setAttributeNS(null, 'fill', fill);
+  }
+}
+
+
 /**
  * Triggered when the user clicks on the big play button div.
  *
@@ -737,8 +758,7 @@ export function playVideo() {
   playerState = PlayerStates.PLAYING;
   // Kick off the hide controls timer.
   showControls();
-  setStyle(playPauseDiv, 'line-height', '1.4em');
-  playPauseNode.textContent = pauseChars;
+  changeIcon(playPauseDiv, 'pause');
   window.parent./*OK*/postMessage({event: VideoEvents.PLAYING}, '*');
   videoPlayer.play();
 }
