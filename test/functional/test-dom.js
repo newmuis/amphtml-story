@@ -962,48 +962,6 @@ describes.realWin('DOM', {
       doc.body.appendChild(element);
       env.win.setTimeout(() => {
         doc.registerElement('amp-test', {
-          prototype: createAmpElementProtoForTesting(
-              env.win, 'amp-test', TestElement),
-        });
-      }, 100);
-      return dom.whenUpgradedToCustomElement(element).then(element => {
-        expect(element.whenBuilt).to.not.be.undefined;
-      });
-    });
-  });
-});
-
-describes.realWin('DOM', {
-  amp: { /* amp spec */
-    ampdoc: 'single',
-  },
-}, env => {
-  let doc;
-  class TestElement extends BaseElement {};
-  describe('whenUpgradeToCustomElement function', () => {
-    beforeEach(() => {
-      doc = env.win.document;
-    });
-
-    it('should not continue if element is not AMP element', () => {
-      const element = doc.createElement('div');
-      expect(() => dom.whenUpgradedToCustomElement(element)).to.throw(
-          'element is not AmpElement');
-    });
-
-    it('should resolve if element has already upgrade', () => {
-      const element = doc.createElement('amp-img');
-      doc.body.appendChild(element);
-      return dom.whenUpgradedToCustomElement(element).then(element => {
-        expect(element.whenBuilt).to.not.be.undefined;
-      });
-    });
-
-    it('should resolve when element upgrade', () => {
-      const element = doc.createElement('amp-test');
-      doc.body.appendChild(element);
-      env.win.setTimeout(() => {
-        doc.registerElement('amp-test', {
           prototype: createAmpElementProto(env.win, 'amp-test', TestElement),
         });
       }, 100);

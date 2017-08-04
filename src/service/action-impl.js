@@ -18,6 +18,7 @@ import {ActionTrust} from '../action-trust';
 import {KeyCodes} from '../utils/key-codes';
 import {Services} from '../services';
 import {debounce} from '../utils/rate-limit';
+import {isEnabled} from '../dom';
 import {dev, user} from '../log';
 import {isArray, isFiniteNumber, toWin} from '../types';
 import {isEnabled} from '../dom';
