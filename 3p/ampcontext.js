@@ -259,6 +259,7 @@ export class AbstractAmpContext {
     this.canonicalUrl = context.canonicalUrl;
     this.clientId = context.clientId;
     this.container = context.container;
+    this.domFingerprint = context.domFingerprint;
     this.hidden = context.hidden;
     this.initialLayoutRect = context.initialLayoutRect;
     this.initialIntersection = context.initialIntersection;

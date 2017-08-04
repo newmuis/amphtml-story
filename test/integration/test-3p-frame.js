@@ -34,6 +34,7 @@ import {loadPromise} from '../../src/event-helper';
 import {toggleExperiment} from '../../src/experiments';
 import {preconnectForElement} from '../../src/preconnect';
 import {validateData} from '../../3p/3p';
+import {DomFingerprint} from '../../src/utils/dom-fingerprint';
 import * as sinon from 'sinon';
 
 describe.configure().ifNewChrome().run('3p-frame', () => {
