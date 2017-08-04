@@ -81,6 +81,8 @@ export function ownProperty(obj, key) {
 }
 
 /**
+ * Deep merges source into target.
+ *
  * @param {!Object} target
  * @param {!Object} source
  * @param {number} depth The maximum merge depth. If exceeded, Object.assign

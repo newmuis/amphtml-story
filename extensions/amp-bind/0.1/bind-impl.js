@@ -34,8 +34,6 @@ import {recursiveEquals} from '../../../src/json';
 import {reportError} from '../../../src/error';
 import {rewriteAttributeValue} from '../../../src/sanitizer';
 import {waitForBodyPromise} from '../../../src/dom';
-import {AmpEvents} from '../../../src/amp-events';
-import {BindEvents} from './bind-events';
 
 const TAG = 'amp-bind';
 
@@ -678,7 +676,7 @@ export class Bind {
       const {expressionString, previousResult} = boundProperty;
       const newValue = results[expressionString];
       if (newValue === undefined ||
-          this.shallowEquals_(newValue, previousResult)) {
+          recursiveEquals(newValue, previousResult, /* depth */ 3)) {
         user().fine(TAG, 'Expression result unchanged or missing: ' +
             `"${expressionString}"`);
       } else {
