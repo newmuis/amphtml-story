@@ -63,6 +63,10 @@ describes.realWin('amp-story', {
     win = env.win;
     element = win.document.createElement('amp-story');
     win.document.body.appendChild(element);
+
+    // TODO(alanorozco): Test active page event triggers once the stubbable
+    // `Services` module is part of the STAMP repo.
+    sandbox.stub(element.implementation_, 'triggerActiveEventForPage_', NOOP);
   });
 
   afterEach(() => {
