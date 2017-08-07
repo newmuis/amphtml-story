@@ -16,7 +16,7 @@
 
 import {GoogleCidApi} from '../../src/service/cid-api';
 import {installTimerService} from '../../src/service/timer-impl';
-import {stubService, mockWindowInterface} from '../../testing/test-helper';
+import {stubService} from '../../testing/test-helper';
 import {getCookie, setCookie} from '../../src/cookies';
 
 describes.realWin('test-cid-api', {}, env => {
@@ -57,11 +57,12 @@ describes.realWin('test-cid-api', {}, env => {
           };
         },
       }));
-      return api.getScopedCid('api-key', 'scope-a').then(cid => {
+      return api.getScopedCid('scope-a', 'googleanalytics').then(cid => {
         expect(cid).to.equal('amp-12345');
+        expect(getCookie(win, 'scope-a')).to.equal('amp-12345');
         expect(getCookie(win, 'AMP_TOKEN')).to.equal('amp-token-123');
         expect(fetchJsonStub).to.be.calledWith(
-            'https://ampcid.google.com/v1/publisher:getClientId?key=api-key',
+            'https://ampcid.google.com/v1/publisher:getClientId?key=AIzaSyA65lEHUEizIsNtlbNo-l2K18dT680nsaM',
             {
               method: 'POST',
               ampCors: false,
@@ -76,6 +77,7 @@ describes.realWin('test-cid-api', {}, env => {
 
     it('should get CID when AMP_TOKEN exists', () => {
       persistCookie('AMP_TOKEN', 'amp-token-123');
+      persistCookie('scope-a', 'amp-old-value');
       fetchJsonStub.returns(Promise.resolve({
         json: () => {
           return {
@@ -83,11 +85,12 @@ describes.realWin('test-cid-api', {}, env => {
           };
         },
       }));
-      return api.getScopedCid('api-key', 'scope-a').then(cid => {
+      return api.getScopedCid('scope-a', 'googleanalytics').then(cid => {
         expect(cid).to.equal('amp-12345');
+        expect(getCookie(win, 'scope-a')).to.equal('amp-12345');
         expect(getCookie(win, 'AMP_TOKEN')).to.equal('amp-token-123');
         expect(fetchJsonStub).to.be.calledWith(
-            'https://ampcid.google.com/v1/publisher:getClientId?key=api-key',
+            'https://ampcid.google.com/v1/publisher:getClientId?key=AIzaSyA65lEHUEizIsNtlbNo-l2K18dT680nsaM',
             {
               method: 'POST',
               ampCors: false,
@@ -102,7 +105,7 @@ describes.realWin('test-cid-api', {}, env => {
     });
   });
 
-  it('should return $OPT_OUT if API returns optOut', () => {
+  it('should return null if API returns optOut', () => {
     fetchJsonStub.returns(Promise.resolve({
       json: () => {
         return {
@@ -110,9 +113,20 @@ describes.realWin('test-cid-api', {}, env => {
         };
       },
     }));
-    return api.getScopedCid('api-key', 'scope-a').then(cid => {
-      expect(cid).to.equal('$OPT_OUT');
+    return api.getScopedCid('scope-a', 'googleanalytics').then(cid => {
+      expect(cid).to.be.null;
       expect(getCookie(win, 'AMP_TOKEN')).to.equal('$OPT_OUT');
+    });
+  });
+
+  it('should return CID from cookie if API returns no CID', () => {
+    persistCookie('scope-a', 'amp-cid-from-cookie');
+    fetchJsonStub.returns(Promise.resolve({
+      json: () => {return {};},
+    }));
+    return api.getScopedCid('scope-a', 'googleanalytics').then(cid => {
+      expect(cid).to.equal('amp-cid-from-cookie');
+      expect(getCookie(win, 'AMP_TOKEN')).to.equal('$ERROR');
     });
   });
 
@@ -120,62 +134,57 @@ describes.realWin('test-cid-api', {}, env => {
     fetchJsonStub.returns(Promise.resolve({
       json: () => {return {};},
     }));
-    return api.getScopedCid('api-key', 'scope-a').then(cid => {
+    return api.getScopedCid('scope-a', 'googleanalytics').then(cid => {
       expect(cid).to.be.null;
-      expect(getCookie(win, 'AMP_TOKEN')).to.equal('$NOT_FOUND');
+      expect(getCookie(win, 'AMP_TOKEN')).to.equal('$ERROR');
     });
   });
 
-  it('should return null if API rejects', () => {
+  it('should return CID from cookie if API rejects', () => {
     fetchJsonStub.returns(Promise.reject());
-    return api.getScopedCid('api-key', 'scope-a').then(cid => {
+    return api.getScopedCid('scope-a', 'googleanalytics').then(cid => {
       expect(cid).to.be.null;
       expect(getCookie(win, 'AMP_TOKEN')).to.equal('$ERROR');
     });
   });
 
-  it('should return null if AMP_TOKEN=$ERROR', () => {
+  it('should return null if API rejects and no CID in cookie', () => {
+    persistCookie('scope-a', 'amp-cid-from-cookie');
+    fetchJsonStub.returns(Promise.reject());
+    return api.getScopedCid('scope-a', 'googleanalytics').then(cid => {
+      expect(cid).to.equal('amp-cid-from-cookie');
+      expect(getCookie(win, 'AMP_TOKEN')).to.equal('$ERROR');
+    });
+  });
+
+  it('should return CID from cookie if AMP_TOKEN=$ERROR', () => {
     persistCookie('AMP_TOKEN', '$ERROR');
-    return api.getScopedCid('api-key', 'scope-a').then(cid => {
+    persistCookie('scope-a', 'amp-cid-from-cookie');
+    return api.getScopedCid('scope-a', 'googleanalytics').then(cid => {
+      expect(cid).to.equal('amp-cid-from-cookie');
+      expect(getCookie(win, 'AMP_TOKEN')).to.equal('$ERROR');
+    });
+  });
+
+  it('should return null if AMP_TOKEN=$ERROR and no CID in cookie', () => {
+    persistCookie('AMP_TOKEN', '$ERROR');
+    return api.getScopedCid('scope-a', 'googleanalytics').then(cid => {
       expect(cid).to.be.null;
       expect(getCookie(win, 'AMP_TOKEN')).to.equal('$ERROR');
     });
   });
 
-  it('should return null if AMP_TOKEN=$NOT_FOUND', () => {
-    persistCookie('AMP_TOKEN', '$NOT_FOUND');
-    const windowInterface = mockWindowInterface(env.sandbox);
-    windowInterface.getDocumentReferrer.returns('https://example.org/');
-    return api.getScopedCid('api-key', 'scope-a').then(cid => {
-      expect(cid).to.be.null;
-      expect(getCookie(win, 'AMP_TOKEN')).to.equal('$NOT_FOUND');
-    });
-  });
-
-  it('should fetch CID from API if AMP_TOKEN=$NOT_FOUND ' +
-      'and document referrer is proxy origin', () => {
-    fetchJsonStub.returns(Promise.resolve({
-      json: () => {
-        return {
-          clientId: 'amp-12345',
-          securityToken: 'amp-token-123',
-        };
-      },
-    }));
-    const windowInterface = mockWindowInterface(env.sandbox);
-    windowInterface.getDocumentReferrer.returns('https://cdn.ampproject.org/');
-    persistCookie('AMP_TOKEN', '$NOT_FOUND');
-    return api.getScopedCid('api-key', 'scope-a').then(cid => {
-      expect(cid).to.equal('amp-12345');
-      expect(getCookie(win, 'AMP_TOKEN')).to.equal('amp-token-123');
-    });
-  });
-
-  it('should return $OPT_OUT if AMP_TOKEN=$OPT_OUT ', () => {
+  it('should return null if AMP_TOKEN=$OPT_OUT ', () => {
     persistCookie('AMP_TOKEN', '$OPT_OUT');
-    return api.getScopedCid('api-key', 'scope-a').then(cid => {
-      expect(cid).to.equal('$OPT_OUT');
+    return api.getScopedCid('scope-a', 'googleanalytics').then(cid => {
+      expect(cid).to.be.null;
       expect(getCookie(win, 'AMP_TOKEN')).to.equal('$OPT_OUT');
+    });
+  });
+
+  it('should return null if apiClient is not supported', () => {
+    return api.getScopedCid('scope-a', 'non-supported').then(cid => {
+      expect(cid).to.be.null;
     });
   });
 
@@ -183,8 +192,8 @@ describes.realWin('test-cid-api', {}, env => {
     let responseResolver;
     fetchJsonStub.returns(new Promise(res => {responseResolver = res;}));
 
-    const promise1 = api.getScopedCid('api-key', 'scope-a');
-    const promise2 = api.getScopedCid('api-key', 'scope-a');
+    const promise1 = api.getScopedCid('scope-a', 'googleanalytics');
+    const promise2 = api.getScopedCid('scope-a', 'googleanalytics');
 
     responseResolver({
       json: () => {
@@ -208,8 +217,8 @@ describes.realWin('test-cid-api', {}, env => {
         .returns(new Promise(res => {responseResolverA = res;}));
     fetchJsonStub.onCall(1)
         .returns(new Promise(res => {responseResolverB = res;}));
-    const promiseA = api.getScopedCid('api-key', 'scope-a');
-    const promiseB = api.getScopedCid('api-key', 'scope-b');
+    const promiseA = api.getScopedCid('scope-a', 'googleanalytics');
+    const promiseB = api.getScopedCid('scope-b', 'googleanalytics');
 
     responseResolverA({
       json: () => {
