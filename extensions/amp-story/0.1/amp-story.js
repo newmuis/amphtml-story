@@ -19,7 +19,6 @@
  *
  * Example:
  * <code>
-<<<<<<< HEAD
  * <amp-story related-articles="related.json">
  *   [...]
  * </amp-story>
@@ -46,7 +45,6 @@ import {
   isFullScreenSupported,
   requestFullScreen,
 } from './fullscreen';
-<<<<<<< HEAD
 import {once} from '../../../src/utils/function';
 import {
   toggleExperiment,
@@ -56,11 +54,6 @@ import {urlReplacementsForDoc} from '../../../src/services';
 import {xhrFor} from '../../../src/services';
 import {isFiniteNumber} from '../../../src/types';
 import {AudioManager} from './audio';
-=======
-import {
-  toggleExperiment,
-} from '../../../src/experiments';
->>>>>>> 960b6ae6... Allow amp-google-vrview-image and put fallback content behind vrview.
 
 
 /** @private @const {number} */
@@ -125,12 +118,9 @@ export class AmpStory extends AMP.BaseElement {
     /** @const @private {!VariableService} */
     this.variableService_ = new VariableService();
 
-<<<<<<< HEAD
     /** @const @private {!AudioManager} */
     this.audioManager_ = new AudioManager();
 
-=======
->>>>>>> d26366cc... Bootstrap analytics and replacement variables for stories (#88)
     /**
      * @private @const {
      *   !function():!Promise<?Array<!./related-articles.RelatedArticleSet>
@@ -173,31 +163,12 @@ export class AmpStory extends AMP.BaseElement {
     this.navigationState_.installConsumer(new AnalyticsTrigger(this.element));
     this.navigationState_.installConsumer(this.variableService_);
 
-<<<<<<< HEAD
     this.navigationState_.updateActivePage(0, this.activePage_.id);
 
     this.triggerActiveEventForPage_();
 
     registerServiceBuilder(this.win, 'story-variable',
         () => this.variableService_);
-=======
-    firstPage.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
-    this.scheduleResume(firstPage);
-
-    this.navigationState_.installConsumer(new AnalyticsTrigger(this.element));
-    this.navigationState_.installConsumer(this.variableService_);
-
-    this.navigationState_.updateActivePage(0, firstPage.id);
-
-    registerServiceBuilder(this.win, 'story-variable',
-        () => this.variableService_);
-
-    // Mark all videos as autoplay
-    const videos = this.element.querySelectorAll('amp-video');
-    for (const video of videos) {
-      video.setAttribute('autoplay', '');
-    }
->>>>>>> 16f77f01... Autoplay all videos in a story.
   }
 
 
@@ -326,11 +297,7 @@ export class AmpStory extends AMP.BaseElement {
       return;
     }
 
-<<<<<<< HEAD
     const activePage = this.activePage_;
-=======
-    const activePage = this.getActivePage_();
->>>>>>> d26366cc... Bootstrap analytics and replacement variables for stories (#88)
     const pageIndex = this.getPageIndex(page);
 
     if (this.shouldEnterFullScreenOnSwitch_()) {
@@ -343,12 +310,9 @@ export class AmpStory extends AMP.BaseElement {
 
     // TODO(alanorozco): check if autoplay
     this.navigationState_.updateActivePage(pageIndex, page.id);
-<<<<<<< HEAD
 
     this.audioManager_.stop(activePage);
     this.audioManager_.play(page);
-=======
->>>>>>> d26366cc... Bootstrap analytics and replacement variables for stories (#88)
 
     return this.mutateElement(() => {
       page.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
@@ -477,10 +441,6 @@ export class AmpStory extends AMP.BaseElement {
 
     this.exitFullScreen_();
     this.systemLayer_.toggleCloseBookendButton(true);
-<<<<<<< HEAD
-=======
-    this.element.classList.add('i-amp-story-bookend-active');
->>>>>>> 36a12172... Allow to close bookend (#47)
     this.isBookendActive_ = true;
 
     this.getVsync().mutate(() => {
@@ -496,10 +456,6 @@ export class AmpStory extends AMP.BaseElement {
    */
   hideBookend_() {
     this.systemLayer_.toggleCloseBookendButton(false);
-<<<<<<< HEAD
-=======
-    this.element.classList.remove('i-amp-story-bookend-active');
->>>>>>> 36a12172... Allow to close bookend (#47)
     this.isBookendActive_ = false;
 
     this.getVsync().mutate(() => {
@@ -648,28 +604,6 @@ export class AmpStory extends AMP.BaseElement {
    */
   getPageIndex(page) {
     return Array.prototype.indexOf.call(this.getPages(), page);
-=======
- * <amp-story
- *   layout="fill"
- *   logo="my-logo.png">
- * </amp-story>
- * </code>
- */
-
-import {CSS} from '../../../build/amp-story-0.1.css';
-import {Layout} from '../../../src/layout';
-
-export class AmpStory extends AMP.BaseElement {
-
-  /** @param {!AmpElement} element */
-  constructor(element) {
-    super(element);
-  }
-
-  /** @override */
-  isLayoutSupported(layout) {
-    return layout == Layout.FILL;
->>>>>>> 95dcfda4... Add a base amp-story extension.
   }
 }
 
