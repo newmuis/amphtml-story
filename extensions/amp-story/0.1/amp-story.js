@@ -36,6 +36,7 @@ import {NavigationState} from './navigation-state';
 import {SystemLayer} from './system-layer';
 import {Layout} from '../../../src/layout';
 import {VariableService} from './variable-service';
+import {actionServiceForDoc} from '../../../src/services';
 import {assertHttpsUrl} from '../../../src/url';
 import {buildFromJson} from './related-articles';
 import {closest} from '../../../src/dom';
@@ -174,6 +175,8 @@ export class AmpStory extends AMP.BaseElement {
 
 <<<<<<< HEAD
     this.navigationState_.updateActivePage(0, this.activePage_.id);
+
+    this.triggerActiveEventForPage_();
 
     registerServiceBuilder(this.win, 'story-variable',
         () => this.variableService_);
@@ -351,12 +354,22 @@ export class AmpStory extends AMP.BaseElement {
       page.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
       activePage.removeAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME);
       this.activePage_ = page;
+      this.triggerActiveEventForPage_();
     }, page).then(() => {
       this.schedulePause(activePage);
       this.updateInViewport(activePage, false);
       this.scheduleResume(page);
       this.updateInViewport(page, true);
     }).then(() => this.maybeScheduleAutoAdvance_());
+  }
+
+
+  /** @private */
+  triggerActiveEventForPage_() {
+    // TODO(alanorozco): pass event priority once STAMP repo is merged with
+    // upstream.
+    actionServiceForDoc(this.element)
+        .trigger(this.activePage_, 'active', /* event */ null);
   }
 
 
