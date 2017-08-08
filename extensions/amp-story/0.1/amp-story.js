@@ -35,7 +35,7 @@ import {NavigationState} from './navigation-state';
 import {SystemLayer} from './system-layer';
 import {Layout} from '../../../src/layout';
 import {VariableService} from './variable-service';
-import {actionServiceForDoc} from '../../../src/services';
+import {Services} from '../../../src/services';
 import {assertHttpsUrl} from '../../../src/url';
 import {buildFromJson} from './related-articles';
 import {closest} from '../../../src/dom';
@@ -50,10 +50,10 @@ import {
   toggleExperiment,
 } from '../../../src/experiments';
 import {registerServiceBuilder} from '../../../src/service';
-import {urlReplacementsForDoc} from '../../../src/services';
 import {xhrFor} from '../../../src/services';
 import {isFiniteNumber} from '../../../src/types';
 import {AudioManager} from './audio';
+import {setStyles} from '../../../src/style';
 
 
 /** @private @const {number} */
@@ -168,7 +168,7 @@ export class AmpStory extends AMP.BaseElement {
   /** @override */
   layoutCallback() {
     this.maybeScheduleAutoAdvance_();
-    this.preloadNext_();
+    this.preloadPagesByDistance_();
     return Promise.resolve();
   }
 
@@ -205,13 +205,34 @@ export class AmpStory extends AMP.BaseElement {
 
 
   /**
+   * Gets the page before the specified page.
+   * @param {!Element} page The element representing the page whose previous
+   *     page should be retrieved.
+   * @return {?Element} The element representing the page preceding the
+   *     specified page.
+   */
+  getPreviousPage_(page) {
+    if (page === this.activePage_) {
+      return this.pageHistoryStack_[this.pageHistoryStack_.length - 1];
+    }
+
+    const index = this.pageHistoryStack_.lastIndexOf(page);
+    if (index <= 0) {
+      return page.previousElementSibling;
+    }
+
+    return this.pageHistoryStack_[index - 1];
+  }
+
+
+  /**
    * Gets the next page that the user should be advanced to, upon navigation.
    * @param {!Element} page The element representing the page whose next page
    *     should be retrieved.
    * @param {boolean=} opt_isAutomaticAdvance Whether this navigation was caused
    *     by an automatic advancement after a timeout.
-   * @return {?Element} The element representing the page that the user should
-   *     be advanced to.
+   * @return {?Element} The element representing the page following the
+   *     specified page.
    * @private
    */
   getNextPage_(page, opt_isAutomaticAdvance) {
@@ -236,48 +257,28 @@ export class AmpStory extends AMP.BaseElement {
    * @return {!Array<string>}
    * @private
    */
-  getAllNextPageIds_(page) {
-    const nextPageIds = [];
+  getAdjacentPageIds_(page) {
+    const adjacentPageIds = [];
 
     const autoAdvanceNext =
-        this.getNextPageId_(page, true /* opt_isAutomaticAdvance */);
+        this.getNextPage_(page, true /* opt_isAutomaticAdvance */);
     const manualAdvanceNext =
-        this.getNextPageId_(page, false /* opt_isAutomaticAdvance */);
+        this.getNextPage_(page, false /* opt_isAutomaticAdvance */);
+    const previous = this.getPreviousPage_(page);
 
     if (autoAdvanceNext) {
-      nextPageIds.push(autoAdvanceNext);
+      adjacentPageIds.push(autoAdvanceNext.id);
     }
 
     if (manualAdvanceNext && manualAdvanceNext != autoAdvanceNext) {
-      nextPageIds.push(manualAdvanceNext);
+      adjacentPageIds.push(manualAdvanceNext.id);
     }
 
-    return nextPageIds;
-  }
-
-
-  /**
-   * 
-   * @param {*} priority 
-   * @param {*} map 
-   * @param {*} pageId 
-   * @return {!Object<string, number>} A mapping from page ID to the priority of
-   *     that page.
-   */
-  getPagePriorityMap_(priority, map, pageId) {
-    if (map[pageId] <= priority) {
-      return map;
+    if (previous) {
+      adjacentPageIds.push(previous.id);
     }
 
-    const page = this.getPageById_(pageId);
-    this.getAllNextPageIds_(page).forEach(nextPageId => {
-      if (map[nextPageId] <= priority) {
-        return;
-      }
-
-      map[nextPageId] = priority;
-      map = this.getPagePriorityMap_(priority + 1, map, nextPageId);
-    });
+    return adjacentPageIds;
   }
 
 
@@ -303,7 +304,7 @@ export class AmpStory extends AMP.BaseElement {
 
     this.switchTo_(dev().assertElement(nextPage))
         .then(() => this.pageHistoryStack_.push(activePage))
-        .then(() => this.preloadNext_());
+        .then(() => this.preloadPagesByDistance_());
   }
 
 
@@ -312,12 +313,17 @@ export class AmpStory extends AMP.BaseElement {
    * @private
    */
   previous_() {
-    const previousPage = this.pageHistoryStack_.pop();
+    const activePage = dev().assert(this.activePage_,
+        'No active page set when navigating to previous page.');
+    const previousPage = this.getPreviousPage_(activePage);
     if (!previousPage) {
       return;
     }
 
-    this.switchTo_(dev().assertElement(previousPage));
+    const index = this.pageHistoryStack_.lastIndexOf(previousPage);
+    this.pageHistoryStack_.splice(index, 1);
+    this.switchTo_(dev().assertElement(previousPage))
+        .then(() => this.preloadPagesByDistance_());
   }
 
 
@@ -373,7 +379,7 @@ export class AmpStory extends AMP.BaseElement {
   triggerActiveEventForPage_() {
     // TODO(alanorozco): pass event priority once STAMP repo is merged with
     // upstream.
-    actionServiceForDoc(this.element)
+    Services.actionServiceForDoc(this.element)
         .trigger(this.activePage_, 'active', /* event */ null);
   }
 
@@ -535,17 +541,79 @@ export class AmpStory extends AMP.BaseElement {
     event.stopPropagation();
   }
 
-  /**
-   * @private
-   */
-  preloadNext_() {
-    const priorityMap = {
-      [this.activePage_.id]: 0,
-    };
-    const updatedPriorityMap = this.getPagePriorityMap_(1 /* priority */,
-        priorityMap, this.activePage_);
 
-    console.log(updatedPriorityMap);
+  /**
+   * @return {!Array<!Array<string>>} A 2D array representing lists of pages by
+   *     distance.  The outer array index represents the distance from the
+   *     active page; the inner array is a list of page IDs at the specified
+   *     distance.
+   */
+  getPagesByDistance_() {
+    const distanceMap = this.getPageDistanceMapHelper_(
+        0 /* distance */, {} /* map */, this.activePage_.id);
+
+    // Transpose the map into a 2D array.
+    const pagesByDistance = [];
+    Object.keys(distanceMap).forEach(pageId => {
+      const distance = distanceMap[pageId];
+      if (!pagesByDistance[distance]) {
+        pagesByDistance[distance] = [];
+      }
+      pagesByDistance[distance].push(pageId);
+    });
+
+    return pagesByDistance;
+  }
+
+  /**
+   * Creates a map of a page and all of the pages reachable from that page, by
+   * distance.
+   *
+   * @param {number} distance The distance that the page with the specified
+   *     pageId is from the active page.
+   * @param {!Object<string, number>} map A mapping from pageId to its distance
+   *     from the active page.
+   * @param {string} pageId The page to be added to the map.
+   * @return {!Object<string, number>} A mapping from page ID to the priority of
+   *     that page.
+   */
+  getPageDistanceMapHelper_(priority, map, pageId) {
+    if (map[pageId] !== undefined && map[pageId] <= priority) {
+      return map;
+    }
+
+    map[pageId] = priority;
+    const page = this.getPageById_(pageId);
+    this.getAdjacentPageIds_(page).forEach(adjacentPageId => {
+      if (map[adjacentPageId] !== undefined
+          && map[adjacentPageId] <= priority) {
+        return;
+      }
+
+      map = this.getPageDistanceMapHelper_(priority + 1, map, adjacentPageId);
+    });
+
+    return map;
+  }
+
+
+  /** @private */
+  preloadPagesByDistance_() {
+    const pagesByDistance = this.getPagesByDistance_();
+    console.log(pagesByDistance);
+    pagesByDistance.forEach((pageIds, distance) => {
+      pageIds.forEach(pageId => {
+        const page = this.getPageById_(pageId);
+        setStyles(page, {
+          transform: `translateY(${100 * distance}%)`,
+        });
+      });
+    });
+
+    const next = this.getNextPage_(this.activePage_);
+    if (!next) {
+      this.buildBookend_();
+    }
   }
 
 
@@ -577,9 +645,9 @@ export class AmpStory extends AMP.BaseElement {
       return Promise.resolve(null);
     }
 
-    return urlReplacementsForDoc(this.getAmpDoc())
+    return Services.urlReplacementsForDoc(this.getAmpDoc())
         .expandAsync(user().assertString(rawUrl))
-        .then(url => xhrFor(this.win).fetchJson(url))
+        .then(url => Services.xhrFor(this.win).fetchJson(url))
         .then(response => {
           user().assert(response.ok, 'Invalid HTTP response');
           return response.json();
@@ -630,7 +698,7 @@ export class AmpStory extends AMP.BaseElement {
    * @return {!Element} Retrieves the page with the specified ID.
    */
   getPageById_(id) {
-    user().assert(
+    return user().assert(
         this.element.querySelector(`amp-story-page#${id}`),
         `Story refers to page "${id}", but no such page exists.`);
   }
