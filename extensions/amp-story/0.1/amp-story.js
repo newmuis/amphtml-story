@@ -600,7 +600,6 @@ export class AmpStory extends AMP.BaseElement {
   /** @private */
   preloadPagesByDistance_() {
     const pagesByDistance = this.getPagesByDistance_();
-    console.log(pagesByDistance);
     pagesByDistance.forEach((pageIds, distance) => {
       pageIds.forEach(pageId => {
         const page = this.getPageById_(pageId);
