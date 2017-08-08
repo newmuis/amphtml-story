@@ -16,7 +16,7 @@
 import {EventType, dispatch} from './events';
 import {dev} from '../../../src/log';
 import {scale, setStyles} from '../../../src/style';
-import {vsyncFor} from '../../../src/services';
+import {Services} from '../../../src/services';
 
 
 // TODO(alanorozco): Use a precompiled template for performance
@@ -128,7 +128,7 @@ export class SystemLayer {
    * @private
    */
   getVsync_() {
-    return vsyncFor(this.win_);
+    return Services.vsyncFor(this.win_);
   }
 
   /**

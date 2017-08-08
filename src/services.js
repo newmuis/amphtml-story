@@ -230,6 +230,15 @@ export class Services {
   }
 
   /**
+   * @param {!Node|!./service/ampdoc-impl.AmpDoc} nodeOrDoc
+   * @return {!./service/resources-impl.Resources}
+   */
+  static resourcesForDoc(nodeOrDoc) {
+    return /** @type {!./service/resources-impl.Resources} */ (
+        getServiceForDoc(nodeOrDoc, 'resources'));
+  }
+
+  /**
    * @param {!Window} win
    * @return {?Promise<?{incomingFragment: string, outgoingFragment: string}>}
    */
@@ -238,17 +247,6 @@ export class Services {
       !Promise<?{incomingFragment: string, outgoingFragment: string}>} */ (
       getElementServiceIfAvailable(win, 'share-tracking', 'amp-share-tracking',
           true)));
-  }
-
-
-  /**
-   * @param {!Window} win
-   * @return {?Promise<?{pageIndex: number, pageId: string}>}
-   */
-  static storyVariableServiceForOrNull(win) {
-    return (/** @type {!Promise<?{pageIndex: number, pageId: string}>} */ (
-        getElementServiceIfAvailable(win, 'story-variable', 'amp-story',
-            true)));
   }
 
   /**
