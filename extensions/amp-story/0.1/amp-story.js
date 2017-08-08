@@ -35,7 +35,7 @@ import {NavigationState} from './navigation-state';
 import {SystemLayer} from './system-layer';
 import {Layout} from '../../../src/layout';
 import {VariableService} from './variable-service';
-import {actionServiceForDoc} from '../../../src/services';
+import {Services} from '../../../src/services';
 import {assertHttpsUrl} from '../../../src/url';
 import {buildFromJson} from './related-articles';
 import {closest} from '../../../src/dom';
@@ -50,8 +50,6 @@ import {
   toggleExperiment,
 } from '../../../src/experiments';
 import {registerServiceBuilder} from '../../../src/service';
-import {urlReplacementsForDoc} from '../../../src/services';
-import {xhrFor} from '../../../src/services';
 import {isFiniteNumber} from '../../../src/types';
 import {AudioManager} from './audio';
 
@@ -332,7 +330,7 @@ export class AmpStory extends AMP.BaseElement {
   triggerActiveEventForPage_() {
     // TODO(alanorozco): pass event priority once STAMP repo is merged with
     // upstream.
-    actionServiceForDoc(this.element)
+    Services.actionServiceForDoc(this.element)
         .trigger(this.activePage_, 'active', /* event */ null);
   }
 
@@ -535,9 +533,9 @@ export class AmpStory extends AMP.BaseElement {
       return Promise.resolve(null);
     }
 
-    return urlReplacementsForDoc(this.getAmpDoc())
+    return Services.urlReplacementsForDoc(this.getAmpDoc())
         .expandAsync(user().assertString(rawUrl))
-        .then(url => xhrFor(this.win).fetchJson(url))
+        .then(url => Services.xhrFor(this.win).fetchJson(url))
         .then(response => {
           user().assert(response.ok, 'Invalid HTTP response');
           return response.json();
