@@ -165,7 +165,6 @@ export class AmpStory extends AMP.BaseElement {
         'Story must have at least one page.');
 
     return this.switchTo_(firstPage)
-        .then(() => this.maybeScheduleAutoAdvance_())
         .then(() => this.preloadPagesByDistance_());
   }
 
