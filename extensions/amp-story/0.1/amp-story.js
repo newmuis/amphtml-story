@@ -550,7 +550,7 @@ export class AmpStory extends AMP.BaseElement {
    */
   getPagesByDistance_() {
     const distanceMap = this.getPageDistanceMapHelper_(
-        0 /* distance */, {} /* map */, this.activePage_.id);
+        /* distance */ 0, /* map */ {}, this.activePage_.id);
 
     // Transpose the map into a 2D array.
     const pagesByDistance = [];
