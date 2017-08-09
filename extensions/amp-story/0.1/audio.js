@@ -53,11 +53,14 @@ export class AudioManager {
     /** @const {!Object<!Element, !Playable>} */
     this.playables_ = {};
 
-    /** @const {!Array<number>} */
+    /** @const {!Array<!Playable>} */
     this.nowPlaying_ = [];
 
     /** @type {number} */
     this.nextId_ = 0;
+
+    /** @type {boolean} */
+    this.isMuted_ = true;
   }
 
   /**
@@ -105,31 +108,44 @@ export class AudioManager {
   }
 
   play(sourceElement) {
-    this.load(sourceElement).then(() => {
-      const playable = this.getPlayable_(sourceElement);
-      if (!playable || playable.isPlaying()) {
-        return;
-      }
+    this.load(sourceElement)
+        .then(() => this.getPlayable_(sourceElement))
+        .then(playable => {
+          playable.setVolume(1 /* volume */, 0 /* durationMs */,
+              VOLUME_EASING_FN);
+          return playable;
+        })
+        .then(playable => {
+          if (this.isMuted_) {
+            playable.mute();
+          }
+          return playable;
+        })
+        .then(playable => {
+          if (!playable || playable.isPlaying()) {
+            return;
+          }
 
-      // Stop all siblings.
-      for (let el = sourceElement.parentElement.firstElementChild; el;
-          el = el.nextElementSibling) {
-        if (el === sourceElement) {
-          continue;
-        }
+          // Stop all siblings.
+          for (let el = sourceElement.parentElement.firstElementChild; el;
+              el = el.nextElementSibling) {
+            if (el === sourceElement) {
+              continue;
+            }
 
-        this.stop(el);
-      }
+            this.stop(el);
+          }
 
-      // Reduce the volume of ancestors.
-      for (let el = sourceElement.parentElement; el;
-          el = el.parentElement) {
-        this.setVolume(el, REDUCED_VOLUME);
-      }
+          // Reduce the volume of ancestors.
+          for (let el = sourceElement.parentElement; el;
+              el = el.parentElement) {
+            this.setVolume(el, REDUCED_VOLUME);
+          }
 
-      // Play the audio.
-      playable.play();
-    });
+          // Play the audio.
+          this.addToNowPlaying_(playable);
+          playable.play();
+        });
   }
 
   /**
@@ -142,6 +158,7 @@ export class AudioManager {
       return;
     }
 
+    this.removeFromNowPlaying_(playable);
     playable.stop();
   }
 
@@ -157,6 +174,53 @@ export class AudioManager {
     }
 
     playable.setVolume(volume, VOLUME_CHANGE_DURATION_MS, VOLUME_EASING_FN);
+  }
+
+  /**
+   * Mutes all of the audio sources that are playing.
+   */
+  muteAll() {
+    this.nowPlaying_.forEach(playable => {
+      playable.mute();
+    });
+    this.isMuted_ = true;
+  }
+
+  /**
+   * Unmutes all of the audio sources that are playing.
+   */
+  unmuteAll() {
+    this.nowPlaying_.forEach(playable => {
+      playable.unmute();
+    });
+    this.isMuted_ = false;
+  }
+
+  /**
+   * @param {!Playable} playable The playable to add to the "Now Playing" list.
+   * @private
+   */
+  addToNowPlaying_(playable) {
+    const audioInitiallyPlaying = this.nowPlaying_.length > 0;
+    this.nowPlaying_.push(playable);
+
+    if (!audioInitiallyPlaying) {
+      // TODO(newmuis): Dispatch event: audio is playing.
+    }
+  }
+
+  /**
+   * @param {!Playable} playable The playable to remove from the "Now Playing"
+   *     list.
+   * @private
+   */
+  removeFromNowPlaying_(playable) {
+    const index = this.nowPlaying_.indexOf(playable);
+    const removed = this.nowPlaying_.splice(index, 1);
+
+    if (removed && this.nowPlaying_.length === 0) {
+      // TODO(newmuis): Dispatch event: no audio is playing.
+    }
   }
 }
 
@@ -224,6 +288,21 @@ class Playable {
    * resources.  Should be a no-op if called when the item is not yet loaded.
    */
   unload() {}
+
+  /**
+   * Mutes this item, without affecting its volume or play state.
+   */
+  mute() {}
+
+  /**
+   * Unmutes this item, without affecting its volume or play state.
+   */
+  unmute() {}
+
+  /**
+   * @return {boolean} true, if this item is muted; false otherwise.
+   */
+  isMuted() {}
 }
 
 
@@ -239,15 +318,22 @@ class BackgroundPlayable extends Playable {
     /** @private @const {string} */
     this.sourceUri_ = sourceElement.getAttribute('background-audio');
 
+    /** @private {?AudioBuffer} */
     this.buffer_ = null;
 
     /** @private {?AudioSource} */
     this.audioSource_ = null;
+
+    /** @private {?number} */
+    this.volume_ = null;
+
+    /** @private {boolean} */
+    this.isPlaying_ = false;
   }
 
   /**
    * 
-   * @param {*} buffer 
+   * @param {!AudioBuffer} buffer 
    */
   createSource_(buffer) {
     const source = context.createBufferSource();
@@ -264,14 +350,32 @@ class BackgroundPlayable extends Playable {
     };
   }
 
+  /**
+   * Fetches the AudioBuffer from this Playable's source URI, and caches the
+   * result for future invocations.
+   *
+   * @return {!Promise<!AudioBuffer>} A promise yielding the AudioBuffer result
+   *     from this Playable's source URI.
+   */
+  getBuffer_() {
+    if (this.buffer_) {
+      return Promise.resolve(this.buffer_);
+    }
+
+    return Services.xhrFor(window)
+        .fetch(this.sourceUri_)
+        .then(response => response.arrayBuffer())
+        .then(arrayBuffer => this.decodeAudioData_(arrayBuffer));
+  }
+
   /** @override */
   isLoaded() {
-    return !!this.buffer_;
+    return !!this.audioSource_;
   }
 
   /** @override */
   isPlaying() {
-    return !!this.audioSource_;
+    return this.isPlaying_;
   }
 
   /** @override */
@@ -280,10 +384,8 @@ class BackgroundPlayable extends Playable {
       return Promise.resolve();
     }
 
-    return Services.xhrFor(window)
-        .fetch(this.sourceUri_)
-        .then(response => response.arrayBuffer())
-        .then(arrayBuffer => this.decodeAudioData_(arrayBuffer))
+    return this.getBuffer_()
+        .then(buffer => this.createSource_(buffer))
         .then(buffer => this.buffer_ = buffer);
   }
 
@@ -304,9 +406,7 @@ class BackgroundPlayable extends Playable {
 
   /** @override */
   play() {
-    this.load()
-        .then(() => this.createSource_(this.buffer_))
-        .then(() => this.playSource_());
+    this.load().then(() => this.playSource_());
   }
 
   /**
@@ -318,12 +418,23 @@ class BackgroundPlayable extends Playable {
     } else {
       this.audioSource_.source.noteOn(0);
     }
+
+    this.isPlaying_ = true;
   }
 
   /** @override */
   setVolume(volume, durationMs, easingFn) {
     // TODO(newmuis): Fade to volume over durationMs following easingFn.
-    this.audioSource_.gainNode.value = volume;
+    this.volume_ = volume;
+    this.setGain_(volume);
+  }
+
+  /**
+   * @param {number} gain The gain value from 0 to 1.
+   * @private
+   */
+  setGain_(gain) {
+    this.audioSource_.gainNode.gain.value = gain;
   }
 
   /** @override */
@@ -334,14 +445,28 @@ class BackgroundPlayable extends Playable {
       this.audioSource_.source.noteOff(0);
     }
     this.audioSource_ = null;
+    this.isPlaying_ = false;
   }
 
   /** @override */
   unload() {
-    if (!this.isLoaded) {
-      return;
-    }
+    this.audioSource_ = null;
     this.buffer_ = null;
+  }
+
+  /** @override */
+  mute() {
+    this.setGain_(0);
+  }
+
+  /** @override */
+  unmute() {
+    this.setGain_(this.volume_);
+  }
+
+  /** @override */
+  isMuted() {
+    return !this.volume_;
   }
 }
 
@@ -395,5 +520,20 @@ class MediaElementPlayable extends Playable {
   stop() {
     this.element_.pause();
     this.element_.currentTime = 0;
+  }
+
+  /** @override */
+  mute() {
+    this.element_.muted = true;
+  }
+
+  /** @override */
+  unmute() {
+    this.element_.muted = false;
+  }
+
+  /** @override */
+  isMuted() {
+    return this.element_.muted;
   }
 }
