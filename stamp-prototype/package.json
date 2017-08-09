@@ -7,10 +7,17 @@
     "node": ">=4.3.2"
   },
   "scripts": {
-    "start": "node app.js || nodejs app.js"
+    "start": "node app.js || nodejs app.js",
+    "samples": "node generator/index.js samples www/samples"
   },
   "dependencies": {
     "express": "4.14.1",
     "express-force-https": "1.0.0"
+  },
+  "devDependencies": {
+    "cheerio": "^1.0.0-rc.2",
+    "handlebars": "^4.0.10",
+    "mkdirp": "^0.5.1",
+    "slugify": "^1.1.0"
   }
 }
