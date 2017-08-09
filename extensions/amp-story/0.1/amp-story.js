@@ -50,7 +50,6 @@ import {
   toggleExperiment,
 } from '../../../src/experiments';
 import {registerServiceBuilder} from '../../../src/service';
-import {xhrFor} from '../../../src/services';
 import {isFiniteNumber} from '../../../src/types';
 import {AudioManager} from './audio';
 import {setStyles} from '../../../src/style';
