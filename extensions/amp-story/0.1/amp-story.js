@@ -52,6 +52,7 @@ import {
 import {registerServiceBuilder} from '../../../src/service';
 import {isFiniteNumber} from '../../../src/types';
 import {AudioManager} from './audio';
+import {setStyles} from '../../../src/style';
 
 
 /** @private @const {number} */
@@ -149,21 +150,14 @@ export class AmpStory extends AMP.BaseElement {
       this.onKeyDown_(e);
     }, true);
 
-    Array.prototype.forEach.call(this.getPages(), page => {
-      this.setAsOwner(page);
-    });
-
-    this.activePage_ = user().assertElement(
-        this.element.querySelector('amp-story-page'),
-        'Story must have at least one page.');
-    this.activePage_.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
-
     this.navigationState_.installConsumer(new AnalyticsTrigger(this.element));
     this.navigationState_.installConsumer(this.variableService_);
 
-    this.navigationState_.updateActivePage(0, this.activePage_.id);
+    const firstPage = user().assertElement(
+        this.element.querySelector('amp-story-page'),
+        'Story must have at least one page.');
 
-    this.triggerActiveEventForPage_();
+    this.switchTo_(firstPage);
 
     registerServiceBuilder(this.win, 'story-variable',
         () => this.variableService_);
@@ -172,16 +166,9 @@ export class AmpStory extends AMP.BaseElement {
 
   /** @override */
   layoutCallback() {
-    this.scheduleLayout(this.activePage_);
     this.maybeScheduleAutoAdvance_();
-    this.preloadNext_();
+    this.preloadPagesByDistance_();
     return Promise.resolve();
-  }
-
-
-  /** @override */
-  viewportCallback(inViewport) {
-    this.updateInViewport(this.activePage_, inViewport);
   }
 
 
@@ -199,48 +186,98 @@ export class AmpStory extends AMP.BaseElement {
 
   /**
    * Gets the ID of the next page in the story (after the current page).
+   * @param {!Element} page The element representing the page whose next page
+   *     should be retrieved.
    * @param {boolean=} opt_isAutomaticAdvance Whether this navigation was caused
    *     by an automatic advancement after a timeout.
-   * @param {!Element} activePage The element representing the page that the
-   *     user is currently on.
    * @return {?string} Returns the ID of the next page in the story, or null if
    *     the document order should be followed.
    * @private
    */
-  getNextPageId_(activePage, opt_isAutomaticAdvance) {
-    if (opt_isAutomaticAdvance && activePage.hasAttribute('auto-advance-to')) {
-      return activePage.getAttribute('auto-advance-to');
+  getNextPageId_(page, opt_isAutomaticAdvance) {
+    if (opt_isAutomaticAdvance && page.hasAttribute('auto-advance-to')) {
+      return page.getAttribute('auto-advance-to');
     }
 
-    return activePage.getAttribute('advance-to');
+    return page.getAttribute('advance-to');
+  }
+
+
+  /**
+   * Gets the page before the specified page.
+   * @param {!Element} page The element representing the page whose previous
+   *     page should be retrieved.
+   * @return {?Element} The element representing the page preceding the
+   *     specified page.
+   */
+  getPreviousPage_(page) {
+    if (page === this.activePage_) {
+      return this.pageHistoryStack_[this.pageHistoryStack_.length - 1];
+    }
+
+    const index = this.pageHistoryStack_.lastIndexOf(page);
+    if (index <= 0) {
+      return page.previousElementSibling;
+    }
+
+    return this.pageHistoryStack_[index - 1];
   }
 
 
   /**
    * Gets the next page that the user should be advanced to, upon navigation.
+   * @param {!Element} page The element representing the page whose next page
+   *     should be retrieved.
    * @param {boolean=} opt_isAutomaticAdvance Whether this navigation was caused
    *     by an automatic advancement after a timeout.
-   * @return {?Element} The element representing the page that the user should
-   *     be advanced to.
+   * @return {?Element} The element representing the page following the
+   *     specified page.
    * @private
    */
-  getNextPage_(opt_isAutomaticAdvance) {
-    const activePage = this.activePage_;
-    const nextPageId = this.getNextPageId_(activePage, opt_isAutomaticAdvance);
+  getNextPage_(page, opt_isAutomaticAdvance) {
+    const nextPageId = this.getNextPageId_(page, opt_isAutomaticAdvance);
 
     if (nextPageId) {
-      return user().assert(
-          this.element.querySelector(`amp-story-page#${nextPageId}`),
-          `Page "${activePage.id}" refers to page "${nextPageId}", but ` +
-          'no such page exists.');
+      return this.getPageById_(nextPageId);
     }
 
-    if (activePage.nextElementSibling === this.systemLayer_.getRoot() ||
-        this.isBookend_(activePage.nextElementSibling)) {
+    if (page.nextElementSibling === this.systemLayer_.getRoot() ||
+        this.isBookend_(page.nextElementSibling)) {
       return null;
     }
 
-    return activePage.nextElementSibling;
+    return page.nextElementSibling;
+  }
+
+
+  /**
+   * Returns all of the pages that are one hop from the specified page.
+   * @param {!Element} page The page whose next pages should be retrieved.
+   * @return {!Array<string>}
+   * @private
+   */
+  getAdjacentPageIds_(page) {
+    const adjacentPageIds = [];
+
+    const autoAdvanceNext =
+        this.getNextPage_(page, true /* opt_isAutomaticAdvance */);
+    const manualAdvanceNext =
+        this.getNextPage_(page, false /* opt_isAutomaticAdvance */);
+    const previous = this.getPreviousPage_(page);
+
+    if (autoAdvanceNext) {
+      adjacentPageIds.push(autoAdvanceNext.id);
+    }
+
+    if (manualAdvanceNext && manualAdvanceNext != autoAdvanceNext) {
+      adjacentPageIds.push(manualAdvanceNext.id);
+    }
+
+    if (previous) {
+      adjacentPageIds.push(previous.id);
+    }
+
+    return adjacentPageIds;
   }
 
 
@@ -251,8 +288,9 @@ export class AmpStory extends AMP.BaseElement {
    * @private
    */
   next_(opt_isAutomaticAdvance) {
-    const activePage = this.activePage_;
-    const nextPage = this.getNextPage_(opt_isAutomaticAdvance);
+    const activePage = dev().assert(this.activePage_,
+        'No active page set when navigating to next page.');
+    const nextPage = this.getNextPage_(activePage, opt_isAutomaticAdvance);
     if (!nextPage) {
       this.showBookend_();
       return;
@@ -265,7 +303,7 @@ export class AmpStory extends AMP.BaseElement {
 
     this.switchTo_(dev().assertElement(nextPage))
         .then(() => this.pageHistoryStack_.push(activePage))
-        .then(() => this.preloadNext_());
+        .then(() => this.preloadPagesByDistance_());
   }
 
 
@@ -274,12 +312,17 @@ export class AmpStory extends AMP.BaseElement {
    * @private
    */
   previous_() {
-    const previousPage = this.pageHistoryStack_.pop();
+    const activePage = dev().assert(this.activePage_,
+        'No active page set when navigating to previous page.');
+    const previousPage = this.getPreviousPage_(activePage);
     if (!previousPage) {
       return;
     }
 
-    this.switchTo_(dev().assertElement(previousPage));
+    const index = this.pageHistoryStack_.lastIndexOf(previousPage);
+    this.pageHistoryStack_.splice(index, 1);
+    this.switchTo_(dev().assertElement(previousPage))
+        .then(() => this.preloadPagesByDistance_());
   }
 
 
@@ -295,7 +338,6 @@ export class AmpStory extends AMP.BaseElement {
       return;
     }
 
-    const activePage = this.activePage_;
     const pageIndex = this.getPageIndex(page);
 
     if (this.shouldEnterFullScreenOnSwitch_()) {
@@ -309,17 +351,23 @@ export class AmpStory extends AMP.BaseElement {
     // TODO(alanorozco): check if autoplay
     this.navigationState_.updateActivePage(pageIndex, page.id);
 
-    this.audioManager_.stop(activePage);
+    if (this.activePage_) {
+      this.audioManager_.stop(this.activePage_);
+    }
+
     this.audioManager_.play(page);
 
     return this.mutateElement(() => {
       page.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
-      activePage.removeAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME);
+      if (this.activePage_) {
+        this.activePage_.removeAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME);
+      }
       this.activePage_ = page;
       this.triggerActiveEventForPage_();
     }, page).then(() => {
-      this.schedulePause(activePage);
-      this.updateInViewport(activePage, false);
+      if (this.activePage_) {
+        this.schedulePause(this.activePage_);
+      }
       this.scheduleResume(page);
       this.updateInViewport(page, true);
     }).then(() => this.maybeScheduleAutoAdvance_());
@@ -341,7 +389,8 @@ export class AmpStory extends AMP.BaseElement {
    * @private
    */
   maybeScheduleAutoAdvance_() {
-    const activePage = this.activePage_;
+    const activePage = dev().assert(this.activePage_,
+        'No active page set when scheduling auto-advance.');
     const autoAdvanceDelay = activePage.getAttribute('auto-advance-delay');
 
     if (!autoAdvanceDelay) {
@@ -441,7 +490,7 @@ export class AmpStory extends AMP.BaseElement {
     this.systemLayer_.toggleCloseBookendButton(true);
     this.isBookendActive_ = true;
 
-    this.getVsync().mutate(() => {
+    this.vsync_.mutate(() => {
       this.element.classList.add('i-amp-story-bookend-active');
       this.bookend_.getRoot()./*OK*/scrollTop = 0;
     });
@@ -456,7 +505,7 @@ export class AmpStory extends AMP.BaseElement {
     this.systemLayer_.toggleCloseBookendButton(false);
     this.isBookendActive_ = false;
 
-    this.getVsync().mutate(() => {
+    this.vsync_.mutate(() => {
       this.element.classList.remove('i-amp-story-bookend-active');
     });
   }
@@ -491,16 +540,77 @@ export class AmpStory extends AMP.BaseElement {
     event.stopPropagation();
   }
 
+
   /**
-   * @private
+   * @return {!Array<!Array<string>>} A 2D array representing lists of pages by
+   *     distance.  The outer array index represents the distance from the
+   *     active page; the inner array is a list of page IDs at the specified
+   *     distance.
    */
-  preloadNext_() {
-    const next = this.getNextPage_();
+  getPagesByDistance_() {
+    const distanceMap = this.getPageDistanceMapHelper_(
+        /* distance */ 0, /* map */ {}, this.activePage_.id);
+
+    // Transpose the map into a 2D array.
+    const pagesByDistance = [];
+    Object.keys(distanceMap).forEach(pageId => {
+      const distance = distanceMap[pageId];
+      if (!pagesByDistance[distance]) {
+        pagesByDistance[distance] = [];
+      }
+      pagesByDistance[distance].push(pageId);
+    });
+
+    return pagesByDistance;
+  }
+
+  /**
+   * Creates a map of a page and all of the pages reachable from that page, by
+   * distance.
+   *
+   * @param {number} distance The distance that the page with the specified
+   *     pageId is from the active page.
+   * @param {!Object<string, number>} map A mapping from pageId to its distance
+   *     from the active page.
+   * @param {string} pageId The page to be added to the map.
+   * @return {!Object<string, number>} A mapping from page ID to the priority of
+   *     that page.
+   */
+  getPageDistanceMapHelper_(priority, map, pageId) {
+    if (map[pageId] !== undefined && map[pageId] <= priority) {
+      return map;
+    }
+
+    map[pageId] = priority;
+    const page = this.getPageById_(pageId);
+    this.getAdjacentPageIds_(page).forEach(adjacentPageId => {
+      if (map[adjacentPageId] !== undefined
+          && map[adjacentPageId] <= priority) {
+        return;
+      }
+
+      map = this.getPageDistanceMapHelper_(priority + 1, map, adjacentPageId);
+    });
+
+    return map;
+  }
+
+
+  /** @private */
+  preloadPagesByDistance_() {
+    const pagesByDistance = this.getPagesByDistance_();
+    pagesByDistance.forEach((pageIds, distance) => {
+      pageIds.forEach(pageId => {
+        const page = this.getPageById_(pageId);
+        setStyles(page, {
+          transform: `translateY(${100 * distance}%)`,
+        });
+      });
+    });
+
+    const next = this.getNextPage_(this.activePage_);
     if (!next) {
       this.buildBookend_();
-    } else {
-      this.schedulePreload(next);
-      this.scheduleLayout(next);
     }
   }
 
@@ -580,6 +690,16 @@ export class AmpStory extends AMP.BaseElement {
     return this.bookend_.isBuilt() && el === this.bookend_.getRoot();
   }
 
+
+  /**
+   * @param {string} id The ID of the page to be retrieved.
+   * @return {!Element} Retrieves the page with the specified ID.
+   */
+  getPageById_(id) {
+    return user().assert(
+        this.element.querySelector(`amp-story-page#${id}`),
+        `Story refers to page "${id}", but no such page exists.`);
+  }
 
   /**
    * @return {!NodeList}

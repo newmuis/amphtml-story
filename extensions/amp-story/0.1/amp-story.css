@@ -140,14 +140,15 @@ amp-story:fullscreen {
 /** Page level */
 amp-story-page {
   bottom: 0 !important;
-  display: block !important;
+  display: none !important;
   left: 0 !important;
   position: absolute !important;
   right: 0 !important;
   top: 0 !important;
-  /* Position the page outside of the viewport.  This is so that pages may be
-   * pre-rendered without being user-visible. */
-  transform: translateX(100%) !important;
+}
+
+amp-story-page.i-amphtml-layout-container {
+  display: block !important;
 }
 
 amp-story-page[active] {
