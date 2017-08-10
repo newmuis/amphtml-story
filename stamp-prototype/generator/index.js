@@ -25,17 +25,12 @@ class SampleGenerator {
   generate() {
     const stamps = this.readStamps();
     this.generateIndexFile(stamps);
-    this.copyStamps(stamps);
   }
 
   generateIndexFile(stamps) {
     const indexTemplate = this.compileTemplate('index.html');
     const indexFile = indexTemplate(stamps);
     this.write('index.html', indexFile);
-  }
-
-  copyStamps(stamps) {
-    stamps.forEach(s => this.write(s.path, s.content));
   }
 
   compileTemplate(name) {
