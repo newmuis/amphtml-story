@@ -107,22 +107,39 @@ export class AudioManager {
     return playable.load();
   }
 
+  /** @private */
+  getMediaElementChilden_(element) {
+    return element.querySelectorAll('[background-audio], audio, video');
+  }
+
   play(sourceElement) {
-    this.load(sourceElement)
+    this.playInternal_(sourceElement)
+        .then(() => {
+          const descendentPlayableElements =
+              this.getMediaElementChilden_(sourceElement);
+
+          descendentPlayableElements.forEach(descendentPlayableElement => {
+            this.play(descendentPlayableElement);
+          });
+        });
+  }
+
+  playInternal_(sourceElement) {
+    return this.load(sourceElement)
         .then(() => this.getPlayable_(sourceElement))
         .then(playable => {
+          if (!playable) {
+            return;
+          }
+
           playable.setVolume(/* volume */ 1, /* durationMs */ 0,
               VOLUME_EASING_FN);
-          return playable;
-        })
-        .then(playable => {
+
           if (this.isMuted_) {
             playable.mute();
           }
-          return playable;
-        })
-        .then(playable => {
-          if (!playable || playable.isPlaying()) {
+
+          if (playable.isPlaying()) {
             return;
           }
 
@@ -292,12 +309,16 @@ class Playable {
   /**
    * Mutes this item, without affecting its volume or play state.
    */
-  mute() {}
+  mute() {
+    this.sourceElement_.setAttribute('muted', '');
+  }
 
   /**
    * Unmutes this item, without affecting its volume or play state.
    */
-  unmute() {}
+  unmute() {
+    this.sourceElement_.removeAttribute('muted');
+  }
 
   /**
    * @return {boolean} true, if this item is muted; false otherwise.
@@ -456,11 +477,13 @@ class BackgroundPlayable extends Playable {
 
   /** @override */
   mute() {
+    super.mute();
     this.setGain_(0);
   }
 
   /** @override */
   unmute() {
+    super.unmute();
     this.setGain_(this.volume_);
   }
 
@@ -476,8 +499,7 @@ class BackgroundPlayable extends Playable {
  */
 class MediaElementPlayable extends Playable {
   constructor(element) {
-    super(dev().assert(element instanceof HTMLMediaElement,
-        'Only media elements can be played.'));
+    super(dev().assertElement(element));
     this.element_ = element;
   }
 
@@ -498,22 +520,8 @@ class MediaElementPlayable extends Playable {
 
   /** @override */
   setVolume(volume, durationMs, easingFn) {
-    const startTimeMs = Date.now();
-
-    function stepVolume() {
-      this.vsync_.mutate(() => {
-        const currentTimeMs = Date.now();
-        const elapsedTimeMs = currentTimeMs - startTimeMs;
-        const currentPercentage = elapsedTimeMs / durationMs;
-        this.element_.volume = easingFn(currentPercentage);
-
-        if (currentPercentage < 1) {
-          stepVolume();
-        }
-      });
-    }
-
-    stepVolume();
+    // TODO(newmuis): Fade to volume over durationMs following easingFn.
+    this.element_.volume = volume;
   }
 
   /** @override */
@@ -524,11 +532,13 @@ class MediaElementPlayable extends Playable {
 
   /** @override */
   mute() {
+    super.mute();
     this.element_.muted = true;
   }
 
   /** @override */
   unmute() {
+    super.unmute();
     this.element_.muted = false;
   }
 
