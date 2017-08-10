@@ -153,12 +153,6 @@ export class AmpStory extends AMP.BaseElement {
     this.navigationState_.installConsumer(new AnalyticsTrigger(this.element));
     this.navigationState_.installConsumer(this.variableService_);
 
-    const firstPage = user().assertElement(
-        this.element.querySelector('amp-story-page'),
-        'Story must have at least one page.');
-
-    this.switchTo_(firstPage);
-
     registerServiceBuilder(this.win, 'story-variable',
         () => this.variableService_);
   }
@@ -166,9 +160,12 @@ export class AmpStory extends AMP.BaseElement {
 
   /** @override */
   layoutCallback() {
-    this.maybeScheduleAutoAdvance_();
-    this.preloadPagesByDistance_();
-    return Promise.resolve();
+    const firstPage = user().assertElement(
+        this.element.querySelector('amp-story-page'),
+        'Story must have at least one page.');
+
+    return this.switchTo_(firstPage)
+        .then(() => this.preloadPagesByDistance_());
   }
 
 
@@ -384,28 +381,28 @@ export class AmpStory extends AMP.BaseElement {
 
 
   /**
-   * If the auto-advance-delay property is set, a timer is set for that
+   * If the auto-advance-after property is set, a timer is set for that
    * duration, after which next_() will be invoked.
    * @private
    */
   maybeScheduleAutoAdvance_() {
     const activePage = dev().assert(this.activePage_,
         'No active page set when scheduling auto-advance.');
-    const autoAdvanceDelay = activePage.getAttribute('auto-advance-delay');
+    const autoAdvanceAfter = activePage.getAttribute('auto-advance-after');
 
-    if (!autoAdvanceDelay) {
+    if (!autoAdvanceAfter) {
       return;
     }
 
     let delayMs;
-    if (TIME_REGEX.MILLISECONDS.test(autoAdvanceDelay)) {
-      delayMs = Number(TIME_REGEX.MILLISECONDS.exec(autoAdvanceDelay)[1]);
-    } else if (TIME_REGEX.SECONDS.test(autoAdvanceDelay)) {
-      delayMs = Number(TIME_REGEX.SECONDS.exec(autoAdvanceDelay)[1]) * 1000;
+    if (TIME_REGEX.MILLISECONDS.test(autoAdvanceAfter)) {
+      delayMs = Number(TIME_REGEX.MILLISECONDS.exec(autoAdvanceAfter)[1]);
+    } else if (TIME_REGEX.SECONDS.test(autoAdvanceAfter)) {
+      delayMs = Number(TIME_REGEX.SECONDS.exec(autoAdvanceAfter)[1]) * 1000;
     }
 
     user().assert(isFiniteNumber(delayMs) && delayMs > 0,
-        `Invalid automatic advance delay '${autoAdvanceDelay}' ` +
+        `Invalid automatic advance delay '${autoAdvanceAfter}' ` +
         `for page '${activePage.id}'.`);
 
     this.win.setTimeout(
