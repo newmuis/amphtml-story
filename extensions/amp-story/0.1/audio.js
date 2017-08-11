@@ -22,15 +22,12 @@ import {Services} from '../../../src/services';
 /** @typedef {{ source: AudioBufferSourceNode, gainNode: GainNode }} */
 let AudioSource;
 
-/** @const {!AudioContext} */
-const context = new (window.AudioContext || window.webkitAudioContext)();
-
 /**
  * The volume to which audio should be reduced when other audio sources are
  * played.
  * @const {number}
  */
-const REDUCED_VOLUME = 0.3;
+const REDUCED_VOLUME = 0.5;
 
 /**
  * @const {number}
@@ -49,18 +46,32 @@ const PLAYABLE_ID_PREFIX = 'i-amphtml-playable-';
 
 
 export class AudioManager {
-  constructor() {
-    /** @const {!Object<!Element, !Playable>} */
+  constructor(win, rootElement) {
+    /** @private @const {!Object<!Element, !Playable>} */
     this.playables_ = {};
 
-    /** @const {!Array<!Playable>} */
+    /** @private @const {!Array<!Playable>} */
     this.nowPlaying_ = [];
 
-    /** @type {number} */
+    /** @private {number} */
     this.nextId_ = 0;
 
-    /** @type {boolean} */
+    /** @private {boolean} */
     this.isMuted_ = true;
+
+    /** @private {!Window} */
+    this.win_ = win;
+
+    /** @private {!Element} */
+    this.rootElement_ = rootElement;
+
+    rootElement.addEventListener('play', e => {
+      this.onMediaElementPlay_(e);
+    }, true);
+
+    rootElement.addEventListener('pause', e => {
+      this.onMediaElementPause_(e);
+    }, true);
   }
 
   /**
@@ -74,17 +85,30 @@ export class AudioManager {
     }
 
     if (sourceElement instanceof HTMLMediaElement) {
-      return new MediaElementPlayable(sourceElement);
-    } else if (sourceElement.hasAttribute('background-audio')) {
-      if (sourceElement.tagName.toLowerCase() === 'amp-story' ||
-          sourceElement.tagName.toLowerCase() === 'amp-story-page') {
-        return new BackgroundPlayable(sourceElement);
+      if (!sourceElement.muted) {
+        return new MediaElementPlayable(this.win_, sourceElement);
       }
+    } else if (sourceElement.hasAttribute('background-audio')) {
+      return new BackgroundPlayable(this.win_, sourceElement);
     }
   }
 
   /**
-   * @param {!Element} sourceElement 
+   * @param {!Event} e
+   */
+  onMediaElementPlay_(e) {
+    this.play(e.target);
+  }
+
+  /**
+   * @param {!Event} e
+   */
+  onMediaElementPause_(e) {
+    this.stop(e.target);
+  }
+
+  /**
+   * @param {!Element} sourceElement
    * @return {?Playable}
    */
   getPlayable_(sourceElement) {
@@ -113,19 +137,7 @@ export class AudioManager {
   }
 
   play(sourceElement) {
-    this.playInternal_(sourceElement)
-        .then(() => {
-          const descendentPlayableElements =
-              this.getMediaElementChilden_(sourceElement);
-
-          descendentPlayableElements.forEach(descendentPlayableElement => {
-            this.play(descendentPlayableElement);
-          });
-        });
-  }
-
-  playInternal_(sourceElement) {
-    return this.load(sourceElement)
+    this.load(sourceElement)
         .then(() => this.getPlayable_(sourceElement))
         .then(playable => {
           if (!playable) {
@@ -137,20 +149,6 @@ export class AudioManager {
 
           if (this.isMuted_) {
             playable.mute();
-          }
-
-          if (playable.isPlaying()) {
-            return;
-          }
-
-          // Stop all siblings.
-          for (let el = sourceElement.parentElement.firstElementChild; el;
-              el = el.nextElementSibling) {
-            if (el === sourceElement) {
-              continue;
-            }
-
-            this.stop(el);
           }
 
           // Reduce the volume of ancestors.
@@ -175,8 +173,11 @@ export class AudioManager {
       return;
     }
 
+    // Stop the audio.
     this.removeFromNowPlaying_(playable);
     playable.stop();
+
+    // TODO(newmuis): Return the volume of ancestor(s).
   }
 
   /**
@@ -243,7 +244,12 @@ export class AudioManager {
 
 
 class Playable {
-  constructor(sourceElement) {
+  constructor(win, sourceElement) {
+    /**
+     * @protected @const {!Window}
+     */
+    this.win = win;
+
     /**
      * The element that is causing audio to be played.
      * @private @const {!Element}
@@ -309,16 +315,12 @@ class Playable {
   /**
    * Mutes this item, without affecting its volume or play state.
    */
-  mute() {
-    this.sourceElement_.setAttribute('muted', '');
-  }
+  mute() {}
 
   /**
    * Unmutes this item, without affecting its volume or play state.
    */
-  unmute() {
-    this.sourceElement_.removeAttribute('muted');
-  }
+  unmute() {}
 
   /**
    * @return {boolean} true, if this item is muted; false otherwise.
@@ -332,8 +334,11 @@ class Playable {
  * WebAudio APIs.
  */
 class BackgroundPlayable extends Playable {
-  constructor(sourceElement) {
-    super(sourceElement);
+  constructor(win, sourceElement) {
+    super(win, sourceElement);
+
+    /** @private @const {!AudioContext} */
+    this.context_ = new (win.AudioContext || win.webkitAudioContext)();
 
     // TODO(newmuis): Assert source URI.
     /** @private @const {string} */
@@ -357,13 +362,13 @@ class BackgroundPlayable extends Playable {
    * @param {!AudioBuffer} buffer 
    */
   createSource_(buffer) {
-    const source = context.createBufferSource();
-    const gainNode = context.createGain();
+    const source = this.context_.createBufferSource();
+    const gainNode = this.context_.createGain();
 
     source.buffer = buffer;
     source.loop = true;
     source.connect(gainNode);
-    gainNode.connect(context.destination);
+    gainNode.connect(this.context_.destination);
 
     this.audioSource_ = {
       source,
@@ -383,7 +388,7 @@ class BackgroundPlayable extends Playable {
       return Promise.resolve(this.buffer_);
     }
 
-    return Services.xhrFor(window)
+    return Services.xhrFor(this.win)
         .fetch(this.sourceUri_)
         .then(response => response.arrayBuffer())
         .then(arrayBuffer => this.decodeAudioData_(arrayBuffer));
@@ -420,7 +425,7 @@ class BackgroundPlayable extends Playable {
    */
   decodeAudioData_(arrayBuffer) {
     return new Promise((resolve, reject) => {
-      context.decodeAudioData(arrayBuffer,
+      this.context_.decodeAudioData(arrayBuffer,
           audioBuffer => resolve(audioBuffer), error => reject(error));
     });
   }
@@ -477,13 +482,11 @@ class BackgroundPlayable extends Playable {
 
   /** @override */
   mute() {
-    super.mute();
     this.setGain_(0);
   }
 
   /** @override */
   unmute() {
-    super.unmute();
     this.setGain_(this.volume_);
   }
 
@@ -498,8 +501,8 @@ class BackgroundPlayable extends Playable {
  * An HTMLMediaElement that potentially has audio.
  */
 class MediaElementPlayable extends Playable {
-  constructor(element) {
-    super(dev().assertElement(element));
+  constructor(win, element) {
+    super(win, element);
     this.element_ = element;
   }
 
@@ -532,13 +535,11 @@ class MediaElementPlayable extends Playable {
 
   /** @override */
   mute() {
-    super.mute();
     this.element_.muted = true;
   }
 
   /** @override */
   unmute() {
-    super.unmute();
     this.element_.muted = false;
   }
 
