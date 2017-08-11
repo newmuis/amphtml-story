@@ -255,7 +255,6 @@ export class AmpStory extends AMP.BaseElement {
    */
   next_(opt_isAutomaticAdvance) {
     const activePage = this.activePage_;
-    this.parallaxService_.animateLeave(activePage);
     const nextPage = this.getNextPage_(opt_isAutomaticAdvance);
     if (!nextPage) {
       this.showBookend_();

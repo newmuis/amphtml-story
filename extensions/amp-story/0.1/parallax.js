@@ -22,7 +22,7 @@ import {Animation} from '../../../src/animation';
 import {viewportForDoc, vsyncFor} from '../../../src/services';
 import * as tr from '../../../src/transition';
 
-const SMOOTHING_PTS = 6;
+const SMOOTHING_PTS = 4;
 const PERSPECTIVE = 100;
 
 /**
@@ -152,14 +152,11 @@ export class ParallaxService {
     }
 
     let mappedX = avgX - this.middleX_;
-    console.log('mappedY(' + (avgY - this.middleY_) + ') = avgY (' + avgY + ') - this.middleY_ (' + this.middleY_ + ')');
     let mappedY = avgY - this.middleY_;
 
-
     // Limit the range for a smoother/less shaky effect
-    mappedX = mapRange(mappedX, -45, 45, -25, 25);
-    mappedY = mapRange(mappedY, -45, 45, -25, 25);
-
+    mappedX = mapRange(mappedX, -75, 75, -25, 25);
+    mappedY = mapRange(mappedY, -75, 75, -25, 25);
 
     elements.forEach(element => {
       if (element.shouldUpdate(viewport)) {
@@ -198,9 +195,15 @@ export class ParallaxElement {
     /** @private {number} */
     this.total_ = total;
 
+    // We offset each element in the z-direction by its factor (its layer order
+    // within the page)
     /** @private {number} */
     this.offsetZ_ = -this.factor_ * (PERSPECTIVE/this.total_);
 
+    // We use a scale factor to both correct perspective and to set the minimum
+    // element size to 1.1 times its original size (so that we can safely move
+    // the element without hitting its border, especially useful for background
+    // images)
     /** @private {number} */
     this.scaleFactor_ = 1.1 + (this.offsetZ_ * -1) / PERSPECTIVE;
   }
@@ -225,8 +228,7 @@ export class ParallaxElement {
 
     setStyles(this.element_, {
         transform: translateZ + scale + translateX + translateY,
-      }
-    );
+    });
   }
 
   /**
