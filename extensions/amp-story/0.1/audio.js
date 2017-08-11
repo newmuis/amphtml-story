@@ -141,19 +141,7 @@ export class AudioManager {
   }
 
   play(sourceElement) {
-    this.playInternal_(sourceElement)
-        .then(() => {
-          const descendentPlayableElements =
-              this.getMediaElementChilden_(sourceElement);
-
-          descendentPlayableElements.forEach(descendentPlayableElement => {
-            this.play(descendentPlayableElement);
-          });
-        });
-  }
-
-  playInternal_(sourceElement) {
-    return this.load(sourceElement)
+    this.load(sourceElement)
         .then(() => this.getPlayable_(sourceElement))
         .then(playable => {
           if (!playable) {
@@ -169,9 +157,16 @@ export class AudioManager {
             playable.mute();
           }
 
+<<<<<<< HEAD
           if (playable.isPlaying()) {
 >>>>>>> 4a34b67f... Partial implementation of playing media embeds through AudioManager.
             return;
+=======
+          // Reduce the volume of ancestors.
+          for (let el = sourceElement.parentElement; el;
+              el = el.parentElement) {
+            this.setVolume(el, REDUCED_VOLUME);
+>>>>>>> b4d4ef91... Partial implementation of hooking into HTMLMediaElement events
           }
 
           // Play the audio.
@@ -193,6 +188,8 @@ export class AudioManager {
     // Stop the audio.
     this.removeFromNowPlaying_(playable);
     playable.stop();
+
+    // TODO(newmuis): Return the volume of ancestor(s).
   }
 
   /**
@@ -345,16 +342,12 @@ class Playable {
   /**
    * Mutes this item, without affecting its volume or play state.
    */
-  mute() {
-    this.sourceElement_.setAttribute('muted', '');
-  }
+  mute() {}
 
   /**
    * Unmutes this item, without affecting its volume or play state.
    */
-  unmute() {
-    this.sourceElement_.removeAttribute('muted');
-  }
+  unmute() {}
 
   /**
    * @return {boolean} true, if this item is muted; false otherwise.
@@ -516,13 +509,11 @@ class BackgroundPlayable extends Playable {
 
   /** @override */
   mute() {
-    super.mute();
     this.setGain_(0);
   }
 
   /** @override */
   unmute() {
-    super.unmute();
     this.setGain_(this.volume_);
   }
 
@@ -538,12 +529,17 @@ class BackgroundPlayable extends Playable {
  */
 class MediaElementPlayable extends Playable {
 <<<<<<< HEAD
+<<<<<<< HEAD
   constructor(win, element) {
     super(win, element);
 =======
   constructor(element) {
     super(dev().assertElement(element));
 >>>>>>> 4a34b67f... Partial implementation of playing media embeds through AudioManager.
+=======
+  constructor(win, element) {
+    super(win, element);
+>>>>>>> b4d4ef91... Partial implementation of hooking into HTMLMediaElement events
     this.element_ = element;
   }
 
@@ -576,13 +572,11 @@ class MediaElementPlayable extends Playable {
 
   /** @override */
   mute() {
-    super.mute();
     this.element_.muted = true;
   }
 
   /** @override */
   unmute() {
-    super.unmute();
     this.element_.muted = false;
   }
 
