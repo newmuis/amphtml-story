@@ -43,9 +43,9 @@ limitations under the License.
 
 ## Behavior
 
-The `amp-form` extension allows the usage of forms and input fields in an AMP document. The extension allows polyfilling some of the missing behaviors in browsers.
+The `amp-form` extension allows the usage of forms to submit input fields in an AMP document. The extension allows polyfilling some of the missing behaviors in browsers.
 
-The `amp-form` extension **MUST** be loaded if you're using `<form>` or any input tags, otherwise your document will be invalid!
+The `amp-form` extension **MUST** be loaded if you're using `<form>`, otherwise your document will be invalid! Use of `input` tags for purposes other than submitting their values (e.g. inputs not inside a `<form>`) is valid without loading `amp-form` extension.
 
 <div>
   <amp-iframe height="671"
@@ -54,7 +54,7 @@ The `amp-form` extension **MUST** be loaded if you're using `<form>` or any inpu
             resizable
             src="https://ampproject-b5f4c.firebaseapp.com/examples/ampform.basic.embed.html">
   <div overflow tabindex="0" role="button" aria-label="Show more">Show full code</div>
-  <div placeholder></div> 
+  <div placeholder></div>
   </amp-iframe>
 </div>
 
@@ -145,7 +145,7 @@ For example, a common use case is to submit a form on input change (selecting a 
             resizable
             src="https://ampproject-b5f4c.firebaseapp.com/examples/ampform.inputevent.embed.html">
   <div overflow tabindex="0" role="button" aria-label="Show more">Show full code</div>
-  <div placeholder></div> 
+  <div placeholder></div>
 </amp-iframe>
 </div>
 
@@ -310,7 +310,7 @@ Here's an example:
             resizable
             src="https://ampproject-b5f4c.firebaseapp.com/examples/ampform.customval.embed.html">
   <div overflow tabindex="0" role="button" aria-label="Show more">Show full code</div>
-  <div placeholder></div> 
+  <div placeholder></div>
 </amp-iframe>
 </div>
 
@@ -331,6 +331,9 @@ The `show-all-on-submit` reporting option shows all validation errors on all inv
 #### As You Go
 The `as-you-go` reporting option allows your user to see validation messages as they're interacting with the input. For example, if the user types an invalid email address, the user will see the error right away.  Once they correct the value, the error goes away.
 
+#### Interact and Submit
+The `interact-and-submit` reporting option combines the behavior of `show-all-on-submit` and `as-you-go`. Individual fields will show any errors immediately after interactions, and on submit the form will show errors on all invalid fields.
+
 ## Verification (Experimental)
 
 This feature is still experimental, so you need to [enable the experiment](https://www.ampproject.org/docs/reference/experimental) to use form verification.
@@ -343,22 +346,9 @@ Here's an example:
 <form
   method="post"
   action-xhr="/form/verify-json/post"
+  verify-xhr="/form/verify-json/post"
   target="_blank"
 >
-    <script type="application/json">
-    {
-      "verificationGroups": [
-        {
-          "name": "uniqueEmail",
-          "elements": ["email"]
-        },
-        {
-          "name": "fullAddress",
-          "elements": ["addressLine2", "city", "zip"]
-        },
-      ]
-    }
-    </script>
     <fieldset>
         <label>
             <span>Email</span>
@@ -391,8 +381,12 @@ Here's an example:
         </template>
     </div>
 </form>
+```
 
-The form sends a `__amp_form_verify` field as part of the form data to let the server know the request is a verify request and not a formal submit.
+The form sends a `__amp_form_verify` field as part of the form data as a hint to
+the server that the request is a verify request and not a formal submit.
+This is helpful so the server knows not to store the verify request if the same
+endpoint is used for verification and for submit.
 
 ```
 
@@ -463,3 +457,9 @@ In general, keep in mind the following points when accepting input from the user
     * non-XHR GET requests are not going to receive accurate origin/headers and backends won't be able to protect against XSRF with the above mechanism.
     * In general use XHR/non-XHR GET requests for navigational or information retrieval only.
 * non-XHR POST requests are not allowed in AMP documents. This is due to inconsistencies of setting `Origin` header on these requests across browsers. And the complications supporting it would introduce in protecting against XSRF. This might be reconsidered and introduced later, please file an issue if you think this is needed.
+
+## Styling
+
+{% call callout('Tip', type='success') %}
+Visit [AMP Start](https://ampstart.com/components#form-elements) for responsive, pre-styled AMP form elements that you can use in your AMP pages.
+{% endcall %}

@@ -21,9 +21,8 @@ import {
 } from '../service';
 import {getMode} from '../mode';
 import {dev} from '../log';
-import {map} from '../utils/object';
-import {timerFor} from '../services';
-import {viewerForDoc} from '../services';
+import {dict, map} from '../utils/object';
+import {Services} from '../services';
 
 /** @private @const */
 const TAG_ = 'History';
@@ -46,7 +45,7 @@ export class History {
     this.ampdoc_ = ampdoc;
 
     /** @private @const {!../service/timer-impl.Timer} */
-    this.timer_ = timerFor(ampdoc.win);
+    this.timer_ = Services.timerFor(ampdoc.win);
 
     /** @private @const {!HistoryBindingInterface} */
     this.binding_ = binding;
@@ -329,7 +328,7 @@ export class HistoryBindingNatural_ {
     this.win = win;
 
     /** @private @const {!../service/timer-impl.Timer} */
-    this.timer_ = timerFor(win);
+    this.timer_ = Services.timerFor(win);
 
     const history = this.win.history;
 
@@ -764,7 +763,7 @@ export class HistoryBindingVirtual_ {
     // Current implementation doesn't wait for response from viewer.
     this.updateStackIndex_(this.stackIndex_ + 1);
     return this.viewer_.sendMessageAwaitResponse(
-        'pushHistory', {stackIndex: this.stackIndex_}).then(() => {
+        'pushHistory', dict({'stackIndex': this.stackIndex_})).then(() => {
           return this.stackIndex_;
         });
   }
@@ -775,14 +774,14 @@ export class HistoryBindingVirtual_ {
       return Promise.resolve(this.stackIndex_);
     }
     return this.viewer_.sendMessageAwaitResponse(
-        'popHistory', {stackIndex: this.stackIndex_}).then(() => {
+        'popHistory', dict({'stackIndex': this.stackIndex_})).then(() => {
           this.updateStackIndex_(stackIndex - 1);
           return this.stackIndex_;
         });
   }
 
   /**
-   * @param {!JSONType} data
+   * @param {!JsonObject} data
    * @private
    */
   onHistoryPopped_(data) {
@@ -811,10 +810,11 @@ export class HistoryBindingVirtual_ {
     }
     return this.viewer_.sendMessageAwaitResponse('getFragment', undefined,
         /* cancelUnsent */true).then(
-        hash => {
-          if (!hash) {
+        data => {
+          if (!data) {
             return '';
           }
+          let hash = dev().assertString(data);
           /* Strip leading '#'*/
           if (hash[0] == '#') {
             hash = hash.substr(1);
@@ -829,7 +829,8 @@ export class HistoryBindingVirtual_ {
       return Promise.resolve();
     }
     return /** @type {!Promise} */ (this.viewer_.sendMessageAwaitResponse(
-        'replaceHistory', {fragment}, /* cancelUnsent */true));
+        'replaceHistory', dict({'fragment': fragment}),
+        /* cancelUnsent */true));
   }
 }
 
@@ -840,7 +841,7 @@ export class HistoryBindingVirtual_ {
  * @private
  */
 function createHistory(ampdoc) {
-  const viewer = viewerForDoc(ampdoc);
+  const viewer = Services.viewerForDoc(ampdoc);
   let binding;
   if (viewer.isOvertakeHistory() || getMode(ampdoc.win).test ||
           ampdoc.win.AMP_TEST_IFRAME) {

@@ -92,6 +92,18 @@ export function getVendorJsPropertyName(style, camelCase, opt_bypassCache) {
 
 
 /**
+ * Sets the CSS styles of the specified element with !important. The styles
+ * are specified as a map from CSS property names to their values.
+ * @param {!Element} element
+ * @param {!Object<string, *>} styles
+ */
+export function setImportantStyles(element, styles) {
+  element.style.cssText +=
+      Object.keys(styles).map(k => `${k}:${styles[k]}!important;`).join('');
+}
+
+
+/**
  * Sets the CSS style of the specified element with optional units, e.g. "px".
  * @param {Element} element
  * @param {string} property
@@ -190,7 +202,7 @@ export function translate(x, opt_y) {
   if (typeof opt_y == 'number') {
     opt_y = px(opt_y);
   }
-  return `translate(${x},${opt_y})`;
+  return `translate(${x}, ${opt_y})`;
 }
 
 
@@ -226,4 +238,18 @@ export function removeAlphaFromColor(rgbaColor) {
 export function computedStyle(win, el) {
   const style = /** @type {?CSSStyleDeclaration} */(win.getComputedStyle(el));
   return /** @type {!Object<string, string>} */(style) || map();
+}
+
+
+/**
+ * Resets styles that were set dynamically (i.e. inline)
+ * @param {!Element} element
+ * @param {!Array<string>} properties
+ */
+export function resetStyles(element, properties) {
+  const styleObj = {};
+  properties.forEach(prop => {
+    styleObj[prop] = null;
+  });
+  setStyles(element, styleObj);
 }

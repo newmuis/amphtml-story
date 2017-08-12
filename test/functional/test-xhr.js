@@ -527,14 +527,16 @@ describe('XHR', function() {
           setupMockXhr();
           expect(requests[0]).to.be.undefined;
           const promise = xhr.fetch(
-            '/index.html').then(response => {
-              expect(response.headers.get('X-foo-header')).to.equal('foo data');
-              expect(response.headers.get('X-bar-header')).to.equal('bar data');
-              response.arrayBuffer().then(
-                bytes => utf8FromArrayBuffer(bytes)).then(text => {
-                  expect(text).to.equal(creative);
-                });
-            });
+              '/index.html').then(response => {
+                expect(response.headers.get('X-foo-header')).to
+                    .equal('foo data');
+                expect(response.headers.get('X-bar-header')).to
+                    .equal('bar data');
+                response.arrayBuffer().then(
+                    bytes => utf8FromArrayBuffer(bytes)).then(text => {
+                      expect(text).to.equal(creative);
+                    });
+              });
           requests[0].respond(200, {
             'Content-Type': 'text/xml',
             'Access-Control-Expose-Headers':
@@ -569,7 +571,7 @@ describe('XHR', function() {
           });
           expect(requests[0].requestHeaders).to.deep.equal({
             'Accept': 'application/json',
-            'Content-Type': 'application/json;charset=utf-8',
+            'Content-Type': 'text/plain;charset=utf-8',
             'Other': 'another',  // Not removed when other headers set.
           });
         });
@@ -580,6 +582,9 @@ describe('XHR', function() {
           method: 'POST',
           body: {
             hello: 'world',
+          },
+          headers: {
+            'Content-Type': 'application/json;charset=utf-8',
           },
         }).then(res => res.json()).then(res => {
           expect(res.json).to.jsonEqual({

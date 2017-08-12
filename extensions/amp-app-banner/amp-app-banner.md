@@ -22,10 +22,6 @@ limitations under the License.
     <td>A wrapper and minimal UI for a cross-platform, fixed-position banner showing a call-to-action to install an app. Includes conditional logic to direct to the right app on the right platform, and to hide permanently if the user dismisses the banner.</td>
   </tr>
   <tr>
-    <td width="40%"><strong>Availability</strong></td>
-    <td>Stable</td>
-  </tr>
-  <tr>
     <td width="40%"><strong>Required Script</strong></td>
     <td>
       <div>
@@ -42,6 +38,8 @@ limitations under the License.
     <td><a href="https://ampbyexample.com/components/amp-app-banner/">Annotated code example for amp-app-banner</a></td>
   </tr>
 </table>
+
+[TOC]
 
 ## Behavior
 `amp-app-banner` is a wrapper and minimal UI for a cross-platform, fixed-position banner showing a call-to-action to install an app. Includes conditional logic to direct to the right app on the right platform, and to hide permanently if the user dismisses the banner.
@@ -138,17 +136,17 @@ Currently, the banner will be displayed always unless it was dismissed. Once dis
 
 ### Attributes on `amp-app-banner`
 
-**id** (Required)
+##### id (Required)
 
 A unique identifier for an amp-app-banner; used for persistence logic.
 
-**layout** (Required)
+##### layout (Required)
 
 The value must be `nodisplay`. 
 
 ### Attributes on `button` descendant element
 
-**open-button** (Required)
+##### open-button (Required)
 
 The click target for the banner to install the app, or open the deep-link if the app is already installed.
 
@@ -192,4 +190,4 @@ Not permitted: **disabled**
 
 ## Validation
 
-See [amp-app-banner rules](https://github.com/ampproject/amphtml/blob/master/extensions/amp-app-banner/0.1/validator-amp-app-banner.protoascii) in the AMP validator specification.
+See [amp-app-banner rules](https://github.com/ampproject/amphtml/blob/master/extensions/amp-app-banner/validator-amp-app-banner.protoascii) in the AMP validator specification.

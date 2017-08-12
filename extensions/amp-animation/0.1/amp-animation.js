@@ -19,7 +19,7 @@ import {ScrollboundScene} from './scrollbound-scene';
 import {Pass} from '../../../src/pass';
 import {WebAnimationPlayState} from './web-animation-types';
 import {childElementByTag} from '../../../src/dom';
-import {getFriendlyIframeEmbedOptional,}
+import {getFriendlyIframeEmbedOptional}
     from '../../../src/friendly-iframe-embed';
 import {getMode} from '../../../src/mode';
 import {getParentWindowFrameElement} from '../../../src/service';
@@ -29,9 +29,10 @@ import {listen} from '../../../src/event-helper';
 import {setStyles} from '../../../src/style';
 import {tryParseJson} from '../../../src/json';
 import {user, dev} from '../../../src/log';
-import {viewerForDoc} from '../../../src/services';
+import {Services} from '../../../src/services';
 
 const TAG = 'amp-animation';
+const POLYFILLED = '__AMP_WA';
 
 
 export class AmpAnimation extends AMP.BaseElement {
@@ -52,7 +53,7 @@ export class AmpAnimation extends AMP.BaseElement {
     /** @private {?../../../src/friendly-iframe-embed.FriendlyIframeEmbed} */
     this.embed_ = null;
 
-    /** @private {?JSONType} */
+    /** @private {?JsonObject} */
     this.configJson_ = null;
 
     /** @private {?./web-animations.WebAnimationRunner} */
@@ -124,12 +125,12 @@ export class AmpAnimation extends AMP.BaseElement {
       });
       listen(this.embed_.win, 'resize', () => this.onResize_());
     } else {
-      const viewer = viewerForDoc(ampdoc);
+      const viewer = Services.viewerForDoc(ampdoc);
       this.setVisible_(viewer.isVisible());
       viewer.onVisibilityChanged(() => {
         this.setVisible_(viewer.isVisible());
       });
-      this.getViewport().onChanged(e => {
+      this.getViewport().onResize(e => {
         if (e.relayoutAll) {
           this.onResize_();
         }
@@ -150,10 +151,10 @@ export class AmpAnimation extends AMP.BaseElement {
 
   /**
    * Returns the animation spec.
-   * @return {?JSONType}
+   * @return {?JsonObject}
    */
   getAnimationSpec() {
-    return /** @type {?JSONType} */ (this.configJson_);
+    return /** @type {?JsonObject} */ (this.configJson_);
   }
 
   /** @override */
@@ -291,7 +292,7 @@ export class AmpAnimation extends AMP.BaseElement {
   }
 
   /**
-   * @param {?JSONType=} opt_args
+   * @param {?JsonObject=} opt_args
    * @return {?Promise}
    * @private
    */
@@ -332,7 +333,7 @@ export class AmpAnimation extends AMP.BaseElement {
   }
 
   /**
-   * @param {?JSONType=} opt_args
+   * @param {?JsonObject=} opt_args
    * @return {!Promise<!./web-animations.WebAnimationRunner>}
    * @private
    */
@@ -345,9 +346,7 @@ export class AmpAnimation extends AMP.BaseElement {
         opt_args || null);
 
     // Ensure polyfill is installed.
-    if (!this.win.Element.prototype.animate) {
-      installWebAnimations(this.win);
-    }
+    ensurePolyfillInstalled(this.win);
 
     const ampdoc = this.getAmpDoc();
     const readyPromise = this.embed_ ? this.embed_.whenReady() :
@@ -420,6 +419,16 @@ export class AmpAnimation extends AMP.BaseElement {
       this.runner_.scrollTick.bind(this.runner_), /* onScroll */
       this.runner_.updateScrollDuration.bind(this.runner_) /* onDurationChanged */
     );
+  }
+}
+
+/**
+ * @param {!Window} win
+ */
+function ensurePolyfillInstalled(win) {
+  if (!win[POLYFILLED]) {
+    win[POLYFILLED] = true;
+    installWebAnimations(win);
   }
 }
 

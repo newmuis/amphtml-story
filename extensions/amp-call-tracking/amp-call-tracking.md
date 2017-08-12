@@ -32,6 +32,8 @@ limitations under the License.
   </tr>
 </table>
 
+[TOC]
+
 ## Usage
 
 The `<amp-call-tracking>` tag must wrap a normal anchor tag that hyperlinks a
@@ -51,7 +53,7 @@ Each unique CORS endpoint is called only once per page.
 
 ## Attributes
 
-**config** (required)
+##### config (required)
 
 Defines a CORS URL. The URL's protocol must be HTTPS. The response must consist
 of a valid JSON object with the following fields:
@@ -65,7 +67,7 @@ Your XHR endpoint must implement the requirements specified in the [CORS Request
 
 ## Validation
 
-See [amp-call-tracking rules](https://github.com/ampproject/amphtml/blob/master/extensions/amp-call-tracking/0.1/validator-amp-call-tracking.protoascii) in the AMP validator specification.
+See [amp-call-tracking rules](https://github.com/ampproject/amphtml/blob/master/extensions/amp-call-tracking/validator-amp-call-tracking.protoascii) in the AMP validator specification.
 
 ## See also
 

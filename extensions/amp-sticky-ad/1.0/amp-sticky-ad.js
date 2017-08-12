@@ -20,15 +20,11 @@ import {Layout} from '../../../src/layout';
 import {dev,user} from '../../../src/log';
 import {removeElement} from '../../../src/dom';
 import {toggle, computedStyle} from '../../../src/style';
-import {isExperimentOn} from '../../../src/experiments';
 import {
   setStyle,
   removeAlphaFromColor,
 } from '../../../src/style';
 import {whenUpgradedToCustomElement} from '../../../src/dom';
-
-/** @const */
-const EARLY_LOAD_EXPERIMENT = 'sticky-ad-early-load';
 
 class AmpStickyAd extends AMP.BaseElement {
   /** @param {!AmpElement} element */
@@ -76,7 +72,8 @@ class AmpStickyAd extends AMP.BaseElement {
     });
 
     const paddingBar = this.win.document.createElement(
-         'amp-sticky-ad-top-padding');
+        'amp-sticky-ad-top-padding');
+    paddingBar.classList.add('amp-sticky-ad-top-padding');
     this.element.insertBefore(paddingBar, this.ad_);
 
     // On viewport scroll, check requirements for amp-stick-ad to display.
@@ -139,14 +136,8 @@ class AmpStickyAd extends AMP.BaseElement {
    */
   onScroll_() {
     const scrollTop = this.viewport_.getScrollTop();
-    if (isExperimentOn(this.win, EARLY_LOAD_EXPERIMENT) && scrollTop > 1) {
-      this.display_();
-      return;
-    }
-
-    const viewportHeight = this.viewport_.getSize().height;
-    // Check user has scrolled at least one viewport from init position.
-    if (scrollTop > viewportHeight) {
+    if (scrollTop > 1) {
+      // Check greater than 1 because AMP set scrollTop to 1 in iOS.
       this.display_();
     }
   }

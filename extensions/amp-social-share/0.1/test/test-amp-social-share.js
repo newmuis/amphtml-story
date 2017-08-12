@@ -19,7 +19,7 @@ import {adopt} from '../../../../src/runtime';
 import {createIframePromise} from '../../../../testing/iframe';
 import * as sinon from 'sinon';
 import '../amp-social-share';
-import {platformFor} from '../../../../src/services';
+import {Services} from '../../../../src/services';
 
 adopt(window);
 
@@ -61,7 +61,7 @@ describe('amp-social-share', () => {
 
   function getCustomShare(modifier) {
     return createIframePromise().then(iframe => {
-      platform = platformFor(iframe.win);
+      platform = Services.platformFor(iframe.win);
       sandbox.stub(platform, 'isIos', () => isIos);
       sandbox.stub(platform, 'isSafari', () => isSafari);
       const canonical = iframe.doc.createElement('link');
@@ -92,7 +92,7 @@ describe('amp-social-share', () => {
       iframe.doc.body.appendChild(share);
       return expect(share.whenBuilt())
           .to.be.eventually.rejectedWith(
-            /data-share-endpoint attribute is required/
+          /data-share-endpoint attribute is required/
           );
     });
   });
@@ -113,7 +113,7 @@ describe('amp-social-share', () => {
       iframe.doc.body.appendChild(share);
       return expect(share.whenBuilt())
           .to.be.eventually.rejectedWith(
-            /Space characters are not allowed in type attribute value/
+          /Space characters are not allowed in type attribute value/
           );
     });
   });
@@ -183,7 +183,7 @@ describe('amp-social-share', () => {
       el.implementation_.handleClick_();
       expect(el.implementation_.win.open).to.be.calledOnce;
       expect(el.implementation_.win.open).to.be.calledWith(
-        'https://twitter.com/intent/tweet?text=doc%20title&' +
+          'https://twitter.com/intent/tweet?text=doc%20title&' +
           'url=https%3A%2F%2Fcanonicalexample.com%2F',
           '_blank', 'resizable,scrollbars,width=640,height=480'
       );
@@ -232,7 +232,7 @@ describe('amp-social-share', () => {
       el.implementation_.handleKeyPress_(activationEvent);
       expect(el.implementation_.win.open).to.be.calledOnce;
       expect(el.implementation_.win.open).to.be.calledWith(
-        'https://twitter.com/intent/tweet?text=doc%20title&' +
+          'https://twitter.com/intent/tweet?text=doc%20title&' +
           'url=https%3A%2F%2Fcanonicalexample.com%2F',
           '_blank', 'resizable,scrollbars,width=640,height=480'
       );

@@ -15,13 +15,13 @@
  */
 
 import {isExperimentOn} from '../../../src/experiments';
-import {xhrFor} from '../../../src/services';
-import {historyForDoc} from '../../../src/services';
+import {Services} from '../../../src/services';
 import {registerServiceBuilder} from '../../../src/service';
 import {Layout} from '../../../src/layout';
 import {base64UrlEncodeFromBytes} from '../../../src/utils/base64';
 import {getCryptoRandomBytesArray} from '../../../src/utils/bytes';
 import {dev, user} from '../../../src/log';
+import {dict} from '../../../src/utils/object';
 
 /** @private @const {string} */
 const TAG = 'amp-share-tracking';
@@ -140,9 +140,9 @@ export class AmpShareTracking extends AMP.BaseElement {
     const postReq = {
       method: 'POST',
       credentials: 'include',
-      body: {},
+      body: dict(),
     };
-    return xhrFor(this.win).fetchJson(vendorUrl, postReq)
+    return Services.xhrFor(this.win).fetchJson(vendorUrl, postReq)
         .then(res => res.json())
         .then(json => {
           if (json.fragment) {
@@ -208,7 +208,7 @@ export class AmpShareTracking extends AMP.BaseElement {
 
   /** @private @return {!../../../src/service/history-impl.History} */
   getHistory_() {
-    return historyForDoc(this.getAmpDoc());
+    return Services.historyForDoc(this.getAmpDoc());
   }
 
 }

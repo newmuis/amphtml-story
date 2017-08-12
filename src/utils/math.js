@@ -33,7 +33,7 @@
  * @param {number} max1 the upper bound of the source range
  * @param {number} min2 the lower bound of the target range
  * @param {number} max2 the upper bound of the target range
- * @return {number} the equivalent value in the target range
+ * @return {!number} the equivalent value in the target range
  */
 export function mapRange(val, min1, max1, min2, max2) {
 

@@ -15,6 +15,7 @@
  */
 import {StateChangeType} from './navigation-state';
 import {dev} from '../../../src/log';
+import {hasOwn, map} from '../../../src/utils/object';
 import {triggerAnalyticsEvent} from '../../../src/analytics';
 
 
@@ -54,7 +55,9 @@ export class AnalyticsTrigger {
    */
   constructor(element) {
     this.element_ = element;
-    this.pagesSeen_ = new Set();
+
+    /** @private @const {!Object<string, boolean>} */
+    this.pagesSeen_ = map();
   }
 
   /**
@@ -81,7 +84,7 @@ export class AnalyticsTrigger {
         'pageId': pageId,
       });
 
-      this.pagesSeen_.add(pageIndex);
+      this.pagesSeen_[pageIndex] = true;
     }
   }
 
@@ -90,7 +93,7 @@ export class AnalyticsTrigger {
    * @return {boolean}
    */
   shouldTriggerPageVisible_(pageIndex) {
-    return !this.pagesSeen_.has(pageIndex);
+    return !hasOwn(this.pagesSeen_, pageIndex);
   }
 
   /**

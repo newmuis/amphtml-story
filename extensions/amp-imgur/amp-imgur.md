@@ -39,27 +39,29 @@ limitations under the License.
   </tr>
 </table>
 
+[TOC]
+
 ## Behavior
 
 This extension creates an iframe and displays the imgur post. 
 
 ## Attributes
 
-**data-imgur-id** (required)
+##### data-imgur-id (required)
 
 The ID of the imgur to embed.
 
-**layout** (required)
+##### layout (required)
 
 Currently only supports `responsive`.
 
-**width** (required)
+##### width (required)
 
 The width of the imgur.
 
-**height** (required)
+##### height (required)
 
 The width of the imgur.
 
 ## Validation
-See [amp-imgur rules](https://github.com/ampproject/amphtml/blob/master/extensions/amp-imgur/0.1/validator-amp-imgur.protoascii) in the AMP validator specification.
+See [amp-imgur rules](https://github.com/ampproject/amphtml/blob/master/extensions/amp-imgur/validator-amp-imgur.protoascii) in the AMP validator specification.

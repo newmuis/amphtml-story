@@ -130,16 +130,6 @@ var forbiddenTerms = {
   '\\.prefetch\\(': {
     message: 'Do not use preconnect.prefetch, use preconnect.preload instead.',
   },
-  'documentStateFor': {
-    message: privateServiceFactory,
-    whitelist: [
-      'src/custom-element.js',
-      'src/style-installer.js',
-      'src/service/document-state.js',
-      'src/service/viewer-impl.js',
-      'src/service/vsync-impl.js',
-    ],
-  },
   'iframePing': {
     message: 'This is only available in vendor config for ' +
         'temporary workarounds.',
@@ -174,13 +164,20 @@ var forbiddenTerms = {
   'cidServiceForDocForTesting': {
     message: privateServiceFactory,
     whitelist: [
-      'extensions/amp-analytics/0.1/cid-impl.js',
+      'src/service/cid-impl.js',
     ],
   },
   'installCryptoService': {
     message: privateServiceFactory,
     whitelist: [
       'src/service/crypto-impl.js',
+      'src/runtime.js',
+    ],
+  },
+  'installDocumentStateService': {
+    message: privateServiceFactory,
+    whitelist: [
+      'src/service/document-state.js',
       'src/runtime.js',
     ],
   },
@@ -277,6 +274,7 @@ var forbiddenTerms = {
       // TODO(@zhouyx, #9213) Remove this item.
       'extensions/amp-ad/0.1/amp-ad-xorigin-iframe-handler.js',
       'extensions/amp-animation/0.1/scrollbound-scene.js',
+      'src/service/video-manager-impl.js',
     ],
   },
   'initLogConstructor|setReportError': {
@@ -284,6 +282,7 @@ var forbiddenTerms = {
     whitelist: [
       '3p/integration.js',
       '3p/ampcontext-lib.js',
+      '3p/iframe-transport-client-lib.js',
       'ads/alp/install-alp.js',
       'ads/inabox/inabox-host.js',
       'dist.3p/current/integration.js',
@@ -324,9 +323,10 @@ var forbiddenTerms = {
     message: 'Usages must be reviewed.',
     whitelist: [
       'src/service/viewer-impl.js',
+      'src/service/viewer-cid-api.js',
       'src/service/storage-impl.js',
       'src/service/history-impl.js',
-      'extensions/amp-analytics/0.1/cid-impl.js',
+      'src/service/cid-impl.js',
       'extensions/amp-access/0.1/login-dialog.js',
       'extensions/amp-access/0.1/signin.js',
     ],
@@ -347,7 +347,7 @@ var forbiddenTerms = {
   'getBaseCid': {
     message: requiresReviewPrivacy,
     whitelist: [
-      'extensions/amp-analytics/0.1/cid-impl.js',
+      'src/service/cid-impl.js',
       'src/service/viewer-impl.js',
     ],
   },
@@ -356,7 +356,7 @@ var forbiddenTerms = {
     whitelist: [
       'build-system/test-server.js',
       'src/cookies.js',
-      'extensions/amp-analytics/0.1/cid-impl.js',
+      'src/service/cid-impl.js',
       'extensions/amp-analytics/0.1/vendors.js',
       'testing/fake-dom.js',
     ],
@@ -364,7 +364,8 @@ var forbiddenTerms = {
   'getCookie\\W': {
     message: requiresReviewPrivacy,
     whitelist: [
-      'extensions/amp-analytics/0.1/cid-impl.js',
+      'src/service/cid-impl.js',
+      'src/service/cid-api.js',
       'src/cookies.js',
       'src/experiments.js',
       'tools/experiments/experiments.js',
@@ -373,7 +374,8 @@ var forbiddenTerms = {
   'setCookie\\W': {
     message: requiresReviewPrivacy,
     whitelist: [
-      'extensions/amp-analytics/0.1/cid-impl.js',
+      'src/service/cid-impl.js',
+      'src/service/cid-api.js',
       'src/cookies.js',
       'src/experiments.js',
       'tools/experiments/experiments.js',
@@ -383,8 +385,10 @@ var forbiddenTerms = {
     message: requiresReviewPrivacy,
     whitelist: [
       'src/service/viewer-impl.js',
+      'src/service/viewer-cid-api.js',
       'src/inabox/inabox-viewer.js',
-      'extensions/amp-analytics/0.1/cid-impl.js',
+      'src/service/cid-impl.js',
+      'src/impression.js',
     ],
   },
   'eval\\(': {
@@ -397,6 +401,7 @@ var forbiddenTerms = {
     message: requiresReviewPrivacy,
     whitelist: [
       'src/services.js',
+      'src/service/cid-impl.js',
       'extensions/amp-user-notification/0.1/amp-user-notification.js',
       'extensions/amp-app-banner/0.1/amp-app-banner.js',
     ],
@@ -404,7 +409,7 @@ var forbiddenTerms = {
   'localStorage': {
     message: requiresReviewPrivacy,
     whitelist: [
-      'extensions/amp-analytics/0.1/cid-impl.js',
+      'src/service/cid-impl.js',
       'src/service/storage-impl.js',
       'testing/fake-dom.js',
     ],
@@ -573,6 +578,13 @@ var forbiddenTerms = {
       'src/event-helper.js',
     ],
   },
+  '([eE]xit|[eE]nter|[cC]ancel|[rR]equest)Full[Ss]creen\\(': {
+    message: 'Use fullscreenEnter() and fullscreenExit() from dom.js instead.',
+    whitelist: [
+      'ads/google/imaVideo.js',
+      'dist.3p/current/integration.js',
+    ],
+  },
 };
 
 var ThreePTermsMessage = 'The 3p bootstrap iframe has no polyfills loaded and' +
@@ -648,10 +660,35 @@ var forbiddenTermsSrcInclusive = {
   '\\.scheduleUnlayout\\(': bannedTermsHelpString,
   'getComputedStyle\\(': {
     message: 'Due to various bugs in Firefox, you must use the computedStyle ' +
-        'helper in style.js.',
+    'helper in style.js.',
     whitelist: [
       'src/style.js',
       'dist.3p/current/integration.js',
+    ],
+  },
+  'decodeURIComponent\\(': {
+    message: 'decodeURIComponent throws for malformed URL components. Please ' +
+    'use tryDecodeUriComponent from src/url.js',
+    whitelist: [
+      '3p/integration.js',
+      'dist.3p/current/integration.js',
+      'examples/pwa/pwa.js',
+      'validator/engine/parse-url.js',
+      'validator/engine/validator.js',
+      'validator/webui/webui.js',
+      'extensions/amp-pinterest/0.1/util.js',
+      'src/url.js',
+      'src/url-try-decode-uri-component.js',
+      'src/utils/bytes.js',
+    ],
+  },
+  'Text(Encoder|Decoder)\\(': {
+    message: 'TextEncoder/TextDecoder is not supported in all browsers.' +
+        'Please use UTF8 utilities from src/bytes.js',
+    whitelist: [
+      'ads/google/a4a/line-delimited-response-handler.js',
+      'examples/pwa/pwa.js',
+      'src/utils/bytes.js',
     ],
   },
   // Super complicated regex that says "find any querySelector method call that
@@ -659,9 +696,9 @@ var forbiddenTermsSrcInclusive = {
   // contains a space.
   '\\b(?:(?!\\w*[dD]oc\\w*)\\w)+\\.querySelector(?:All)?\\((?=\\s*([^\'"\\s]|[^\\s)]+\\s))[^)]*\\)': {
     message: 'querySelector is not scoped to the element, but globally and ' +
-      'filtered to just the elements inside the element. This leads to ' +
-      'obscure bugs if you attempt to match a descendant of a descendant (ie ' +
-      '"div div"). Instead, use the scopedQuerySelector helper in dom.js',
+    'filtered to just the elements inside the element. This leads to ' +
+    'obscure bugs if you attempt to match a descendant of a descendant (ie ' +
+    '"div div"). Instead, use the scopedQuerySelector helper in dom.js',
   },
   'loadExtension': {
     message: bannedTermsHelpString,
@@ -674,6 +711,8 @@ var forbiddenTermsSrcInclusive = {
       'src/service/crypto-impl.js',
       'src/shadow-embed.js',
       'src/analytics.js',
+      'src/extension-analytics.js',
+      'src/services.js',
       'extensions/amp-ad/0.1/amp-ad.js',
       'extensions/amp-a4a/0.1/amp-a4a.js',
       'extensions/amp-ad-network-adsense-impl/0.1/amp-ad-network-adsense-impl.js',
@@ -692,7 +731,7 @@ var forbiddenTermsSrcInclusive = {
   },
   'reject\\(\\)': {
     message: 'Always supply a reason in rejections. ' +
-        'error.cancellation() may be applicable.',
+    'error.cancellation() may be applicable.',
     whitelist: [
       'extensions/amp-access/0.1/access-expr-impl.js',
       'extensions/amp-animation/0.1/css-expr-impl.js',
@@ -706,16 +745,22 @@ var forbiddenTermsSrcInclusive = {
       'src/event-helper.js',
       'src/friendly-iframe-embed.js',
       'src/service/performance-impl.js',
+      'src/service/resources-impl.js',
       'src/service/url-replacements-impl.js',
       'src/service/variable-source.js',
       'src/validator-integration.js',
       'extensions/amp-ad/0.1/amp-ad-xorigin-iframe-handler.js',
       'extensions/amp-image-lightbox/0.1/amp-image-lightbox.js',
       'extensions/amp-analytics/0.1/transport.js',
+      'extensions/amp-web-push/0.1/iframehost.js',
+      'dist.3p/current/integration.js',
     ],
   },
   '\\.getTime\\(\\)': {
     message: 'Unless you do weird date math (whitelist), use Date.now().',
+    whitelist: [
+      'extensions/amp-timeago/0.1/amp-timeago.js',
+    ],
   },
   '\\.expandStringSync\\(': {
     message: requiresReviewPrivacy,
@@ -783,6 +828,15 @@ var forbiddenTermsSrcInclusive = {
       'dist.3p/current/integration.js',
     ],
   },
+  '\\.remove\\(\\)': {
+    message: 'use removeElement helper in src/dom.js',
+  },
+  '\\.trim(Left|Right)\\(\\)': {
+    message: 'Unsupported on IE; use trim() or a helper instead.',
+    whitelist: [
+      'validator/engine/validator.js',
+    ],
+  },
 };
 
 // Terms that must appear in a source file.
@@ -803,8 +857,7 @@ var requiredTerms = {
  */
 function isInTestFolder(path) {
   var dirs = path.split('/');
-  var folder = dirs[dirs.length - 2];
-  return path.startsWith('test/') || folder == 'test';
+  return dirs.indexOf('test') >= 0;
 }
 
 function stripComments(contents) {

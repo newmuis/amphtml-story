@@ -90,13 +90,13 @@ describe('amp-ima-video', () => {
         style: {
           display: '',
         },
-        removeEventListener: function() {},
+        removeEventListener() {},
       };
       const removeEventListenerSpy = sandbox.spy(
           bigPlayDivMock, 'removeEventListener');
-      const adDisplayContainerMock = {initialize: function() {}};
+      const adDisplayContainerMock = {initialize() {}};
       const initSpy = sandbox.spy(adDisplayContainerMock, 'initialize');
-      const videoPlayerMock = {load: function() {}};
+      const videoPlayerMock = {load() {}};
       const loadSpy = sandbox.spy(videoPlayerMock, 'load');
       //const playAdsSpy = sandbox.spy(imaVideoObj, 'playAds');
       //const playAdsFunc = imaVideoObj.playAds;
@@ -190,7 +190,7 @@ describe('amp-ima-video', () => {
         src: srcUrl,
         tag: adTagUrl,
       });
-      const mockAdsLoader = {contentComplete: function() {}};
+      const mockAdsLoader = {contentComplete() {}};
       const completeSpy = sandbox.spy(mockAdsLoader, 'contentComplete');
       imaVideoObj.setAdsLoaderForTesting(mockAdsLoader);
 
@@ -234,11 +234,11 @@ describe('amp-ima-video', () => {
         CONTENT_RESUME_REQUESTED: 'crr',
       };
       const mockAdsManager = {
-        addEventListener: function() {},
-        setVolume: function() {},
+        addEventListener() {},
+        setVolume() {},
       };
       const mockAdsManagerLoadedEvent = {
-        getAdsManager: function() {
+        getAdsManager() {
           return mockAdsManager;
         },
       };
@@ -253,7 +253,7 @@ describe('amp-ima-video', () => {
 
       expect(
           mockAdsRenderingSettings.restoreCustomPlaybackStateOnAdBreakComplete)
-              .to.be.true;
+          .to.be.true;
       expect(mockAdsRenderingSettings.uiElements)
           .to.eql(['adattr', 'countdown']);
       expect(amleSpy).to.be.calledWith(
@@ -297,11 +297,11 @@ describe('amp-ima-video', () => {
         CONTENT_RESUME_REQUESTED: 'crr',
       };
       const mockAdsManager = {
-        addEventListener: function() {},
-        setVolume: function() {},
+        addEventListener() {},
+        setVolume() {},
       };
       const mockAdsManagerLoadedEvent = {
-        getAdsManager: function() {
+        getAdsManager() {
           return mockAdsManager;
         },
       };
@@ -317,7 +317,7 @@ describe('amp-ima-video', () => {
 
       expect(
           mockAdsRenderingSettings.restoreCustomPlaybackStateOnAdBreakComplete)
-              .to.be.true;
+          .to.be.true;
       expect(mockAdsRenderingSettings.uiElements)
           .to.eql(['adattr', 'countdown']);
       expect(amleSpy).to.be.calledWith(
@@ -363,7 +363,7 @@ describe('amp-ima-video', () => {
         src: srcUrl,
         tag: adTagUrl,
       });
-      const adsManagerMock = {destroy: function() {}};
+      const adsManagerMock = {destroy() {}};
       const destroySpy = sandbox.spy(adsManagerMock, 'destroy');
       //const playVideoSpy = sandbox.spy(imaVideoObj, 'playVideo');
       imaVideoObj.setAdsManagerForTesting(adsManagerMock);
@@ -401,7 +401,7 @@ describe('amp-ima-video', () => {
 
       expect(imaVideoObj.getPropertiesForTesting().adsActive).to.be.true;
       expect(removeEventListenerSpy).to.have.been.calledWith(
-        imaVideoObj.getPropertiesForTesting().interactEvent);
+          imaVideoObj.getPropertiesForTesting().interactEvent);
       expect(imaVideoObj.getPropertiesForTesting().adContainerDiv.style.display)
           .to.eql('block');
       expect(removeEventListenerSpy).to.have.been.calledWith('ended');
@@ -455,7 +455,7 @@ describe('amp-ima-video', () => {
 
       expect(imaVideoObj.getPropertiesForTesting().adsActive).to.be.true;
       expect(removeEventListenerSpy).to.have.been.calledWith(
-        imaVideoObj.getPropertiesForTesting().interactEvent);
+          imaVideoObj.getPropertiesForTesting().interactEvent);
       expect(imaVideoObj.getPropertiesForTesting().adContainerDiv.style.display)
           .to.eql('block');
       expect(removeEventListenerSpy).to.have.been.calledWith('ended');
@@ -489,7 +489,7 @@ describe('amp-ima-video', () => {
 
       expect(imaVideoObj.getPropertiesForTesting().adsActive).to.be.false;
       expect(addEventListenerSpy).to.have.been.calledWith(
-        imaVideoObj.getPropertiesForTesting().interactEvent);
+          imaVideoObj.getPropertiesForTesting().interactEvent);
       expect(addEventListenerSpy).to.have.been.calledWith('ended');
       // TODO - Fix when I can spy on internals.
       //expect(playVideoSpy).to.have.been.called;
@@ -520,7 +520,7 @@ describe('amp-ima-video', () => {
 
       expect(imaVideoObj.getPropertiesForTesting().adsActive).to.be.false;
       expect(addEventListenerSpy).to.have.been.calledWith(
-        imaVideoObj.getPropertiesForTesting().interactEvent);
+          imaVideoObj.getPropertiesForTesting().interactEvent);
       expect(addEventListenerSpy).to.not.have.been.calledWith('ended');
       // TODO - Fix when I can spy on internals.
       //expect(playVideoSpy).to.have.been.called;
@@ -542,21 +542,21 @@ describe('amp-ima-video', () => {
 
       imaVideoObj.updateUi(0, 60);
       expect(imaVideoObj.getPropertiesForTesting().timeNode.textContent)
-          .to.eql('00:00 / 01:00');
+          .to.eql('0:00 / 1:00');
       expect(imaVideoObj.getPropertiesForTesting().progressLine.style.width)
           .to.eql('0%');
       expect(imaVideoObj.getPropertiesForTesting().progressMarkerDiv.style.left)
           .to.eql('-1%');
       imaVideoObj.updateUi(30, 60);
       expect(imaVideoObj.getPropertiesForTesting().timeNode.textContent)
-          .to.eql('00:30 / 01:00');
+          .to.eql('0:30 / 1:00');
       expect(imaVideoObj.getPropertiesForTesting().progressLine.style.width)
           .to.eql('50%');
       expect(imaVideoObj.getPropertiesForTesting().progressMarkerDiv.style.left)
           .to.eql('49%');
       imaVideoObj.updateUi(60, 60);
       expect(imaVideoObj.getPropertiesForTesting().timeNode.textContent)
-          .to.eql('01:00 / 01:00');
+          .to.eql('1:00 / 1:00');
       expect(imaVideoObj.getPropertiesForTesting().progressLine.style.width)
           .to.eql('100%');
       expect(imaVideoObj.getPropertiesForTesting().progressMarkerDiv.style.left)
@@ -578,13 +578,13 @@ describe('amp-ima-video', () => {
       });
 
       let formattedTime = imaVideoObj.formatTime(0);
-      expect(formattedTime).to.eql('00:00');
+      expect(formattedTime).to.eql('0:00');
       formattedTime = imaVideoObj.formatTime(55);
-      expect(formattedTime).to.eql('00:55');
+      expect(formattedTime).to.eql('0:55');
       formattedTime = imaVideoObj.formatTime(60);
-      expect(formattedTime).to.eql('01:00');
+      expect(formattedTime).to.eql('1:00');
       formattedTime = imaVideoObj.formatTime(65);
-      expect(formattedTime).to.eql('01:05');
+      expect(formattedTime).to.eql('1:05');
       formattedTime = imaVideoObj.formatTime(3600);
       expect(formattedTime).to.eql('1:00:00');
       formattedTime = imaVideoObj.formatTime(3605);
@@ -687,11 +687,6 @@ describe('amp-ima-video', () => {
           imaVideoObj.getPropertiesForTesting().PlayerStates.PLAYING);
       // TODO - Why doesn't this work?
       //expect(showControlsSpy).to.have.been.called;
-      expect(
-          imaVideoObj.getPropertiesForTesting().playPauseDiv.style.lineHeight)
-              .to.eql('1.4em');
-      expect(imaVideoObj.getPropertiesForTesting().playPauseNode.textContent)
-        .to.eql(imaVideoObj.getPropertiesForTesting().pauseChars);
       expect(playSpy).to.have.been.called;
     });
   });
@@ -723,11 +718,6 @@ describe('amp-ima-video', () => {
           imaVideoObj.getPropertiesForTesting().PlayerStates.PAUSED);
       // TODO - Why doesn't this work?
       //expect(showControlsSpy).to.have.been.called;
-      expect(imaVideoObj.getPropertiesForTesting().playPauseNode.textContent)
-        .to.eql(imaVideoObj.getPropertiesForTesting().playChar);
-      expect(
-          imaVideoObj.getPropertiesForTesting().playPauseDiv.style.lineHeight)
-              .to.eql('');
     });
   });
 
@@ -761,11 +751,6 @@ describe('amp-ima-video', () => {
           imaVideoObj.getPropertiesForTesting().PlayerStates.PAUSED);
       // TODO - Why doesn't this work?
       //expect(showControlsSpy).to.have.been.called;
-      expect(imaVideoObj.getPropertiesForTesting().playPauseNode.textContent)
-        .to.eql(imaVideoObj.getPropertiesForTesting().playChar);
-      expect(
-          imaVideoObj.getPropertiesForTesting().playPauseDiv.style.lineHeight)
-              .to.eql('');
       expect(removeEventListenerSpy).to.have.been.called;
     });
   });
@@ -789,7 +774,7 @@ describe('amp-ima-video', () => {
       imaVideoObj.showControls();
 
       expect(imaVideoObj.getPropertiesForTesting().controlsDiv.style.display)
-          .to.eql('block');
+          .to.eql('flex');
       expect(imaVideoObj.getPropertiesForTesting().hideControlsTimeout)
           .to.be.null;
     });
@@ -813,7 +798,7 @@ describe('amp-ima-video', () => {
       imaVideoObj.showControls();
 
       expect(imaVideoObj.getPropertiesForTesting().controlsDiv.style.display)
-          .to.eql('block');
+          .to.eql('flex');
       expect(imaVideoObj.getPropertiesForTesting().hideControlsTimeout)
           .not.to.be.undefined;
     });

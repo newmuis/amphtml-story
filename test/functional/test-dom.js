@@ -488,9 +488,9 @@ describes.sandboxed('DOM', {}, env => {
 
 
     expect(toArray(dom.scopedQuerySelectorAll(parent, 'div')))
-      .to.deep.equal([element1, element2]);
+        .to.deep.equal([element1, element2]);
     expect(toArray(dom.scopedQuerySelectorAll(grandparent, 'div div')))
-      .to.deep.equal([element1, element2]);
+        .to.deep.equal([element1, element2]);
   }
 
   it('scopedQuerySelectorAll should find all matches',
@@ -636,7 +636,7 @@ describes.sandboxed('DOM', {}, env => {
       const element = document.createElement('element');
       element.setAttribute('data-vars-event-name', 'click');
       const params = dom.getDataParamsFromAttributes(element, null,
-        /^vars(.+)/);
+          /^vars(.+)/);
       expect(params.eventName).to.be.equal('click');
     });
   });
@@ -902,6 +902,32 @@ describes.sandboxed('DOM', {}, env => {
         expect(dom.matches(el, 'div')).to.be.false;
       });
     });
+  });
+
+  it('isEnabled', () => {
+    expect(dom.isEnabled(document)).to.be.true;
+
+    const a = document.createElement('button');
+    expect(dom.isEnabled(a)).to.be.true;
+
+    a.disabled = true;
+    expect(dom.isEnabled(a)).to.be.false;
+
+    a.disabled = false;
+    expect(dom.isEnabled(a)).to.be.true;
+
+    const b = document.createElement('fieldset');
+    b.appendChild(a);
+    expect(dom.isEnabled(a)).to.be.true;
+
+    b.disabled = true;
+    expect(dom.isEnabled(a)).to.be.false;
+
+    b.removeChild(a);
+    const c = document.createElement('legend');
+    c.appendChild(a);
+    b.appendChild(c);
+    expect(dom.isEnabled(a)).to.be.true;
   });
 });
 

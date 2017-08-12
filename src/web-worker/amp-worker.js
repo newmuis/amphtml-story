@@ -19,7 +19,7 @@ import {calculateEntryPointScriptUrl} from '../service/extension-location';
 import {dev} from '../log';
 import {getService, registerServiceBuilder} from '../service';
 import {getMode} from '../mode';
-import {xhrFor} from '../services';
+import {Services} from '../services';
 
 const TAG = 'web-worker';
 
@@ -75,7 +75,7 @@ class AmpWorker {
     this.win_ = win;
 
     /** @const @private {!../service/xhr-impl.Xhr} */
-    this.xhr_ = xhrFor(win);
+    this.xhr_ = Services.xhrFor(win);
 
     // Use `testLocation` for testing with iframes. @see testing/iframe.js.
     let loc = win.location;
@@ -159,10 +159,10 @@ class AmpWorker {
     const message = this.messages_[id];
     if (!message) {
       dev().error(TAG, `Received unexpected message (${method}, ${id}) ` +
-          `from worker.`);
+          'from worker.');
       return;
     }
-    dev().assert(method == message.method, `Received mismatched method ` +
+    dev().assert(method == message.method, 'Received mismatched method ' +
         `(${method}, ${id}), expected ${message.method}.`);
 
     message.resolve(returnValue);

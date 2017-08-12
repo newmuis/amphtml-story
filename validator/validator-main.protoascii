@@ -20,19 +20,19 @@
 # in production from crashing. This id is not relevant to validator.js
 # because thus far, engine (validator.js) and spec file
 # (validator-main.protoascii) are always released together.
-min_validator_revision_required: 234
+min_validator_revision_required: 238
 # The spec file revision allows the validator engine to distinguish
 # newer versions of the spec file. This is currently a Google internal
 # mechanism, validator.js does not use this facility. However, any
 # change to this file (validator-main.js) requires updating this revision id.
-spec_file_revision: 431
+spec_file_revision: 456
 
 styles_spec_url: "https://www.ampproject.org/docs/guides/author-develop/responsive/style_pages"
 
 # Validator extensions.
 # =====================
 # In addition to the rules in this file, the Validator honors the rules
-# in the extensions/*/0.1/validator-*.protoascii files. This makes it
+# in the extensions/*/validator-*.protoascii files. This makes it
 # easy to organize the rules for extensions next to their Javascript
 # implementation.
 
@@ -191,7 +191,7 @@ tags: {
     name: "rel"
     value_casei: "canonical"
     mandatory: true
-    dispatch_key: true
+    dispatch_key: NAME_VALUE_DISPATCH
   }
   spec_url: "https://www.ampproject.org/docs/reference/spec#required-markup"
 }
@@ -215,7 +215,7 @@ tags: {
     name: "rel"
     value_casei: "manifest"
     mandatory: true
-    dispatch_key: true
+    dispatch_key: NAME_VALUE_DISPATCH
   }
   spec_url: "https://www.ampproject.org/docs/reference/spec#html-tags"
 }
@@ -240,7 +240,7 @@ tags: {
     name: "rel"
     mandatory: true
     value_casei: "stylesheet"
-    dispatch_key: true
+    dispatch_key: NAME_VALUE_DISPATCH
   }
   attrs: {
     name: "type"
@@ -265,7 +265,7 @@ tags: {
     name: "itemprop"
     mandatory: true
     value_casei: "sameas"
-    dispatch_key: true
+    dispatch_key: NAME_VALUE_DISPATCH
   }
   attr_lists: "common-link-attrs"
   spec_url: "https://www.ampproject.org/docs/reference/spec#html-tags"
@@ -309,7 +309,7 @@ tags: {
   mandatory_parent: "HEAD"
   unique: true
   attrs: {
-    dispatch_key: true
+    dispatch_key: NAME_DISPATCH
     name: "charset"
     mandatory: true
     value_casei: "utf-8"
@@ -339,7 +339,7 @@ tags: {
     name: "name"
     mandatory: true
     value: "viewport"
-    dispatch_key: true
+    dispatch_key: NAME_VALUE_DISPATCH
   }
   spec_url: "https://www.ampproject.org/docs/reference/spec#required-markup"
 }
@@ -353,7 +353,7 @@ tags: {
     name: "http-equiv"
     mandatory: true
     value_casei: "x-ua-compatible"
-    dispatch_key: true
+    dispatch_key: NAME_VALUE_DISPATCH
   }
   attrs: {
     name: "content"
@@ -375,7 +375,7 @@ tags: {
     name: "name"
     value_casei: "apple-itunes-app"
     mandatory: true
-    dispatch_key: true
+    dispatch_key: NAME_VALUE_DISPATCH
   }
   attrs: {
     name: "content"
@@ -394,7 +394,7 @@ tags: {
     name: "name"
     mandatory: true
     value_casei: "amp-experiments-opt-in"
-    dispatch_key: true
+    dispatch_key: NAME_VALUE_DISPATCH
   }
   attrs: {
     name: "content"
@@ -411,7 +411,7 @@ tags: {
     name: "name"
     mandatory: true
     value_casei: "amp-3p-iframe-src"
-    dispatch_key: true
+    dispatch_key: NAME_VALUE_DISPATCH
   }
   attrs: {
     name: "content"
@@ -433,7 +433,7 @@ tags: {
     name: "name"
     mandatory: true
     value_casei: "amp-experiment-token"
-    dispatch_key: true
+    dispatch_key: NAME_VALUE_DISPATCH
   }
   attrs: {
     name: "content"
@@ -451,7 +451,24 @@ tags: {
     name: "name"
     mandatory: true
     value_casei: "amp-link-variable-allowed-origin"
-    dispatch_key: true
+    dispatch_key: NAME_VALUE_DISPATCH
+  }
+  attrs: {
+    name: "content"
+    mandatory: true
+  }
+}
+# AMP metadata, name=amp-google-client-id-api
+tags: {
+  html_format: AMP
+  tag_name: "META"
+  spec_name: "meta name=amp-google-clientid-id-api"
+  mandatory_parent: "HEAD"
+  attrs: {
+    name: "name"
+    mandatory: true
+    value_casei: "amp-google-client-id-api"
+    dispatch_key: NAME_VALUE_DISPATCH
   }
   attrs: {
     name: "content"
@@ -469,7 +486,7 @@ tags: {
     name: "name"
     mandatory: true
     value_casei: "amp4ads-id"
-    dispatch_key: true
+    dispatch_key: NAME_VALUE_DISPATCH
   }
   attrs: {
     name: "content"
@@ -508,7 +525,7 @@ tags: {
     name: "http-equiv"
     mandatory: true
     value_casei: "content-type"
-    dispatch_key: true
+    dispatch_key: NAME_VALUE_DISPATCH
   }
   attrs: {
     name: "content"
@@ -526,7 +543,7 @@ tags: {
     name: "http-equiv"
     mandatory: true
     value_casei: "content-language"
-    dispatch_key: true
+    dispatch_key: NAME_VALUE_DISPATCH
   }
   attrs: {
     name: "content"
@@ -544,7 +561,7 @@ tags: {
     name: "http-equiv"
     mandatory: true
     value_casei: "pics-label"
-    dispatch_key: true
+    dispatch_key: NAME_VALUE_DISPATCH
   }
   attrs: {
     name: "content"
@@ -562,7 +579,7 @@ tags: {
     name: "http-equiv"
     mandatory: true
     value_casei: "imagetoolbar"
-    dispatch_key: true
+    dispatch_key: NAME_VALUE_DISPATCH
   }
   attrs: {
     name: "content"
@@ -580,7 +597,7 @@ tags: {
     name: "http-equiv"
     mandatory: true
     value_casei: "content-style-type"
-    dispatch_key: true
+    dispatch_key: NAME_VALUE_DISPATCH
   }
   attrs: {
     name: "content"
@@ -599,7 +616,7 @@ tags: {
     name: "http-equiv"
     mandatory: true
     value_casei: "content-script-type"
-    dispatch_key: true
+    dispatch_key: NAME_VALUE_DISPATCH
   }
   attrs: {
     name: "content"
@@ -617,7 +634,7 @@ tags: {
     name: "http-equiv"
     mandatory: true
     value_casei: "origin-trial"
-    dispatch_key: true
+    dispatch_key: NAME_VALUE_DISPATCH
   }
   attrs: {
     name: "content"
@@ -635,7 +652,7 @@ tags: {
     name: "http-equiv"
     mandatory: true
     value_casei: "resource-type"
-    dispatch_key: true
+    dispatch_key: NAME_VALUE_DISPATCH
   }
   attrs: {
     name: "content"
@@ -660,7 +677,7 @@ tags: {  # Special custom 'author' spreadsheet for AMP
     # is used for errors related to <style> tags missing the amp-custom
     # attribute rather than the boilerplate tagspec which doesn't have an
     # attribute and thus can't have a dispatch_key.
-    # dispatch_key: true
+    # dispatch_key: NAME_DISPATCH
   }
   attrs: { name: "nonce" }
   attrs: {  # This is a default, but it doesn't hurt.
@@ -750,7 +767,7 @@ tags: {  # Special custom 'author' spreadsheet for AMP4ADS
     # is used for errors related to <style> tags missing the amp-custom
     # attribute rather than the boilerplate tagspec which doesn't have an
     # attribute and thus can't have a dispatch_key.
-    # dispatch_key: true
+    # dispatch_key: NAME_DISPATCH
   }
   attrs: { name: "nonce" }
   attrs: {  # This is a default, but it doesn't hurt.
@@ -849,6 +866,7 @@ tags: {
   mandatory_alternatives: "noscript > style[amp-boilerplate]"
   unique: true
   mandatory_parent: "NOSCRIPT"
+  mandatory_ancestor: "HEAD"
   deprecation: "noscript > style[amp-boilerplate]"
   deprecation_url: "https://github.com/ampproject/amphtml/blob/master/spec/amp-boilerplate.md"
   attrs: { name: "nonce" }
@@ -870,7 +888,7 @@ tags: {
     name: "amp-boilerplate"
     mandatory: true
     value: ""
-    dispatch_key: true
+    dispatch_key: NAME_VALUE_PARENT_DISPATCH
   }
   attrs: { name: "nonce" }
   cdata: {
@@ -890,7 +908,7 @@ tags: {
     name: "amp4ads-boilerplate"
     mandatory: true
     value: ""
-    dispatch_key: true
+    dispatch_key: NAME_VALUE_PARENT_DISPATCH
   }
   attrs: { name: "nonce" }
   cdata: {
@@ -909,12 +927,13 @@ tags: {
   mandatory_alternatives: "noscript > style[amp-boilerplate]"
   unique: true
   mandatory_parent: "NOSCRIPT"
+  mandatory_ancestor: "HEAD"
   requires: "head > style[amp-boilerplate]"
   attrs: {
     name: "amp-boilerplate"
     mandatory: true
     value: ""
-    dispatch_key: true
+    dispatch_key: NAME_VALUE_PARENT_DISPATCH
   }
   attrs: { name: "nonce" }
   cdata {
@@ -1548,6 +1567,25 @@ tags: {
   attrs: { name: "media" }
   spec_url: "https://www.ampproject.org/docs/reference/components/amp-video"
 }
+tags: {
+  tag_name: "SOURCE"
+  spec_name: "amp-ima-video > source"
+  mandatory_parent: "AMP-IMA-VIDEO"
+  requires_extension: "amp-ima-video"
+  attrs: { name: "media" }
+  attrs: {
+    name: "src"
+    value_url: {
+      allowed_protocol: "https"
+      allow_relative: true  # Will be set to false at a future date.
+    }
+    blacklisted_value_regex: "__amp_source_origin"
+  }
+  attrs: { name: "type" }
+  # <amp-bind>
+  attrs: { name: "[src]" }
+  attrs: { name: "[type]" }
+}
 # 4.7.8 The track element
 # We have two attr_list variants to encode the requirement that if
 # the attribute kind has the value 'subtitles', then the tag must
@@ -1660,6 +1698,18 @@ tags: {
   attrs: { name: "[srclang]" }
   attr_lists: "track-attrs-subtitles"
 }
+tags: {
+  tag_name: "TRACK"
+  spec_name: "amp-ima-video > track[kind=subtitles]"
+  mandatory_parent: "AMP-IMA-VIDEO"
+  # <amp-bind>
+  attrs: { name: "[label]" }
+  attrs: { name: "[src]" }
+  attrs: { name: "[srclang]" }
+  attr_lists: "track-attrs-subtitles"
+  spec_url: "https://www.ampproject.org/docs/reference/components/amp-ima-video"
+}
+
 
 # 4.7.15 SVG
 # We allow some limited embedded SVG tags. We do not allow inline styles
@@ -1767,8 +1817,12 @@ attr_lists: {
     name: "xlink:href"
     # xlink:href is deprecated since SVG2 in favor of href.
     alternative_names: "href"
-    # Local (within document) URLs only for now.
-    value_regex: "#.*"
+    value_url: {
+      allowed_protocol: "http"
+      allowed_protocol: "https"
+      allow_relative: true
+      allow_empty: false
+    }
   }
   attrs: { name: "xlink:role" }
   attrs: { name: "xlink:show" }
@@ -1844,11 +1898,16 @@ tags: {
   attrs: { name: "xlink:arcrole" }
   attrs: {
     name: "xlink:href"
+    # xlink:href is deprecated since SVG2 in favor of href.
+    alternative_names: "href"
     value_url: {
       allowed_protocol: "data"
-      allow_relative: false
+      allowed_protocol: "http"
+      allowed_protocol: "https"
+      allow_relative: true
       allow_empty: false
     }
+    # Inline SVGs execute in a different context and can affect page elements.
     blacklisted_value_regex: "(^|\\s)data:image\\/svg\\+xml"
   }
   attrs: { name: "xlink:role" }
@@ -2519,7 +2578,7 @@ tags {  # <form method=GET ...>
   attrs: { name: "autocomplete" }
   attrs: {
     name: "custom-validation-reporting"
-    value_regex: "(show-first-on-submit|show-all-on-submit|as-you-go)"
+    value_regex: "(show-first-on-submit|show-all-on-submit|as-you-go|interact-and-submit)"
   }
   attrs: { name: "enctype" }
   attrs: {
@@ -2535,7 +2594,19 @@ tags {  # <form method=GET ...>
     mandatory: true
     value_regex_casei: "(_blank|_top)"
   }
-
+  attrs: {
+    name: "verify-xhr"
+    value_url: {
+      allow_relative: true
+      allowed_protocol: "https"
+      # These are disallowed due to serving content from multiple origins on
+      # a single CDN domain. New CDNs should use a different domain per origin
+      # domain rather than adding to this list.
+      disallowed_domain: "cdn.ampproject.org"
+      disallowed_domain: "amp.cloudflare.com"
+    }
+    blacklisted_value_regex: "__amp_source_origin"
+  }
 }
 tags {  # <form method=POST ...>
   tag_name: "FORM"
@@ -2569,7 +2640,7 @@ tags {  # <form method=POST ...>
     name: "method"
     mandatory: true
     value_casei: "post"
-    dispatch_key: true
+    dispatch_key: NAME_VALUE_DISPATCH
   }
   attrs: { name: "name" }
   attrs: { name: "novalidate" }
@@ -2577,6 +2648,19 @@ tags {  # <form method=POST ...>
     name: "target"
     mandatory: true
     value_regex_casei: "(_blank|_top)"
+  }
+  attrs: {
+    name: "verify-xhr"
+    value_url: {
+      allow_relative: true
+      allowed_protocol: "https"
+      # These are disallowed due to serving content from multiple origins on
+      # a single CDN domain. New CDNs should use a different domain per origin
+      # domain rather than adding to this list.
+      disallowed_domain: "cdn.ampproject.org"
+      disallowed_domain: "amp.cloudflare.com"
+    }
+    blacklisted_value_regex: "__amp_source_origin"
   }
 }
 tags {
@@ -2588,10 +2672,6 @@ tags {
     name: "submitting"
     mandatory: true
   }
-  child_tags: {
-    mandatory_num_child_tags: 1
-    first_child_tag_name_oneof: "TEMPLATE"
-  }
 }
 tags {
   tag_name: "DIV"
@@ -2602,10 +2682,6 @@ tags {
     name: "submit-success"
     mandatory: true
   }
-  child_tags: {
-    mandatory_num_child_tags: 1
-    first_child_tag_name_oneof: "TEMPLATE"
-  }
 }
 tags {
   tag_name: "DIV"
@@ -2615,10 +2691,6 @@ tags {
   attrs: {
     name: "submit-error"
     mandatory: true
-  }
-  child_tags: {
-    mandatory_num_child_tags: 1
-    first_child_tag_name_oneof: "TEMPLATE"
   }
 }
 attr_lists: {
@@ -3001,7 +3073,7 @@ tags: {
     name: "src"
     mandatory: true
     value: "https://cdn.ampproject.org/v0.js"
-    dispatch_key: true
+    dispatch_key: NAME_VALUE_DISPATCH
   }
   attrs: {
     name: "type"
@@ -3032,7 +3104,7 @@ tags: {
     name: "src"
     mandatory: true
     value: "https://cdn.ampproject.org/amp4ads-v0.js"
-    dispatch_key: true
+    dispatch_key: NAME_VALUE_DISPATCH
   }
   attrs: {
     name: "type"
@@ -3055,7 +3127,52 @@ tags: {
     name: "type"
     mandatory: true
     value_casei: "application/ld+json"
-    dispatch_key: true
+    dispatch_key: NAME_VALUE_DISPATCH
+  }
+  cdata: {
+    blacklisted_cdata_regex: {
+      regex: "<!--"
+      error_message: "html comments"
+    }
+  }
+}
+# AMP RTC (Real Time Config)
+tags: {
+  html_format: AMP
+  tag_name: "SCRIPT"
+  spec_name: "script id=amp-rtc"
+  unique: true
+  mandatory_parent: "HEAD"
+  attrs: { name: "nonce" }
+  attrs: {
+    name: "type"
+    mandatory: true
+    value_casei: "application/json"
+  }
+  attrs: {
+    name: "id"
+    mandatory: true
+    value_casei: "amp-rtc"
+    dispatch_key: NAME_VALUE_DISPATCH
+  }
+  cdata: {
+    blacklisted_cdata_regex: {
+      regex: "<!--"
+      error_message: "html comments"
+    }
+  }
+}
+# AMP IMA VIDEO
+tags: {
+  html_format: AMP
+  tag_name: "SCRIPT"
+  spec_name: "amp-ima-video > script[type=application/json]"
+  mandatory_parent: "AMP-IMA-VIDEO"
+  attrs: {
+    name: "type"
+    mandatory: true
+    value_casei: "application/json"
+    dispatch_key: NAME_VALUE_PARENT_DISPATCH
   }
   cdata: {
     blacklisted_cdata_regex: {
@@ -3085,7 +3202,7 @@ tags: {
   disallowed_ancestor: "NOSCRIPT"
 }
 # 4.11.3 The template element
-# See extensions/amp-mustache/0.1/validator-amp-mustache.protoascii.
+# See extensions/amp-mustache/validator-amp-mustache.protoascii.
 
 # 11 Obsolute features
 # 11.2 Non-conforming features
@@ -3143,6 +3260,14 @@ tags: {
 }
 
 # Some additional tags, microformats, allowances.
+
+# The slot element.
+# https://developer.mozilla.org/en-US/docs/Web/HTML/Element/slot
+tags: {
+  html_format: AMP
+  tag_name: "SLOT"
+  attrs: { name: "name" }
+}
 
 # This tag is a preserved indicator for documents created in microsoft word.
 # They do not render.
@@ -3274,7 +3399,24 @@ attr_lists: {
   attrs: { name: "inlist" }
   attrs: { name: "prefix" }
   attrs: { name: "property" }
+  attrs: {
+    name: "rel"
+    blacklisted_value_regex: "(^|\\s)("  # Values are space separated
+        "canonical|"
+        "components|"
+        "dns-prefetch|"
+        "import|"
+        "manifest|"
+        "preconnect|"
+        "preload|"
+        "prerender|"
+        "serviceworker|"
+        "stylesheet|"
+        "subresource"
+        ")(\\s|$)"
+  }
   attrs: { name: "resource" }
+  attrs: { name: "rev" }
   attrs: { name: "typeof" }
   attrs: { name: "vocab" }
   # 3.2.5 HTML5 Global attributes.

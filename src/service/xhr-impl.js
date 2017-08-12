@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {Services} from '../services';
 import {dev, user} from '../log';
 import {registerServiceBuilder, getService} from '../service';
 import {
@@ -21,12 +22,10 @@ import {
   getCorsUrl,
   parseUrl,
 } from '../url';
+import {parseJson} from '../json';
 import {isArray, isObject, isFormData} from '../types';
 import {utf8EncodeSync} from '../utils/bytes';
-import {ampdocServiceFor} from '../ampdoc';
-import {viewerForDoc} from '../services';
 import {getMode} from '../mode';
-
 
 /**
  * The "init" argument of the Fetch API. Currently, only "credentials: include"
@@ -46,6 +45,19 @@ import {getMode} from '../mode';
  * }}
  */
 export let FetchInitDef;
+
+/**
+ * Special case for fetchJson
+ * @typedef {{
+ *   body: (!JsonObject|!FormData|undefined),
+ *   credentials: (string|undefined),
+ *   headers: (!Object|undefined),
+ *   method: (string|undefined),
+ *   requireAmpResponseSourceOrigin: (boolean|undefined),
+ *   ampCors: (boolean|undefined)
+ * }}
+ */
+export let FetchInitJsonDef;
 
 /** @private @const {!Array<string>} */
 const allowedMethods_ = ['GET', 'POST'];
@@ -81,7 +93,7 @@ export class Xhr {
     /** @private {?./ampdoc-impl.AmpDoc} */
     this.ampdocSingle_ = null;
     if (!getMode().test) {
-      const ampdocService = ampdocServiceFor(win);
+      const ampdocService = Services.ampdocServiceFor(win);
       this.ampdocSingle_ = ampdocService.isSingleDoc() ?
           ampdocService.getAmpDoc() :
           null;
@@ -101,7 +113,7 @@ export class Xhr {
     if (this.ampdocSingle_ &&
         Math.random() < 0.01 &&
         parseUrl(input).origin != this.win.location.origin &&
-        !viewerForDoc(this.ampdocSingle_).hasBeenVisible()) {
+        !Services.viewerForDoc(this.ampdocSingle_).hasBeenVisible()) {
       dev().error('XHR', 'attempted to fetch %s before viewer was visible',
           input);
     }
@@ -170,47 +182,50 @@ export class Xhr {
         // If the `AMP-Access-Control-Allow-Source-Origin` header is returned,
         // ensure that it's equal to the current source origin.
         user().assert(allowSourceOriginHeader == sourceOrigin,
-              `Returned ${ALLOW_SOURCE_ORIGIN_HEADER} is not` +
+            `Returned ${ALLOW_SOURCE_ORIGIN_HEADER} is not` +
               ` equal to the current: ${allowSourceOriginHeader}` +
               ` vs ${sourceOrigin}`);
       } else if (init.requireAmpResponseSourceOrigin) {
         // If the `AMP-Access-Control-Allow-Source-Origin` header is not
         // returned but required, return error.
-        user().assert(false, `Response must contain the` +
+        user().assert(false, 'Response must contain the' +
             ` ${ALLOW_SOURCE_ORIGIN_HEADER} header`);
       }
       return response;
     }, reason => {
-      throw user().createExpectedError('XHR', `Failed fetching` +
+      throw user().createExpectedError('XHR', 'Failed fetching' +
           ` (${targetOrigin}/...):`, reason && reason.message);
     });
   }
 
   /**
    * Fetches a JSON response. Note this returns the response object, not the
-   * response's JSON. #fetchJson merely sets up the request to accept JSOn.
+   * response's JSON. #fetchJson merely sets up the request to accept JSON.
    *
    * See https://developer.mozilla.org/en-US/docs/Web/API/GlobalFetch/fetch
    *
    * See `fetchAmpCors_` for more detail.
    *
    * @param {string} input
-   * @param {?FetchInitDef=} opt_init
+   * @param {?FetchInitJsonDef=} opt_init
+   * @param {boolean=} opt_allowFailure Allows non-2XX status codes to fulfill.
    * @return {!Promise<!FetchResponse>}
    */
-  fetchJson(input, opt_init) {
+  fetchJson(input, opt_init, opt_allowFailure) {
     const init = setupInit(opt_init, 'application/json');
     if (init.method == 'POST' && !isFormData(init.body)) {
       // Assume JSON strict mode where only objects or arrays are allowed
       // as body.
       dev().assert(
-        allowedJsonBodyTypes_.some(test => test(init.body)),
-        'body must be of type object or array. %s',
-        init.body
+          allowedJsonBodyTypes_.some(test => test(init.body)),
+          'body must be of type object or array. %s',
+          init.body
       );
-
-      init.headers['Content-Type'] = 'application/json;charset=utf-8';
-      init.body = JSON.stringify(init.body);
+      // Content should be 'text/plain' to avoid CORS preflight.
+      init.headers['Content-Type'] = init.headers['Content-Type'] ||
+          'text/plain;charset=utf-8';
+      // Cast is valid, because we checked that it is not form data above.
+      init.body = JSON.stringify(/** @type {!JsonObject} */ (init.body));
     }
     return this.fetch(input, init);
   }
@@ -301,10 +316,10 @@ function normalizeMethod_(method) {
   method = method.toUpperCase();
 
   dev().assert(
-    allowedMethods_.includes(method),
-    'Only one of %s is currently allowed. Got %s',
-    allowedMethods_.join(', '),
-    method
+      allowedMethods_.includes(method),
+      'Only one of %s is currently allowed. Got %s',
+      allowedMethods_.join(', '),
+      method
   );
 
   return method;
@@ -467,6 +482,9 @@ export class FetchResponse {
 
     /** @type {boolean} */
     this.bodyUsed = false;
+
+    /** @type {?ReadableStream} */
+    this.body = null;
   }
 
   /**
@@ -500,11 +518,11 @@ export class FetchResponse {
 
   /**
    * Drains the response and returns the JSON object.
-   * @return {!Promise<!JSONType>}
+   * @return {!Promise<!JsonObject>}
    */
   json() {
-    return /** @type {!Promise<!JSONType>} */ (
-        this.drainText_().then(JSON.parse.bind(JSON)));
+    return /** @type {!Promise<!JsonObject>} */ (
+        this.drainText_().then(parseJson));
   }
 
   /**

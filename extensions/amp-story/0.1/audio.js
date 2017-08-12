@@ -1,5 +1,5 @@
 import {dev} from '../../../src/log';
-import {xhrFor} from '../../../src/services';
+import {Services} from '../../../src/services';
 
 /**
  * Copyright 2017 The AMP HTML Authors. All Rights Reserved.
@@ -280,7 +280,7 @@ class BackgroundPlayable extends Playable {
       return Promise.resolve();
     }
 
-    return xhrFor(window)
+    return Services.xhrFor(window)
         .fetch(this.sourceUri_)
         .then(response => response.arrayBuffer())
         .then(arrayBuffer => this.decodeAudioData_(arrayBuffer))

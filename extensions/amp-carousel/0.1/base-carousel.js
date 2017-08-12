@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import {KeyCodes} from '../../../src/utils/key-codes';
-import {timerFor} from '../../../src/services';
+import {Services} from '../../../src/services';
 
 /**
  * @abstract
@@ -71,10 +71,10 @@ export class BaseCarousel extends AMP.BaseElement {
     this.prevButton_.setAttribute('role', 'button');
     if (this.element.hasAttribute('data-previous-button-aria-label')) {
       this.prevButton_.setAttribute('aria-label',
-        this.element.getAttribute('data-previous-button-aria-label'));
+          this.element.getAttribute('data-previous-button-aria-label'));
     } else {
       this.prevButton_.setAttribute('aria-label',
-        'Previous item in carousel');
+          'Previous item in carousel');
     }
     this.prevButton_.setAttribute('tabindex', 0);
     this.prevButton_.onkeydown = event => {
@@ -96,10 +96,10 @@ export class BaseCarousel extends AMP.BaseElement {
     this.nextButton_.setAttribute('role', 'button');
     if (this.element.hasAttribute('data-next-button-aria-label')) {
       this.nextButton_.setAttribute('aria-label',
-        this.element.getAttribute('data-next-button-aria-label'));
+          this.element.getAttribute('data-next-button-aria-label'));
     } else {
       this.nextButton_.setAttribute('aria-label',
-        'Previous item in carousel');
+          'Previous item in carousel');
     }
     this.nextButton_.setAttribute('tabindex', 0);
     this.nextButton_.onkeydown = event => {
@@ -182,7 +182,7 @@ export class BaseCarousel extends AMP.BaseElement {
     this.getVsync().mutate(() => {
       const className = 'i-amphtml-carousel-button-start-hint';
       this.element.classList.add(className);
-      timerFor(this.win).delay(() => {
+      Services.timerFor(this.win).delay(() => {
         this.deferMutate(() => this.element.classList.remove(className));
       }, 4000);
     });

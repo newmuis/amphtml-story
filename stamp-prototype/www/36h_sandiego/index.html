@@ -1,0 +1,256 @@
+<!doctype html>
+<html ⚡ 📖>
+<head>
+    <meta charset="utf-8">
+    <script async src="https://cdn.ampproject.org/v0.js"></script>
+    <script async custom-element="amp-story"
+        src="https://cdn.ampproject.org/v0/amp-story-0.1.js"></script>
+    <script async custom-element="amp-video"
+        src="https://cdn.ampproject.org/v0/amp-video-0.1.js"></script>
+    <title>36 Hours in San Diego</title>
+    <link rel="canonical" href="index.html" />
+    <meta name="viewport"
+        content="width=device-width,minimum-scale=1,initial-scale=1">
+    <style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}} @keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
+    <style amp-custom>
+        @font-face {
+          font-family: 'Cheltenham';
+          src: url('./font/cheltenham/cheltenham-normal-200.ttf') format('truetype');
+        }
+
+        @font-face {
+          font-family: 'Franklin';
+          src: url('./font/franklin/franklin-normal-300.ttf') format('truetype');
+        }
+
+        amp-story {
+          color: #fff;
+        }
+
+        .page-template {
+          grid-template-columns: auto;
+          grid-template-rows: 1fr auto auto 30%;
+          grid-template-areas: "."
+                               "time-area"
+                               "name-area"
+                               "description-area";
+        }
+
+        .name {
+          font-family: 'Cheltenham', serif;
+          grid-area: name-area;
+          line-height: 1.5;
+        }
+
+        .time {
+          font-family: 'Franklin', sans-serif;
+          font-size: 90%;
+          grid-area: time-area;
+          line-height: 2;
+          opacity: 0.9;
+          text-transform: uppercase;
+        }
+
+        .description {
+          font-family: 'Franklin', sans-serif;
+          grid-area: description-area;
+          line-height: 1.25;
+          opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+  <amp-story related-articles="./related.json">
+
+    <!-- Page 1: Intro -->
+    <amp-story-page id="intro">
+      <amp-story-grid-layer template="fill">
+        <amp-video src="./media/intro-bg.mp4" layout="fill" loop muted>
+        </amp-video>
+      </amp-story-grid-layer>
+      <amp-story-grid-layer template="vertical">
+        <h1 class="intro-title">36 Hours in San Diego</h1>
+        <p class="intro-description">
+          Check out these 11 things to do while visiting San Diego
+        </p>
+        <p class="intro-date">Feb. 16, 2017</p>
+      </amp-story-grid-layer>
+    </amp-story-page>
+
+    <!-- Page 2: Balboa Park -->
+    <amp-story-page id="cover">
+      <amp-story-grid-layer template="fill">
+        <amp-img src="./media/1-1-intro-bg.jpg" layout="fill"></amp-img>
+      </amp-story-grid-layer>
+      <amp-story-grid-layer class="page-template">
+        <h1 class="name">Balboa Park</h1>
+        <p class="time">Fri 3 P.M.</p>
+        <p class="description">
+          Take advantage of San Diego's perma-sunshine with some outdoor time
+          at Balboa Park.
+        </p>
+      </amp-story-grid-layer>
+    </amp-story-page>
+
+    <!-- Page 3: The Crack Shack -->
+    <amp-story-page id="cover">
+      <amp-story-grid-layer template="fill">
+        <amp-img src="./media/2-1-intro-bg.jpg" layout="fill"></amp-img>
+      </amp-story-grid-layer>
+      <amp-story-grid-layer class="page-template">
+        <h1 class="name">The Crack Shack</h1>
+        <p class="time">Fri 5:30 P.M.</p>
+        <p class="description">
+          Crack Shack, an open-air restaurant with concrete picnic tables and
+          a bocce court, and a client base that includes what seems like every
+          San Diegan under the age of 35.
+        </p>
+      </amp-story-grid-layer>
+    </amp-story-page>
+
+    <!-- Page 4: The Brew Project -->
+    <amp-story-page id="cover">
+      <amp-story-grid-layer template="fill">
+        <amp-img src="./media/3-1-intro-bg.jpg" layout="fill"></amp-img>
+      </amp-story-grid-layer>
+      <amp-story-grid-layer class="page-template">
+        <h1 class="name">The Brew Project</h1>
+        <p class="time">Fri 6:30 P.M.</p>
+        <p class="description">
+          You should stop by the Brew Project.  This small bar in Hillcrest,
+          opened late 2015, is a shortcut to getting to know what's rapidly
+          becoming the country's best craft beer scene.
+        </p>
+      </amp-story-grid-layer>
+    </amp-story-page>
+
+    <!-- Page 5: The Observatory & West Coast Tavern -->
+    <amp-story-page id="cover">
+      <amp-story-grid-layer template="fill">
+        <amp-img src="./media/4-1-intro-bg.jpg" layout="fill"></amp-img>
+      </amp-story-grid-layer>
+      <amp-story-grid-layer class="page-template">
+        <h1 class="name">The Observatory &amp; West Coast Tavern</h1>
+        <p class="time">Fri 8 P.M.</p>
+        <p class="description">
+          Bands like Beach House and Dilated Peoples have played at the
+          Observatory, a historic North Park theater that's one of the top
+          places in the city for live music and stand-up comedy.
+        </p>
+      </amp-story-grid-layer>
+    </amp-story-page>
+
+    <!-- Page 6: Aqua Adventures -->
+    <amp-story-page id="cover">
+      <amp-story-grid-layer template="fill">
+        <amp-img src="./media/5-1-intro-bg.jpg" layout="fill"></amp-img>
+      </amp-story-grid-layer>
+      <amp-story-grid-layer class="page-template">
+        <h1 class="name">Aqua Adventures</h1>
+        <p class="time">Sat 9 A.M.</p>
+        <p class="description">
+          Head to the calm waters of Mission Bay (it's easier to learn here than
+          in the open ocean) and rent a paddleboard ($20 for the first hour)
+          from Aqua Adventures.
+        </p>
+      </amp-story-grid-layer>
+    </amp-story-page>
+
+    <!-- Page 7: Lucha Libre -->
+    <amp-story-page id="cover">
+      <amp-story-grid-layer template="fill">
+        <amp-img src="./media/6-1-intro-bg.jpg" layout="fill"></amp-img>
+      </amp-story-grid-layer>
+      <amp-story-grid-layer class="page-template">
+        <h1 class="name">Lucha Libre</h1>
+        <p class="time">Sat 12 P.M.</p>
+        <p class="description">
+          It's impossible to pinpoint the best tacos in a town with such a
+          surfeit of options, but Lucha Libre's theme &mdash; masked and
+          costumed Mexican wrestlers &mdash; lends this place a particular
+          appeal.
+        </p>
+      </amp-story-grid-layer>
+    </amp-story-page>
+
+    <!-- Page 8: 30th St -->
+    <amp-story-page id="cover">
+      <amp-story-grid-layer template="fill">
+        <amp-img src="./media/7-1-intro-bg.jpg" layout="fill"></amp-img>
+      </amp-story-grid-layer>
+      <amp-story-grid-layer class="page-template">
+        <h1 class="name">30th St</h1>
+        <p class="time">Sat 1 P.M.</p>
+        <p class="description">
+          Stroll down 30th Street, pausing to explore the district's quirkier
+          offerings, like combination game/bar Coin-Op Game Room, local coffee
+          roaster Dark Horse, and gallery/art supply store Visual.
+        </p>
+      </amp-story-grid-layer>
+    </amp-story-page>
+
+    <!-- Page 9: Liberty Public Market -->
+    <amp-story-page id="cover">
+      <amp-story-grid-layer template="fill">
+        <amp-img src="./media/8-1-intro-bg.jpg" layout="fill"></amp-img>
+      </amp-story-grid-layer>
+      <amp-story-grid-layer class="page-template">
+        <h1 class="name">Liberty Public Market</h1>
+        <p class="time">Sat 4 P.M.</p>
+        <p class="description">
+          Liberty Public Market was once a naval training center, but it
+          reopened in March 2016 as a food hall jam-packed with stalls and
+          outposts of the city's restaurants, cafes, and bakeries.
+        </p>
+      </amp-story-grid-layer>
+    </amp-story-page>
+
+    <!-- Page 10: Ocean Beach -->
+    <amp-story-page id="cover">
+      <amp-story-grid-layer template="fill">
+        <amp-img src="./media/9-1-intro-bg.jpg" layout="fill"></amp-img>
+      </amp-story-grid-layer>
+      <amp-story-grid-layer class="page-template">
+        <h1 class="name">Ocean Beach</h1>
+        <p class="time">Sat 6:30 P.M.</p>
+        <p class="description">
+          Some of the most breathtaking scenery in the area is in Ocean Beach,
+          a coastal neighborhood with a chilled-out vibe and a hippie bent.
+        </p>
+      </amp-story-grid-layer>
+    </amp-story-page>
+
+    <!-- Page 11: Buona Forchetta & Kindred -->
+    <amp-story-page id="cover">
+      <amp-story-grid-layer template="fill">
+        <amp-img src="./media/10-1-intro-bg.jpg" layout="fill"></amp-img>
+      </amp-story-grid-layer>
+      <amp-story-grid-layer class="page-template">
+        <h1 class="name">Buona Forchetta &amp; Kindred</h1>
+        <p class="time">Sat 9:30 P.M.</p>
+        <p class="description">
+          Head to South Park, where you can grab a drink at Kindred while you
+          wait for a table at Buona Forchetta, which serves up the city's best
+          pizza.
+        </p>
+      </amp-story-grid-layer>
+    </amp-story-page>
+
+    <!-- Page 12: El Pescador Fish Market -->
+    <amp-story-page id="cover">
+      <amp-story-grid-layer template="fill">
+        <amp-img src="./media/11-1-intro-bg.jpg" layout="fill"></amp-img>
+      </amp-story-grid-layer>
+      <amp-story-grid-layer class="page-template">
+        <h1 class="name">El Pescador Fish Market</h1>
+        <p class="time">Sun 11 A.M.</p>
+        <p class="description">
+          La Jolla is a gorgeous small community with beautiful beaches and an
+          upscale ambiance that's perfect for a Sunday stroll.  El Pescador Fish
+          Market has been a La Jolla landmark since 1974.
+        </p>
+      </amp-story-grid-layer>
+    </amp-story-page>
+  </amp-story>
+</body>
+</html>

@@ -14,38 +14,26 @@
  * limitations under the License.
  */
 
+import * as lolex from 'lolex';
+import {AmpEvents} from '../../src/amp-events';
 import {BaseElement} from '../../src/base-element';
 import {ElementStub, setLoadingCheckForTests} from '../../src/element-stub';
 import {LOADING_ELEMENTS_, Layout} from '../../src/layout';
+import {installDocumentStateService} from '../../src/service/document-state';
 import {installResourcesServiceForDoc} from '../../src/service/resources-impl';
 import {poll} from '../../testing/iframe';
 import {ResourceState} from '../../src/service/resource';
-import {resourcesForDoc} from '../../src/services';
-import {vsyncFor} from '../../src/services';
-import {
-  registerServiceBuilder,
-  resetServiceForTesting,
-} from '../../src/service';
+import {Services} from '../../src/services';
 import {
   copyElementToChildWindow,
   createAmpElementProto,
   getElementClassForTesting,
-  markElementScheduledForTesting,
   registerElement,
   resetScheduledElementForTesting,
   stubElementIfNotKnown,
   stubElements,
   upgradeOrRegisterElement,
 } from '../../src/custom-element';
-// TODO(@cramforce): Move tests into their own file.
-import {
-  getElementService,
-  getElementServiceIfAvailable,
-  getElementServiceForDoc,
-  getElementServiceIfAvailableForDoc,
-} from '../../src/element-service';
-import * as lolex from 'lolex';
-
 
 describes.realWin('CustomElement register', {amp: 1}, env => {
 
@@ -162,7 +150,7 @@ describes.realWin('CustomElement', {amp: true}, env => {
     win = env.win;
     doc = win.document;
     clock = lolex.install(win);
-    resources = resourcesForDoc(doc);
+    resources = Services.resourcesForDoc(doc);
     resources.isBuildOn_ = true;
     resourcesMock = sandbox.mock(resources);
     container = doc.createElement('div');
@@ -346,7 +334,7 @@ describes.realWin('CustomElement', {amp: true}, env => {
     element.updateLayoutBox({top: 0, left: 0, width: 111, height: 51});
     expect(element.layoutWidth_).to.equal(111);
     expect(element.implementation_.layoutWidth_).to.equal(111);
-    expect(errorStub).to.be.calledWith('amp:error', 'intentional');
+    expect(errorStub).to.be.calledWith(AmpEvents.ERROR, 'intentional');
   });
 
   it('StubElement - upgrade after attached', () => {
@@ -1326,7 +1314,7 @@ describes.realWin('CustomElement Service Elements', {amp: true}, env => {
     element.setAttribute('layout', 'nodisplay');
     win.document.body.appendChild(element);
     return poll('wait for static layout',
-            () => element.classList.contains('i-amphtml-layout-nodisplay'))
+        () => element.classList.contains('i-amphtml-layout-nodisplay'))
         .then(() => {
           // TODO(dvoytenko, #9353): once `toggleLayoutDisplay` API has been
           // deployed this will start `false`.
@@ -1388,7 +1376,7 @@ describes.realWin('CustomElement Service Elements', {amp: true}, env => {
       getState: () => {return ResourceState.LAYOUT_COMPLETE;},
     };
     element.resources_ = {
-      scheduleLayout: function(el, fb) {
+      scheduleLayout(el, fb) {
         if (el == element && fb == fallback) {
           resourcesSpy();
         }
@@ -1455,6 +1443,10 @@ describes.realWin('CustomElement Loading Indicator', {amp: true}, env => {
     }
   }
 
+  function stubInA4A(isInA4A) {
+    sandbox.stub(element, 'isInA4A_', () => isInA4A);
+  }
+
   beforeEach(() => {
     win = env.win;
     doc = win.document;
@@ -1463,7 +1455,7 @@ describes.realWin('CustomElement Loading Indicator', {amp: true}, env => {
       prototype: createAmpElementProto(win, 'amp-test-loader', TestElement),
     });
     LOADING_ELEMENTS_['amp-test-loader'.toUpperCase()] = true;
-    resources = resourcesForDoc(doc);
+    resources = Services.resourcesForDoc(doc);
     resources.isBuildOn_ = true;
     resourcesMock = sandbox.mock(resources);
     element = new ElementClass();
@@ -1471,7 +1463,7 @@ describes.realWin('CustomElement Loading Indicator', {amp: true}, env => {
     element.layout_ = Layout.FIXED;
     element.setAttribute('layout', 'fixed');
     element.resources_ = resources;
-    vsync = vsyncFor(win);
+    vsync = Services.vsyncFor(win);
     vsyncTasks = [];
     sandbox.stub(vsync, 'mutate', mutator => {
       vsyncTasks.push(mutator);
@@ -1486,20 +1478,29 @@ describes.realWin('CustomElement Loading Indicator', {amp: true}, env => {
 
 
   it('should be enabled by default', () => {
+    stubInA4A(false);
     expect(element.isLoadingEnabled_()).to.be.true;
   });
 
+  it('should be disabled in A4A', () => {
+    stubInA4A(true);
+    expect(element.isLoadingEnabled_()).to.be.false;
+  });
+
   it('should disable when explicitly disabled by the attribute', () => {
+    stubInA4A(false);
     element.setAttribute('noloading', '');
     expect(element.isLoadingEnabled_()).to.be.false;
   });
 
   it('should disable when element is not whitelisted', () => {
+    stubInA4A(false);
     LOADING_ELEMENTS_['amp-test-loader'.toUpperCase()] = false;
     expect(element.isLoadingEnabled_()).to.be.false;
   });
 
   it('should disable when not measured or too small', () => {
+    stubInA4A(false);
     element.layoutWidth_ = 0;
     expect(element.isLoadingEnabled_()).to.be.false;
 
@@ -1508,16 +1509,19 @@ describes.realWin('CustomElement Loading Indicator', {amp: true}, env => {
   });
 
   it('should disable when element has already been laid out', () => {
+    stubInA4A(false);
     element.layoutCount_ = 1;
     expect(element.isLoadingEnabled_()).to.be.false;
   });
 
   it('should disable when element is a placeholder itself', () => {
+    stubInA4A(false);
     element.setAttribute('placeholder', '');
     expect(element.isLoadingEnabled_()).to.be.false;
   });
 
   it('should disable when element is not sized', () => {
+    stubInA4A(false);
     element.layout_ = Layout.CONTAINER;
     expect(element.isLoadingEnabled_()).to.be.false;
 
@@ -1527,17 +1531,20 @@ describes.realWin('CustomElement Loading Indicator', {amp: true}, env => {
 
 
   it('should ignore loading-off if never created', () => {
+    stubInA4A(false);
     element.toggleLoading_(false);
     expect(vsyncTasks).to.be.empty;
   });
 
   it('should ignore loading-on if not allowed', () => {
+    stubInA4A(false);
     element.setAttribute('noloading', '');
     element.toggleLoading_(true);
     expect(vsyncTasks).to.be.empty;
   });
 
   it('should ignore loading-on if already rendered', () => {
+    stubInA4A(false);
     clock.tick(1);
     element.signals().signal('render-start');
     element.toggleLoading_(true);
@@ -1545,12 +1552,14 @@ describes.realWin('CustomElement Loading Indicator', {amp: true}, env => {
   });
 
   it('should ignore loading-on if already loaded', () => {
+    stubInA4A(false);
     element.layoutCount_ = 1;
     element.toggleLoading_(true);
     expect(vsyncTasks).to.be.empty;
   });
 
   it('should cancel loading on render-start', () => {
+    stubInA4A(false);
     clock.tick(1);
     const stub = sandbox.stub(element, 'toggleLoading_');
     element.renderStarted();
@@ -1560,6 +1569,7 @@ describes.realWin('CustomElement Loading Indicator', {amp: true}, env => {
   });
 
   it('should create and turn on', () => {
+    stubInA4A(false);
     element.toggleLoading_(true);
     expect(vsyncTasks).to.have.length.of(1);
 
@@ -1572,6 +1582,7 @@ describes.realWin('CustomElement Loading Indicator', {amp: true}, env => {
   });
 
   it('should turn on already created', () => {
+    stubInA4A(false);
     element.prepareLoading_();
     const container = element.loadingContainer_;
     const indicator = element.loadingElement_;
@@ -1587,6 +1598,7 @@ describes.realWin('CustomElement Loading Indicator', {amp: true}, env => {
   });
 
   it('should turn off', () => {
+    stubInA4A(false);
     element.prepareLoading_();
     element.toggleLoading_(false);
     expect(vsyncTasks).to.have.length.of(1);
@@ -1600,6 +1612,7 @@ describes.realWin('CustomElement Loading Indicator', {amp: true}, env => {
   });
 
   it('should turn off and cleanup', () => {
+    stubInA4A(false);
     element.prepareLoading_();
     resourcesMock.expects('deferMutate').once();
     element.toggleLoading_(false, true);
@@ -1611,6 +1624,7 @@ describes.realWin('CustomElement Loading Indicator', {amp: true}, env => {
   });
 
   it('should ignore loading-off if never created', () => {
+    stubInA4A(false);
     element.isInTemplate_ = true;
     expect(() => {
       element.toggleLoading_(false);
@@ -1619,6 +1633,7 @@ describes.realWin('CustomElement Loading Indicator', {amp: true}, env => {
 
 
   it('should turn off when exits viewport', () => {
+    stubInA4A(false);
     const toggle = sandbox.spy(element, 'toggleLoading_');
     element.viewportCallback(false);
     expect(toggle).to.be.calledOnce;
@@ -1627,6 +1642,7 @@ describes.realWin('CustomElement Loading Indicator', {amp: true}, env => {
   });
 
   it('should NOT turn off when exits viewport but already laid out', () => {
+    stubInA4A(false);
     const toggle = sandbox.spy(element, 'toggleLoading_');
     element.layoutCount_ = 1;
     element.viewportCallback(false);
@@ -1634,6 +1650,7 @@ describes.realWin('CustomElement Loading Indicator', {amp: true}, env => {
   });
 
   it('should turn on when enters viewport', () => {
+    stubInA4A(false);
     const toggle = sandbox.spy(element, 'toggleLoading_');
     element.viewportCallback(true);
     clock.tick(1000);
@@ -1642,6 +1659,7 @@ describes.realWin('CustomElement Loading Indicator', {amp: true}, env => {
   });
 
   it('should NOT turn on when enters viewport but already laid out', () => {
+    stubInA4A(false);
     const toggle = sandbox.spy(element, 'toggleLoading_');
     element.layoutCount_ = 1;
     element.viewportCallback(true);
@@ -1651,6 +1669,7 @@ describes.realWin('CustomElement Loading Indicator', {amp: true}, env => {
 
 
   it('should start loading when measured if already in viewport', () => {
+    stubInA4A(false);
     const toggle = sandbox.spy(element, 'toggleLoading_');
     element.isInViewport_ = true;
     element.updateLayoutBox({top: 0, width: 300});
@@ -1659,6 +1678,7 @@ describes.realWin('CustomElement Loading Indicator', {amp: true}, env => {
   });
 
   it('should create loading when measured if in the top window', () => {
+    stubInA4A(false);
     const toggle = sandbox.spy(element, 'toggleLoading_');
     element.updateLayoutBox({top: 0, width: 300});
     expect(toggle).to.have.not.been.called;
@@ -1670,6 +1690,7 @@ describes.realWin('CustomElement Loading Indicator', {amp: true}, env => {
 
 
   it('should toggle loading off after layout complete', () => {
+    stubInA4A(false);
     const toggle = sandbox.spy(element, 'toggleLoading_');
     container.appendChild(element);
     return element.layoutCallback().then(() => {
@@ -1682,6 +1703,7 @@ describes.realWin('CustomElement Loading Indicator', {amp: true}, env => {
   });
 
   it('should toggle loading off after layout failed', () => {
+    stubInA4A(false);
     const toggle = sandbox.spy(element, 'toggleLoading_');
     sandbox.stub(element.implementation_, 'layoutCallback', () => {
       return Promise.reject();
@@ -1697,6 +1719,7 @@ describes.realWin('CustomElement Loading Indicator', {amp: true}, env => {
   });
 
   it('should disable toggle loading on after layout failed', () => {
+    stubInA4A(false);
     const prepareLoading = sandbox.spy(element, 'prepareLoading_');
     sandbox.stub(element.implementation_, 'layoutCallback', () => {
       return Promise.reject();
@@ -1715,6 +1738,7 @@ describes.realWin('CustomElement Loading Indicator', {amp: true}, env => {
   });
 
   it('should ignore loading "on" if layout completed before vsync', () => {
+    stubInA4A(false);
     resourcesMock.expects('deferMutate').once();
     container.appendChild(element);
     element.prepareLoading_();
@@ -1761,7 +1785,7 @@ describes.realWin('CustomElement Overflow Element', {amp: true}, env => {
     ElementClass = doc.registerElement('amp-test-overflow', {
       prototype: createAmpElementProto(win, 'amp-test-overflow', TestElement),
     });
-    resources = resourcesForDoc(doc);
+    resources = Services.resourcesForDoc(doc);
     resourcesMock = sandbox.mock(resources);
     element = new ElementClass();
     element.layoutWidth_ = 300;
@@ -1770,7 +1794,7 @@ describes.realWin('CustomElement Overflow Element', {amp: true}, env => {
     overflowElement = doc.createElement('div');
     overflowElement.setAttribute('overflow', '');
     element.appendChild(overflowElement);
-    vsync = vsyncFor(win);
+    vsync = Services.vsyncFor(win);
     vsyncTasks = [];
     sandbox.stub(vsync, 'mutate', mutator => {
       vsyncTasks.push(mutator);
@@ -1851,7 +1875,7 @@ describes.realWin('CustomElement Overflow Element', {amp: true}, env => {
     let doc;
     let win;
     let elem1;
-    let intervalCallback;
+    let setIntervalCallback;
 
     beforeEach(() => {
       elements = [];
@@ -1882,7 +1906,6 @@ describes.realWin('CustomElement Overflow Element', {amp: true}, env => {
       };
       elements.push(elem1);
 
-      intervalCallback = undefined;
       win = {
         document: doc,
         Object: {
@@ -1890,7 +1913,7 @@ describes.realWin('CustomElement Overflow Element', {amp: true}, env => {
         },
         HTMLElement,
         setInterval: callback => {
-          intervalCallback = callback;
+          setIntervalCallback = callback;
         },
         clearInterval: () => {
         },
@@ -1898,8 +1921,7 @@ describes.realWin('CustomElement Overflow Element', {amp: true}, env => {
       };
       doc.defaultView = win;
 
-      resetServiceForTesting(win, 'e1');
-      resetScheduledElementForTesting(win, 'element-1');
+      installDocumentStateService(win);
     });
 
     afterEach(() => {
@@ -1915,7 +1937,7 @@ describes.realWin('CustomElement Overflow Element', {amp: true}, env => {
       expect(win.ampExtendedElements['amp-test2']).to.be.undefined;
       expect(doc.registerElement).to.be.calledOnce;
       expect(doc.registerElement.firstCall.args[0]).to.equal('amp-test1');
-      expect(intervalCallback).to.be.undefined;
+      expect(setIntervalCallback).to.be.undefined;
     });
 
     it('should repeat stubbing when body is not available', () => {
@@ -1928,7 +1950,7 @@ describes.realWin('CustomElement Overflow Element', {amp: true}, env => {
       expect(win.ampExtendedElements['amp-test2']).to.be.undefined;
       expect(doc.registerElement).to.be.calledOnce;
       expect(doc.registerElement.firstCall.args[0]).to.equal('amp-test1');
-      expect(intervalCallback).to.exist;
+      expect(setIntervalCallback).to.exist;
 
       // Add more elements
       const elem2 = {
@@ -1941,7 +1963,7 @@ describes.realWin('CustomElement Overflow Element', {amp: true}, env => {
       };
       elements.push(elem2);
       doc.body = {};
-      intervalCallback();
+      setIntervalCallback();
 
       expect(win.ampExtendedElements['amp-test1']).to.equal(ElementStub);
       expect(win.ampExtendedElements['amp-test2']).to.equal(ElementStub);
@@ -1981,260 +2003,6 @@ describes.realWin('CustomElement Overflow Element', {amp: true}, env => {
       expect(registerElement.callCount > firstCallCount).to.be.true;
       expect(registerElement.getCall(registerElement.callCount - 1).args[0])
           .to.equal('amp-test2');
-    });
-
-    it('getElementService should wait for body when not available', () => {
-      doc.body = null;  // Body not available
-      let resolvedService;
-      const p1 = getElementServiceIfAvailable(win, 'e1', 'element-1')
-          .then(service => {
-            resolvedService = service;
-            return service;
-          });
-      return Promise.resolve().then(() => {
-        expect(intervalCallback).to.exist;
-        expect(resolvedService).to.be.undefined;
-
-        // Resolve body.
-        doc.body = {};
-        intervalCallback();
-        return p1;
-      }).then(service => {
-        expect(resolvedService).to.be.null;
-        expect(service).to.be.null;
-      });
-    });
-
-    it('getElementService should resolve with body when not available', () => {
-      doc.body = {};  // Body is available
-      const p1 = getElementServiceIfAvailable(win, 'e1', 'element-1');
-      return Promise.resolve().then(() => {
-        expect(intervalCallback).to.be.undefined;
-        return p1;
-      }).then(service => {
-        expect(service).to.be.null;
-      });
-    });
-
-    it('getElementService should wait for body when available', () => {
-      doc.body = null;  // Body not available
-      let resolvedService;
-      const p1 = getElementServiceIfAvailable(win, 'e1', 'element-1')
-          .then(service => {
-            resolvedService = service;
-            return service;
-          });
-      return Promise.resolve().then(() => {
-        expect(intervalCallback).to.exist;
-        expect(resolvedService).to.be.undefined;
-
-        // Resolve body.
-        markElementScheduledForTesting(win, 'element-1');
-        registerServiceBuilder(win, 'e1', function() {
-          return {str: 'fake1'};
-        });
-        doc.body = {};
-        intervalCallback();
-        return p1;
-      }).then(service => {
-        expect(resolvedService).to.deep.equal({str: 'fake1'});
-        expect(service).to.deep.equal({str: 'fake1'});
-      });
-    });
-
-    it('getElementService should resolve with body when available', () => {
-      doc.body = {};  // Body is available
-      markElementScheduledForTesting(win, 'element-1');
-      const p1 = getElementServiceIfAvailable(win, 'e1', 'element-1');
-      return Promise.resolve().then(() => {
-        expect(intervalCallback).to.be.undefined;
-        registerServiceBuilder(win, 'e1', function() {
-          return {str: 'fake1'};
-        });
-        return p1;
-      }).then(service => {
-        expect(service).to.deep.equal({str: 'fake1'});
-      });
-    });
-  });
-});
-
-
-describes.realWin('services', {
-  amp: {
-    ampdoc: 'single',
-  },
-}, env => {
-
-  beforeEach(() => {
-    resetServiceForTesting(env.win, 'e1');
-    resetScheduledElementForTesting(env.win, 'element-1');
-    resetScheduledElementForTesting(env.win, 'element-foo');
-  });
-
-  it('should be provided by element', () => {
-    markElementScheduledForTesting(env.win, 'element-1');
-    const p1 = getElementService(env.win, 'e1', 'element-1');
-    const p2 = getElementService(env.win, 'e1', 'element-1');
-
-    registerServiceBuilder(env.win, 'e1', function() {
-      return {str: 'from e1'};
-    });
-
-    return p1.then(s1 => {
-      expect(s1).to.deep.equal({str: 'from e1'});
-      return p2.then(s2 => {
-        expect(s1).to.equal(s2);
-      });
-    });
-  });
-
-  it('should fail if element is not in page.', () => {
-    markElementScheduledForTesting(env.win, 'element-foo');
-
-    return getElementService(env.win, 'e1', 'element-bar').then(() => {
-      return 'SUCCESS';
-    }, error => {
-      return 'ERROR ' + error;
-    }).then(result => {
-      expect(result).to.match(
-          /Service e1 was requested to be provided through element-bar/);
-    });
-  });
-
-  it('should be provided by element if available', () => {
-    markElementScheduledForTesting(env.win, 'element-1');
-    const p1 = getElementServiceIfAvailable(env.win, 'e1', 'element-1');
-    const p2 = getElementServiceIfAvailable(env.win, 'e2', 'not-available');
-    registerServiceBuilder(env.win, 'e1', function() {
-      return {str: 'from e1'};
-    });
-    return p1.then(s1 => {
-      expect(s1).to.deep.equal({str: 'from e1'});
-      return p2.then(s2 => {
-        expect(s2).to.be.null;
-      });
-    });
-  });
-
-  it('should be provided by element', () => {
-    markElementScheduledForTesting(env.win, 'element-1');
-    const p1 = getElementServiceForDoc(env.ampdoc, 'e1', 'element-1');
-    const p2 = getElementServiceForDoc(env.ampdoc, 'e1', 'element-1');
-
-    registerServiceBuilder(env.win, 'e1', function() {
-      return {str: 'from e1'};
-    });
-
-    return p1.then(s1 => {
-      expect(s1).to.deep.equal({str: 'from e1'});
-      return p2.then(s2 => {
-        expect(s1).to.equal(s2);
-      });
-    });
-  });
-
-  it('should fail if element is not in page.', () => {
-    markElementScheduledForTesting(env.win, 'element-foo');
-
-    return getElementServiceForDoc(env.ampdoc, 'e1', 'element-bar').then(() => {
-      return 'SUCCESS';
-    }, error => {
-      return 'ERROR ' + error;
-    }).then(result => {
-      expect(result).to.match(
-          /Service e1 was requested to be provided through element-bar/);
-    });
-  });
-
-  it('should be provided by element if available', () => {
-    markElementScheduledForTesting(env.win, 'element-1');
-    const p1 = getElementServiceIfAvailableForDoc(
-        env.ampdoc, 'e1', 'element-1');
-    const p2 = getElementServiceIfAvailableForDoc(
-        env.ampdoc, 'e2', 'not-available');
-    registerServiceBuilder(env.win, 'e1', function() {
-      return {str: 'from e1'};
-    });
-    return p1.then(s1 => {
-      expect(s1).to.deep.equal({str: 'from e1'});
-      return p2.then(s2 => {
-        expect(s2).to.be.null;
-      });
-    });
-  });
-
-  it('getElementServiceForDoc should wait for body when not available', () => {
-    let bodyResolver;
-    env.ampdoc.bodyPromise_ = new Promise(resolve => {
-      bodyResolver = resolve;
-    });
-    let resolvedService;
-    const p1 = getElementServiceIfAvailableForDoc(env.ampdoc, 'e1', 'element-1')
-        .then(service => {
-          resolvedService = service;
-          return service;
-        });
-    return Promise.resolve().then(() => {
-      expect(resolvedService).to.be.undefined;
-
-      // Resolve body.
-      bodyResolver();
-      return p1;
-    }).then(service => {
-      expect(resolvedService).to.be.null;
-      expect(service).to.be.null;
-    });
-  });
-
-  it('getElementServiceForDoc resolve w/ body when not available', () => {
-    const p1 = getElementServiceIfAvailableForDoc(
-        env.ampdoc, 'e1', 'element-1');
-    return Promise.resolve().then(() => {
-      return p1;
-    }).then(service => {
-      expect(service).to.be.null;
-    });
-  });
-
-  it('getElementServiceForDoc should wait for body when available', () => {
-    let bodyResolver;
-    env.ampdoc.bodyPromise_ = new Promise(resolve => {
-      bodyResolver = resolve;
-    });
-    let resolvedService;
-    const p1 = getElementServiceIfAvailableForDoc(env.ampdoc, 'e1', 'element-1')
-        .then(service => {
-          resolvedService = service;
-          return service;
-        });
-    return Promise.resolve().then(() => {
-      expect(resolvedService).to.be.undefined;
-
-      // Resolve body.
-      markElementScheduledForTesting(env.win, 'element-1');
-      registerServiceBuilder(env.win, 'e1', function() {
-        return {str: 'fake1'};
-      });
-      bodyResolver();
-      return p1;
-    }).then(service => {
-      expect(resolvedService).to.deep.equal({str: 'fake1'});
-      expect(service).to.deep.equal({str: 'fake1'});
-    });
-  });
-
-  it('getElementServiceForDoc should resolve with body when available', () => {
-    markElementScheduledForTesting(env.win, 'element-1');
-    const p1 = getElementServiceIfAvailableForDoc(
-        env.ampdoc, 'e1', 'element-1');
-    return Promise.resolve().then(() => {
-      registerServiceBuilder(env.win, 'e1', function() {
-        return {str: 'fake1'};
-      });
-      return p1;
-    }).then(service => {
-      expect(service).to.deep.equal({str: 'fake1'});
     });
   });
 });

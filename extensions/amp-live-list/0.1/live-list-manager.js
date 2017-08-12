@@ -22,8 +22,7 @@ import {
   registerServiceBuilderForDoc,
 } from '../../../src/service';
 import {user} from '../../../src/log';
-import {viewerForDoc} from '../../../src/services';
-import {xhrFor} from '../../../src/services';
+import {Services} from '../../../src/services';
 
 const SERVICE_ID = 'liveListManager';
 
@@ -47,7 +46,7 @@ export class LiveListManager {
     this.liveLists_ = Object.create(null);
 
     /** @private @const {!../../../src/service/viewer-impl.Viewer} */
-    this.viewer_ = viewerForDoc(this.ampdoc);
+    this.viewer_ = Services.viewerForDoc(this.ampdoc);
 
     /** @private {number} */
     this.interval_ = 15000;
@@ -127,7 +126,7 @@ export class LiveListManager {
       url = addParamToUrl(url, 'amp_latest_update_time',
           String(this.latestUpdateTime_));
     }
-    return xhrFor(this.ampdoc.win)
+    return Services.xhrFor(this.ampdoc.win)
         // TODO(erwinm): add update time here when possible.
         .fetchDocument(url, {
           requireAmpResponseSourceOrigin: false,
@@ -164,7 +163,7 @@ export class LiveListManager {
     const id = liveList.getAttribute('id');
     user().assert(id, 'amp-live-list must have an id.');
     user().assert(id in this.liveLists_, `amp-live-list#${id} found but did ` +
-        `not exist on original page load.`);
+        'not exist on original page load.');
     const inClientDomLiveList = this.liveLists_[id];
     inClientDomLiveList.toggle(!liveList.hasAttribute('disabled'));
 

@@ -21,10 +21,10 @@ import {getDataParamsFromAttributes} from '../../../src/dom';
 import {getSocialConfig} from './amp-social-share-config';
 import {isLayoutSizeDefined} from '../../../src/layout';
 import {dev, user} from '../../../src/log';
+import {dict} from '../../../src/utils/object';
 import {openWindowDialog} from '../../../src/dom';
-import {urlReplacementsForDoc} from '../../../src/services';
+import {Services} from '../../../src/services';
 import {CSS} from '../../../build/amp-social-share-0.1.css';
-import {platformFor} from '../../../src/services';
 
 
 class AmpSocialShare extends AMP.BaseElement {
@@ -35,8 +35,8 @@ class AmpSocialShare extends AMP.BaseElement {
     /** @private {?string} */
     this.shareEndpoint_ = null;
 
-    /** @private {!Object} */
-    this.params_ = {};
+    /** @private @const {!JsonObject} */
+    this.params_ = dict();
 
     /** @private {?../../../src/service/platform-impl.Platform} */
     this.platform_ = null;
@@ -70,23 +70,23 @@ class AmpSocialShare extends AMP.BaseElement {
       // Hide/ignore non-system component if system share wants to be unique
       const systemOnly = ('share' in navigator) &&
         !!this.win.document.querySelectorAll(
-          'amp-social-share[type=system][data-mode=replace]').length;
+            'amp-social-share[type=system][data-mode=replace]').length;
       if (systemOnly) {
         setStyle(this.element, 'display', 'none');
         return;
       }
     }
-    const typeConfig = getSocialConfig(typeAttr) || {};
+    const typeConfig = getSocialConfig(typeAttr) || dict();
     this.shareEndpoint_ = user().assert(
         this.element.getAttribute('data-share-endpoint') ||
-        typeConfig.shareEndpoint,
+        typeConfig['shareEndpoint'],
         'The data-share-endpoint attribute is required. %s', this.element);
-    this.params_ = Object.assign({}, typeConfig.defaultParams,
+    Object.assign(this.params_, typeConfig['defaultParams'],
         getDataParamsFromAttributes(this.element));
-    this.platform_ = platformFor(this.win);
+    this.platform_ = Services.platformFor(this.win);
 
     const hrefWithVars = addParamsToUrl(this.shareEndpoint_, this.params_);
-    const urlReplacements = urlReplacementsForDoc(this.getAmpDoc());
+    const urlReplacements = Services.urlReplacementsForDoc(this.getAmpDoc());
     urlReplacements.expandAsync(hrefWithVars).then(href => {
       this.href_ = href;
       // mailto:, whatsapp: protocols breaks when opened in _blank on iOS Safari
