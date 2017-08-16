@@ -111,7 +111,7 @@ export class AudioManager {
     this.load(sourceElement)
         .then(() => this.getPlayable_(sourceElement))
         .then(playable => {
-          playable.setVolume(1 /* volume */, 0 /* durationMs */,
+          playable.setVolume(/* volume */ 1, /* durationMs */ 0,
               VOLUME_EASING_FN);
           return playable;
         })
