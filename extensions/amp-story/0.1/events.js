@@ -22,6 +22,12 @@ export const EventType = {
 
   // Triggered when the user clicks the close bookend button
   CLOSE_BOOKEND: 'ampstory:closebookend',
+
+  // Triggered when the user mutes the story
+  MUTE: 'ampstory:mute',
+
+  // Triggered when the user mutes the story
+  UNMUTE: 'ampstory:unmute',
 };
 
 
