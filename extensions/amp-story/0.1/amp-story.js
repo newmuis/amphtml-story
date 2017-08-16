@@ -146,6 +146,14 @@ export class AmpStory extends AMP.BaseElement {
       this.hideBookend_();
     });
 
+    this.element.addEventListener(EventType.MUTE, () => {
+      this.mute_();
+    });
+
+    this.element.addEventListener(EventType.UNMUTE, () => {
+      this.unmute_();
+    });
+
     this.win.document.addEventListener('keydown', e => {
       this.onKeyDown_(e);
     }, true);
@@ -719,6 +727,24 @@ export class AmpStory extends AMP.BaseElement {
    */
   getPageIndex(page) {
     return Array.prototype.indexOf.call(this.getPages(), page);
+  }
+
+  /**
+   * Mutes the audio for the story.
+   * @private
+   */
+  mute_() {
+    this.audioManager_.muteAll();
+    this.element.classList.remove('unmuted');
+  }
+
+  /**
+   * Unmutes the audio for the story.
+   * @private
+   */
+  unmute_() {
+    this.audioManager_.unmuteAll();
+    this.element.classList.add('unmuted');
   }
 }
 

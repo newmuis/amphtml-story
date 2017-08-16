@@ -137,6 +137,15 @@ amp-story:fullscreen {
   transform-origin: right;
 }
 
+.i-amp-story-mute-audio-control,
+amp-story.unmuted .i-amp-story-unmute-audio-control {
+  display: none;
+}
+
+amp-story.unmuted .i-amp-story-mute-audio-control {
+  display: block;
+}
+
 /** Page level */
 amp-story-page {
   bottom: 0 !important;
