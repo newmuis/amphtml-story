@@ -27,6 +27,11 @@
 import {AmpStoryGridLayer} from './amp-story-grid-layer';
 import {AmpStoryPage} from './amp-story-page';
 import {AnalyticsTrigger} from './analytics';
+import {
+  AnimationManager,
+  AnimationManagerFactory,
+  hasAnimations,
+} from './animation';
 import {Bookend} from './bookend';
 import {CSS} from '../../../build/amp-story-0.1.css';
 import {EventType} from './events';
@@ -46,6 +51,7 @@ import {
   requestFullScreen,
 } from './fullscreen';
 import {once} from '../../../src/utils/function';
+import {map} from '../../../src/utils/object';
 import {
   toggleExperiment,
 } from '../../../src/experiments';
@@ -129,6 +135,9 @@ export class AmpStory extends AMP.BaseElement {
 
     /** @private {?Element} */
     this.activePage_ = null;
+
+    /** @private @const {!Object<string, !AnimationManager>} */
+    this.animationManagers_ = map();
   }
 
   /** @override */
@@ -324,6 +333,76 @@ export class AmpStory extends AMP.BaseElement {
 
 
   /**
+   * @param {!Element} page
+   * @return {?./animation.AnimationManager}
+   */
+  getOrCreateAnimationManagerFor_(page) {
+    if (!(page.id in this.animationManagers_)) {
+      if (!hasAnimations(page)) {
+        return null;
+      }
+
+      this.animationManagers_[page.id] = AnimationManagerFactory.create(
+          page,
+          this.getAmpDoc().win,
+          this.getAmpDoc(),
+          this.getAmpDoc().getUrl(),
+          this.getVsync(),
+          this.element.getResources(),
+          Services.timerFor(this.getAmpDoc().win));
+    }
+    return this.animationManagers_[page.id];
+  }
+
+
+  /**
+   * @param {!Element} page
+   * @return {!Promise}
+   */
+  maybeApplyFirstAnimationFrame_(page) {
+    const animationManager = this.getOrCreateAnimationManagerFor_(page);
+
+    if (!animationManager) {
+      return Promise.resolve();
+    }
+
+    return animationManager.applyFirstFrame();
+  }
+
+  /**
+   * @param {!Element} page
+   * @return {!Promise}
+   */
+  maybeAnimateIn_(page) {
+    if (!(page.id in this.animationManagers_)) {
+      return;
+    }
+    this.animationManagers_[page.id].animateIn();
+  }
+
+
+  /**
+   * @return {boolean}
+   * @private
+   */
+  maybeFinishActiveAnimation_() {
+    const page = dev().assert(this.activePage_,
+        'No active page set when navigating to next page.')
+
+    if (!(page.id in this.animationManagers_)) {
+      return false;
+    }
+
+    if (!this.animationManagers_[page.id].hasAnimationStarted()) {
+      return false;
+    }
+
+    this.animationManagers_[page.id].finishAll();
+
+    return true;
+  }
+
+  /**
    * Switches to a particular page.
    * @param {!Element} page
    * @return {!Promise}
@@ -354,20 +433,26 @@ export class AmpStory extends AMP.BaseElement {
 
     this.audioManager_.play(page);
 
-    return this.mutateElement(() => {
-      page.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
-      if (this.activePage_) {
-        this.activePage_.removeAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME);
-      }
-      this.activePage_ = page;
-      this.triggerActiveEventForPage_();
-    }, page).then(() => {
-      if (this.activePage_) {
-        this.schedulePause(this.activePage_);
-      }
-      this.scheduleResume(page);
-      this.updateInViewport(page, true);
-    }).then(() => this.maybeScheduleAutoAdvance_());
+    return this.maybeApplyFirstAnimationFrame_(page)
+        .then(() => {
+          return this.mutateElement(() => {
+            page.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
+            if (this.activePage_) {
+              this.activePage_.removeAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME);
+            }
+            this.activePage_ = page;
+            this.triggerActiveEventForPage_();
+            this.maybeAnimateIn_(page);
+          }, page);
+        })
+        .then(() => {
+          if (this.activePage_) {
+            this.schedulePause(this.activePage_);
+          }
+          this.scheduleResume(page);
+          this.updateInViewport(page, true);
+        })
+        .then(() => this.maybeScheduleAutoAdvance_());
   }
 
 
@@ -518,6 +603,11 @@ export class AmpStory extends AMP.BaseElement {
     if (!this.isNavigationalClick_(event)) {
       // If the system doesn't need to handle this click, then we can simply
       // return and let the event propagate as it would have otherwise.
+      return;
+    }
+
+    if (this.maybeFinishActiveAnimation_()) {
+      event.stopPropagation();
       return;
     }
 
