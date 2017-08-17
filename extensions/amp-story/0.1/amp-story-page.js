@@ -44,14 +44,12 @@ export class AmpStoryPage extends AMP.BaseElement {
 
   /** @override */
   pauseCallback() {
-    console.log('pausing page', this);
     this.pauseAllMedia_();
   }
 
 
   /** @override */
   resumeCallback() {
-    console.log('resuming page', this);
     this.playAllMedia_();
   }
 
