@@ -146,6 +146,10 @@ amp-story.unmuted .i-amp-story-mute-audio-control {
   display: block;
 }
 
+amp-story .amp-video-eq {
+  display: none !important;
+}
+
 /** Page level */
 amp-story-page {
   bottom: 0 !important;
