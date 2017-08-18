@@ -375,7 +375,7 @@ export class AmpStory extends AMP.BaseElement {
       if (oldPage) {
         this.schedulePause(oldPage);
       }
-      this.scheduleResume(this.activePage_);
+      this.scheduleResume(newPage);
     }).then(() => this.maybeScheduleAutoAdvance_());
   }
 
