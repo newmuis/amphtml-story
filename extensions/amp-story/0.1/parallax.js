@@ -31,14 +31,18 @@ const PERSPECTIVE = 100;
 export class ParallaxService {
   /**
   * @param {!Window} global
+  * @param {!../../../src/service/vsync-impl.Vsync} vsync
   * @param {Array<Element>} pages
   */
-  constructor(global, pages) {
+  constructor(global, vsync, pages) {
     const doc = global.document;
     const viewport = viewportForDoc(doc);
 
     /** @private {!Window} */
     this.win_ = global;
+
+    /** @private @const {!../../../src/service/vsync-impl.Vsync} */
+    this.vsync_ = vsync;
 
     /** @private {Array} */
     this.parallaxElements_ = [];
@@ -56,21 +60,23 @@ export class ParallaxService {
     this.smoothingPointsY_ = [];
 
 
-    pages
-    .filter(page => !page.hasAttribute('no-parallax-fx'))
-    .map(page => {
-      // Set the page's perspective
-      setStyles(page, {
-          perspective: PERSPECTIVE + `px`,
-        }
-      );
-      // Loop through the layers in the page and assign a z-index following
-      // DOM order (manual override will be added in the future)
-      let zIndex = 1;
-      const layers = this.getLayers(page);
-      layers.map(layer => {
-        const fxElement = new ParallaxElement(layer, zIndex++, layers.length);
-        this.parallaxElements_.push(fxElement);
+    this.vsync_.mutate(() => {
+      pages
+      .filter(page => !page.hasAttribute('no-parallax-fx'))
+      .map(page => {
+        // Set the page's perspective
+        setStyles(page, {
+            perspective: (PERSPECTIVE * 10) + `px`,
+          }
+        );
+        // Loop through the layers in the page and assign a z-index following
+        // DOM order (manual override will be added in the future)
+        let zIndex = 1;
+        const layers = this.getLayers(page);
+        layers.map(layer => {
+          const fxElement = new ParallaxElement(page, layer, this.vsync_, zIndex++, layers.length);
+          this.parallaxElements_.push(fxElement);
+        });
       });
     });
 
@@ -159,7 +165,7 @@ export class ParallaxService {
     mappedY = mapRange(mappedY, -75, 75, -25, 25);
 
     elements.forEach(element => {
-      if (element.shouldUpdate(viewport)) {
+      if (element.shouldUpdate()) {
         if (this.middleY_ != 0 && this.middleX_ != 0) {
           element.update(mappedX, mappedY);
         } else {
@@ -175,13 +181,21 @@ export class ParallaxService {
  */
 export class ParallaxElement {
   /**
+   * @param {!Element} page The parent page of thi element
    * @param {!Element} element The element to give a parallax effect.
+   * @param {!../../../src/service/vsync-impl.Vsync} vsync
    * @param {number} factor the index of the layer
    * @param {!function(number):string} transform Computes the transform from the position.
    */
-  constructor(element, factor, total) {
+  constructor(page, element, vsync, factor, total) {
+    /** @private @const {!Element} */
+    this.page_ = page;
+
     /** @private @const {!Element} */
     this.element_ = element;
+
+    /** @private @const {!../../../src/service/vsync-impl.Vsync} */
+    this.vsync_ = vsync;
 
     /** @private @const {number} */
     this.factor_ = factor;
@@ -198,14 +212,14 @@ export class ParallaxElement {
     // We offset each element in the z-direction by its factor (its layer order
     // within the page)
     /** @private {number} */
-    this.offsetZ_ = -this.factor_ * (PERSPECTIVE/this.total_);
+    this.offsetZ_ = this.factor_ * (PERSPECTIVE/this.total_);
 
     // We use a scale factor to both correct perspective and to set the minimum
     // element size to 1.1 times its original size (so that we can safely move
     // the element without hitting its border, especially useful for background
     // images)
     /** @private {number} */
-    this.scaleFactor_ = 1.1 + (this.offsetZ_ * -1) / PERSPECTIVE;
+    this.scaleFactor_ = 1.1 + (-this.offsetZ_) / PERSPECTIVE;
   }
 
 
@@ -216,45 +230,39 @@ export class ParallaxElement {
    * @param {number} y The movement of the layer in the y axis
    */
   update(x = 0, y = 0) {
-    // We use a log scale to make elements that are closer to the user (high
-    // z-index) move faster than elements in the background.
-    this.offsetX_ = logRange(this.factor_, this.total_, x);
-    this.offsetY_ = logRange(this.factor_, this.total_, y);
+    this.vsync_.mutate(() => {
+      // We use a log scale to make elements that are closer to the user (high
+      // z-index) move faster than elements in the background.
+      this.offsetX_ = logRange(this.factor_, this.total_, x);
+      this.offsetY_ = logRange(this.factor_, this.total_, y);
 
-    const translateZ = `translateZ(${this.offsetZ_.toFixed(2)}px) `;
-    const scale = `scale(${this.scaleFactor_}) `;
-    const translateX = `translateX(${this.offsetX_.toFixed(2)}px) `;
-    const translateY = `translateY(${this.offsetY_.toFixed(2)}px)`;
-
-    setStyles(this.element_, {
-        transform: translateZ + scale + translateX + translateY,
+      const translate3d = `translate3d(${this.offsetX_.toFixed(2)}px, ${this.offsetY_.toFixed(2)}px, ${this.offsetZ_.toFixed(2)}px) `;
+      setStyles(this.element_, {
+          transform: translate3d,
+      });
     });
   }
 
   /**
    * True if the element is in the viewport.
-   * @param {!./viewport-impl.Viewport} viewport
    * @return {boolean}
    */
-  shouldUpdate(viewport) {
-    const viewportRect = viewport.getRect();
-    const elementRect = viewport.getLayoutRect(this.element_);
-    elementRect.top -= viewportRect.top;
-    elementRect.bottom = elementRect.top + elementRect.height;
-    return this.isRectInView_(elementRect, viewportRect.height);
+  shouldUpdate() {
+    return this.page_.hasAttribute('active');
   }
 
   /**
    * Check if a rectange is within the viewport.
-   * @param {!../layout-rect.LayoutRectDef} rect
-   * @param {number} viewportHeight
+   * @param {!../layout-rect.LayoutRectDef} elementRect
+   * @param {!../layout-rect.LayoutRectDef} viewportRect
    * @private
    */
-  isRectInView_(rect, viewportHeight) {
-    return rect.bottom >= 0 && rect.top <= viewportHeight;
+  isRectInView_(elementRect, viewportRect) {
+    return elementRect.bottom > 0 && elementRect.top < viewportRect.height
+    && elementRect.right > 0 && elementRect.left < viewportRect.width;
   }
 }
 
-export function installParallaxHandler(win, pages) {
-  return new ParallaxService(win, pages);
+export function installParallaxHandler(win, vsync, pages) {
+  return new ParallaxService(win, vsync, pages);
 }

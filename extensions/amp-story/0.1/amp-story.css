@@ -136,17 +136,19 @@ amp-story:fullscreen {
 /** Page level */
 amp-story-page {
   bottom: 0 !important;
-  display: block !important;
+  left: 0 !important;
   position: absolute !important;
   right: 0 !important;
   top: 0 !important;
   /* Position the page outside of the viewport.  This is so that pages may be
    * pre-rendered without being user-visible. */
-  left: 100% !important;
+  display: none !important;
+  transform-style: preserve-3d;
+  transition: all 1s;
 }
 
 amp-story-page[active] {
-  left: 0 !important;
+  display: block !important;
 }
 
 /** Grid level */
@@ -158,6 +160,8 @@ amp-story-grid-layer {
   right: 0 !important;
   top: 0 !important;
   padding: 68px 32px 32px; /* 44 + 24 */
+  -webkit-font-smoothing: antialiased;
+  transform: translate3d(0, 0, 0);
 }
 
 amp-story-grid-layer * {

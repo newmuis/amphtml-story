@@ -169,7 +169,11 @@ export class AmpStory extends AMP.BaseElement {
         () => this.variableService_);
 
     // Install parallax handlers if no opt-out is detected
-    this.parallaxService_ = installParallaxHandler(this.win, toArray(this.getPages()));
+    this.parallaxService_ = installParallaxHandler(
+        this.win,
+        this.getVsync(),
+        toArray(this.getPages())
+    );
   }
 
 
