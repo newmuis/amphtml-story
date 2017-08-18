@@ -27,11 +27,6 @@
 import {AmpStoryGridLayer} from './amp-story-grid-layer';
 import {AmpStoryPage} from './amp-story-page';
 import {AnalyticsTrigger} from './analytics';
-import {
-  AnimationManager,
-  AnimationManagerFactory,
-  hasAnimations,
-} from './animation';
 import {Bookend} from './bookend';
 import {CSS} from '../../../build/amp-story-0.1.css';
 import {EventType} from './events';
@@ -135,9 +130,6 @@ export class AmpStory extends AMP.BaseElement {
 
     /** @private {?Element} */
     this.activePage_ = null;
-
-    /** @private @const {!Object<string, !AnimationManager>} */
-    this.animationManagers_ = map();
   }
 
   /** @override */
@@ -331,75 +323,48 @@ export class AmpStory extends AMP.BaseElement {
         .then(() => this.preloadPagesByDistance_());
   }
 
-
   /**
    * @param {!Element} page
-   * @return {?./animation.AnimationManager}
+   * @param {function(!AmpStoryPage):T} callback
+   * @return {!Promise<T>}
+   * @template T
    */
-  getOrCreateAnimationManagerFor_(page) {
-    if (!(page.id in this.animationManagers_)) {
-      if (!hasAnimations(page)) {
-        return null;
-      }
-
-      this.animationManagers_[page.id] = AnimationManagerFactory.create(
-          page,
-          this.getAmpDoc().win,
-          this.getAmpDoc(),
-          this.getAmpDoc().getUrl(),
-          this.getVsync(),
-          this.element.getResources(),
-          Services.timerFor(this.getAmpDoc().win));
-    }
-    return this.animationManagers_[page.id];
+  withPageImpl_(page, callback) {
+    return page.getImpl().then(impl => {
+      dev().assert(
+          impl instanceof AmpStoryPage,
+          'Tried to execute page method on non-page element');
+      return callback(/** @type {!AmpStoryPage} */ (impl));
+    });
   }
-
 
   /**
    * @param {!Element} page
    * @return {!Promise}
    */
   maybeApplyFirstAnimationFrame_(page) {
-    const animationManager = this.getOrCreateAnimationManagerFor_(page);
-
-    if (!animationManager) {
-      return Promise.resolve();
-    }
-
-    return animationManager.applyFirstFrame();
+    return this.withPageImpl_(page,
+        impl => impl.maybeApplyFirstAnimationFrame());
   }
 
   /**
    * @param {!Element} page
    * @return {!Promise}
    */
-  maybeAnimateIn_(page) {
-    if (!(page.id in this.animationManagers_)) {
-      return;
-    }
-    this.animationManagers_[page.id].animateIn();
+  maybeStartAnimations_(page) {
+    return this.withPageImpl_(page, impl => impl.maybeStartAnimations());
   }
 
-
   /**
-   * @return {boolean}
+   * @return {!Promise<boolean>}
    * @private
    */
   maybeFinishActiveAnimation_() {
-    const page = dev().assert(this.activePage_,
-        'No active page set when navigating to next page.')
+    const activePage = dev().assert(this.activePage_,
+        'No active page set when navigating to next page.');
 
-    if (!(page.id in this.animationManagers_)) {
-      return false;
-    }
-
-    if (!this.animationManagers_[page.id].hasAnimationStarted()) {
-      return false;
-    }
-
-    this.animationManagers_[page.id].finishAll();
-
-    return true;
+    return this.withPageImpl_(activePage,
+        impl => impl.maybeFinishEnterAnimations());
   }
 
   /**
@@ -442,7 +407,7 @@ export class AmpStory extends AMP.BaseElement {
             }
             this.activePage_ = page;
             this.triggerActiveEventForPage_();
-            this.maybeAnimateIn_(page);
+            this.maybeStartAnimations_(page);
           }, page);
         })
         .then(() => {
@@ -606,25 +571,26 @@ export class AmpStory extends AMP.BaseElement {
       return;
     }
 
-    if (this.maybeFinishActiveAnimation_()) {
-      event.stopPropagation();
-      return;
-    }
-
-    // TODO(newmuis): This will need to be flipped for RTL.
-    const nextScreenAreaMin = this.element.offsetLeft +
-        ((1 - NEXT_SCREEN_AREA_RATIO) * this.element.offsetWidth);
-    const nextScreenAreaMax = this.element.offsetLeft +
-        this.element.offsetWidth;
-
-    if (event.pageX >= nextScreenAreaMin && event.pageX < nextScreenAreaMax) {
-      this.next_();
-    } else if (event.pageX >= this.element.offsetLeft &&
-        event.pageX < nextScreenAreaMin) {
-      this.previous_();
-    }
-
     event.stopPropagation();
+
+    this.maybeFinishActiveAnimation_().then(wasAnimationRunning => {
+      if (wasAnimationRunning) {
+        return;
+      }
+
+      // TODO(newmuis): This will need to be flipped for RTL.
+      const nextScreenAreaMin = this.element.offsetLeft +
+          ((1 - NEXT_SCREEN_AREA_RATIO) * this.element.offsetWidth);
+      const nextScreenAreaMax = this.element.offsetLeft +
+          this.element.offsetWidth;
+
+      if (event.pageX >= nextScreenAreaMin && event.pageX < nextScreenAreaMax) {
+        this.next_();
+      } else if (event.pageX >= this.element.offsetLeft &&
+          event.pageX < nextScreenAreaMin) {
+        this.previous_();
+      }
+    });
   }
 
 
