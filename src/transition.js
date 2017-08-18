@@ -158,6 +158,20 @@ export function translateX(transition) {
   };
 }
 
+/**
+ * A transition for "translateZ" of CSS "transform" property.
+ * @param {!TransitionDef<number|string>} transition
+ * @return {!TransitionDef<string>}
+ */
+export function translateZ(transition) {
+  return time => {
+    const res = transition(time);
+    if (typeof res == 'string') {
+      return `translateZ(${res})`;
+    }
+    return `translateZ(${res}px)`;
+  };
+}
 
 /**
  * A transition for "translate(x, y)" of CSS "transform" property.

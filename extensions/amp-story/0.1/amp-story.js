@@ -50,7 +50,10 @@ import {
   toggleExperiment,
 } from '../../../src/experiments';
 import {registerServiceBuilder} from '../../../src/service';
-import {isFiniteNumber} from '../../../src/types';
+import {urlReplacementsForDoc} from '../../../src/services';
+import {xhrFor} from '../../../src/services';
+import {isFiniteNumber, toArray} from '../../../src/types';
+import {installParallaxHandler} from './parallax';
 import {AudioManager} from './audio';
 import {setStyles} from '../../../src/style';
 
@@ -163,6 +166,9 @@ export class AmpStory extends AMP.BaseElement {
 
     registerServiceBuilder(this.win, 'story-variable',
         () => this.variableService_);
+
+    // Install parallax handlers if no opt-out is detected
+    this.parallaxService_ = installParallaxHandler(this.win, toArray(this.getPages()));
   }
 
 
