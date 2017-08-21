@@ -221,24 +221,24 @@ export class AudioManager {
 
 
   nowPlayingChanged_() {
-    const isAudioPlaying = this.nowPlaying_.length > 0;
-    // TODO(newmuis): Dispatch AUDIO_PLAYING iff isAudioPlaying; else AUDIO_STOPPED.
+    // TODO(newmuis): Dispatch AUDIO_PLAYING iff this.nowPlaying_.length > 0; else AUDIO_STOPPED.
 
-    // TODO(newmuis): Recalculate the volume of all playing audio.
+    this.nowPlaying_.forEach(playable => {
+      // TODO(newmuis): Recalculate the volume of all playing audio.
 
+      playable.setVolume(1 /* volume */, 0 /* durationMs */,
+          VOLUME_EASING_FN);
 
-          playable.setVolume(1 /* volume */, 0 /* durationMs */,
-              VOLUME_EASING_FN);
+      if (this.isMuted_) {
+        playable.mute();
+      }
 
-          if (this.isMuted_) {
-            playable.mute();
-          }
-
-          // Reduce the volume of ancestors.
-          for (let el = sourceElement.parentElement; el;
-              el = el.parentElement) {
-            this.setVolume(el, REDUCED_VOLUME);
-          }
+      // Reduce the volume of ancestors.
+      for (let el = playable.getSourceElement().parentElement; el;
+          el = el.parentElement) {
+        this.setVolume(el, REDUCED_VOLUME);
+      }
+    });
   }
 }
 
