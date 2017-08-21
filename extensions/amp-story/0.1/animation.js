@@ -37,6 +37,7 @@ let WebKeyframeAnimationDef;
 
 // This format does not match what's in amp-animation, but that shouldn't matter
 // since it's a subset.
+// TODO: Extract from amp-animation
 /**
  * @param {string} time
  * @return {number}
