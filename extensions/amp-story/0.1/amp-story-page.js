@@ -75,6 +75,7 @@ export class AmpStoryPage extends AMP.BaseElement {
     const mediaSet = this.getAllMedia_();
     for (const mediaItem of mediaSet) {
       mediaItem.pause();
+      mediaItem.currentTime = 0;
     }
   }
 
