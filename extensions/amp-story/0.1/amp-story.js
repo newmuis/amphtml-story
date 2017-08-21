@@ -53,6 +53,8 @@ import {registerServiceBuilder} from '../../../src/service';
 import {isFiniteNumber} from '../../../src/types';
 import {AudioManager} from './audio';
 import {setStyles} from '../../../src/style';
+import {VideoEvents} from '../../../src/video-interface';
+import {listenOncePromise} from '../../../src/event-helper';
 
 
 /** @private @const {number} */
@@ -71,6 +73,9 @@ const TIME_REGEX = {
 
 /** @private @const {number} */
 const FULLSCREEN_THRESHOLD = 1024;
+
+/** @type {string} */
+const TAG = 'amp-story';
 
 
 /**
@@ -389,6 +394,74 @@ export class AmpStory extends AMP.BaseElement {
 
 
   /**
+   * Gets an HTMLMediaElement from an element that wraps it.
+   * @param {!Element} el An element that wraps an HTMLMediaElement.
+   * @return {?Element} The underlying HTMLMediaElement, if one exists.
+   * @private
+   */
+  getMediaElement_(el) {
+    const tagName = el.tagName.toLowerCase();
+
+    if (el instanceof HTMLMediaElement) {
+      return el;
+    } else if (el.hasAttribute('background-audio') &&
+        (tagName === 'amp-story' || tagName === 'amp-story-page')) {
+      return el.querySelector('.i-amp-story-background-audio');
+    } else if (tagName === 'amp-video') {
+      return el.querySelector('video');
+    } else if (tagName === 'amp-audio') {
+      return el.querySelector('audio');
+    }
+
+    return null;
+  }
+
+
+  /**
+   * Determines whether a given element implements the video interface.
+   * @param {!Element} el The element to test
+   * @return {boolean} true, if the specified element implements the video
+   *     interface.
+   * @private
+   */
+  isVideoInterfaceVideo_(el) {
+    // TODO(newmuis): Figure out the proper way to detect whether a video
+    // implements the video interface.
+    const tagName = el.tagName.toLowerCase();
+
+    return tagName === 'amp-video' || tagName === 'amp-youtube' ||
+        tagName === 'amp-3q-player' || tagName === 'amp-ima-video' ||
+        tagName === 'amp-ooyala-player' || tagName === 'amp-nexxtv-player' ||
+        tagName === 'amp-brid-player' || tagName === 'amp-dailymotion';
+  }
+
+
+  /**
+   * Determines whether the specified element is a valid media element for auto-
+   * advance.
+   * @param {?Element} el
+   * @param {!function()} callback
+   * @return {!Element}
+   * @private
+   */
+  onMediaElementComplete_(el, callback) {
+    user().assertElement(el, 'ID specified for automatic advance ' +
+        `does not refer to any element on page '${this.activePage_.id}'.`);
+
+    const mediaElement = this.getMediaElement_(el);
+    if (mediaElement) {
+      listenOncePromise(mediaElement, 'ended').then(() => callback());
+    } else if (this.isVideoInterfaceVideo_(el)) {
+      listenOncePromise(el, VideoEvents.ENDED, /* opt_capture */true)
+          .then(() => callback());
+    } else {
+      user().error(TAG, `Element with ID ${el.id} is not a media element ` +
+          'supported for automatic advancement.');
+    }
+  }
+
+
+  /**
    * If the auto-advance-after property is set, a timer is set for that
    * duration, after which next_() will be invoked.
    * @private
@@ -409,12 +482,27 @@ export class AmpStory extends AMP.BaseElement {
       delayMs = Number(TIME_REGEX.SECONDS.exec(autoAdvanceAfter)[1]) * 1000;
     }
 
-    user().assert(isFiniteNumber(delayMs) && delayMs > 0,
-        `Invalid automatic advance delay '${autoAdvanceAfter}' ` +
-        `for page '${activePage.id}'.`);
+    if (delayMs) {
+      user().assert(isFiniteNumber(delayMs) && delayMs > 0,
+          `Invalid automatic advance delay '${autoAdvanceAfter}' ` +
+          `for page '${activePage.id}'.`);
 
-    this.win.setTimeout(
-        () => this.next_(true /* opt_isAutomaticAdvance */), delayMs);
+      this.win.setTimeout(
+          () => this.next_(true /* opt_isAutomaticAdvance */), delayMs);
+    } else {
+      let mediaElement;
+      try {
+        mediaElement = activePage.querySelector(`#${autoAdvanceAfter}`);
+      } catch (e) {
+        user().error(TAG, `Malformed ID '${autoAdvanceAfter}' for automatic ` +
+            `advance on page '${activePage.id}'.`);
+        return;
+      }
+
+      this.onMediaElementComplete_(mediaElement, () => {
+        this.next_(true /* opt_isAutomaticAdvance */);
+      });
+    }
   }
 
 
