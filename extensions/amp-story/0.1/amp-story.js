@@ -173,7 +173,13 @@ export class AmpStory extends AMP.BaseElement {
         'Story must have at least one page.');
 
     return this.switchTo_(firstPage)
-        .then(() => this.preloadPagesByDistance_());
+        .then(() => this.preloadPagesByDistance_())
+        .then(() => {
+          Array.prototype.forEach.call(this.getPages(), page => {
+            this.schedulePause(page);
+          });
+          this.scheduleResume(this.activePage_);
+        });
   }
 
 
@@ -333,17 +339,17 @@ export class AmpStory extends AMP.BaseElement {
 
   /**
    * Switches to a particular page.
-   * @param {!Element} page
+   * @param {!Element} targetPage
    * @return {!Promise}
    */
   // TODO: Update history state
-  switchTo_(page) {
+  switchTo_(targetPage) {
     if (this.isBookendActive_) {
       // Disallow switching pages while the bookend is active.
       return;
     }
 
-    const pageIndex = this.getPageIndex(page);
+    const pageIndex = this.getPageIndex(targetPage);
 
     if (this.shouldEnterFullScreenOnSwitch_()) {
       this.enterFullScreen_();
@@ -354,27 +360,22 @@ export class AmpStory extends AMP.BaseElement {
     this.systemLayer_.updateProgressBar(pageIndex, this.getPageCount() - 1);
 
     // TODO(alanorozco): check if autoplay
-    this.navigationState_.updateActivePage(pageIndex, page.id);
+    this.navigationState_.updateActivePage(pageIndex, targetPage.id);
 
-    if (this.activePage_) {
-      this.audioManager_.stop(this.activePage_);
-    }
-
-    this.audioManager_.play(page);
+    const oldPage = this.activePage_;
 
     return this.mutateElement(() => {
-      page.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
-      if (this.activePage_) {
-        this.activePage_.removeAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME);
+      targetPage.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
+      if (oldPage) {
+        oldPage.removeAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME);
       }
-      this.activePage_ = page;
+      this.activePage_ = targetPage;
       this.triggerActiveEventForPage_();
-    }, page).then(() => {
-      if (this.activePage_) {
-        this.schedulePause(this.activePage_);
+    }, targetPage).then(() => {
+      if (oldPage) {
+        this.schedulePause(oldPage);
       }
-      this.scheduleResume(page);
-      this.updateInViewport(page, true);
+      this.scheduleResume(targetPage);
     }).then(() => this.maybeScheduleAutoAdvance_());
   }
 
@@ -604,19 +605,22 @@ export class AmpStory extends AMP.BaseElement {
   /** @private */
   preloadPagesByDistance_() {
     const pagesByDistance = this.getPagesByDistance_();
-    pagesByDistance.forEach((pageIds, distance) => {
-      pageIds.forEach(pageId => {
-        const page = this.getPageById_(pageId);
-        setStyles(page, {
-          transform: `translateY(${100 * distance}%)`,
+
+    this.mutateElement(() => {
+      pagesByDistance.forEach((pageIds, distance) => {
+        pageIds.forEach(pageId => {
+          const page = this.getPageById_(pageId);
+          setStyles(page, {
+            transform: `translateY(${100 * distance}%)`,
+          });
         });
       });
-    });
 
-    const next = this.getNextPage_(this.activePage_);
-    if (!next) {
-      this.buildBookend_();
-    }
+      const next = this.getNextPage_(this.activePage_);
+      if (!next) {
+        this.buildBookend_();
+      }
+    });
   }
 
 

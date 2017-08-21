@@ -43,12 +43,14 @@ export class AmpStoryPage extends AMP.BaseElement {
 
 
   /** @override */
-  viewportCallback(inViewport) {
-    if (inViewport) {
-      this.playAllMedia_();
-    } else {
-      this.pauseAllMedia_();
-    }
+  pauseCallback() {
+    this.pauseAllMedia_();
+  }
+
+
+  /** @override */
+  resumeCallback() {
+    this.playAllMedia_();
   }
 
 
