@@ -29,6 +29,11 @@ import {Layout} from '../../../src/layout';
 export class AmpStoryPage extends AMP.BaseElement {
   /** @override */
   buildCallback() {
+    if (this.element.hasAttribute('background-audio')) {
+      const audioEl = this.element.ownerDocument.createElement('amp-audio');
+      audioEl.src = this.element.getAttribute('background-audio');
+      this.element.appendChild(audioEl);
+    }
     const mediaSet = this.element.querySelectorAll('amp-audio, amp-video');
     for (const mediaItem of mediaSet) {
       mediaItem.setAttribute('preload', 'auto');
