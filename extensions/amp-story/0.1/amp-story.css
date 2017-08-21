@@ -88,10 +88,11 @@ amp-story:fullscreen {
 
 .i-amp-story-ui-right {
   float: right;
+  margin: 4px 8px;
 }
 
 .i-amp-story-button {
-  margin: 0 8px;
+  float: left;
   height: 40px;
   width: 40px;
   cursor: pointer;
