@@ -175,7 +175,7 @@ export class AmpStory extends AMP.BaseElement {
     return this.switchTo_(firstPage)
         .then(() => this.preloadPagesByDistance_())
         .then(() => {
-          this.getPages().forEach(page => {
+          Array.prototype.forEach.call(this.getPages(), page => {
             this.schedulePause(page);
           });
           this.scheduleResume(this.activePage_);
@@ -339,17 +339,17 @@ export class AmpStory extends AMP.BaseElement {
 
   /**
    * Switches to a particular page.
-   * @param {!Element} newPage
+   * @param {!Element} targetPage
    * @return {!Promise}
    */
   // TODO: Update history state
-  switchTo_(newPage) {
+  switchTo_(targetPage) {
     if (this.isBookendActive_) {
       // Disallow switching pages while the bookend is active.
       return;
     }
 
-    const pageIndex = this.getPageIndex(newPage);
+    const pageIndex = this.getPageIndex(targetPage);
 
     if (this.shouldEnterFullScreenOnSwitch_()) {
       this.enterFullScreen_();
@@ -360,22 +360,22 @@ export class AmpStory extends AMP.BaseElement {
     this.systemLayer_.updateProgressBar(pageIndex, this.getPageCount() - 1);
 
     // TODO(alanorozco): check if autoplay
-    this.navigationState_.updateActivePage(pageIndex, newPage.id);
+    this.navigationState_.updateActivePage(pageIndex, targetPage.id);
 
     const oldPage = this.activePage_;
 
     return this.mutateElement(() => {
-      newPage.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
+      targetPage.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
       if (oldPage) {
         oldPage.removeAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME);
       }
-      this.activePage_ = newPage;
+      this.activePage_ = targetPage;
       this.triggerActiveEventForPage_();
-    }, newPage).then(() => {
+    }, targetPage).then(() => {
       if (oldPage) {
         this.schedulePause(oldPage);
       }
-      this.scheduleResume(newPage);
+      this.scheduleResume(targetPage);
     }).then(() => this.maybeScheduleAutoAdvance_());
   }
 
