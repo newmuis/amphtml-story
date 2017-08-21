@@ -144,19 +144,6 @@ export class AudioManager {
             return;
           }
 
-          playable.setVolume(/* volume */ 1, /* durationMs */ 0,
-              VOLUME_EASING_FN);
-
-          if (this.isMuted_) {
-            playable.mute();
-          }
-
-          // Reduce the volume of ancestors.
-          for (let el = sourceElement.parentElement; el;
-              el = el.parentElement) {
-            this.setVolume(el, REDUCED_VOLUME);
-          }
-
           // Play the audio.
           this.addToNowPlaying_(playable);
           playable.play();
@@ -176,8 +163,6 @@ export class AudioManager {
     // Stop the audio.
     this.removeFromNowPlaying_(playable);
     playable.stop();
-
-    // TODO(newmuis): Return the volume of ancestor(s).
   }
 
   /**
@@ -219,12 +204,8 @@ export class AudioManager {
    * @private
    */
   addToNowPlaying_(playable) {
-    const audioInitiallyPlaying = this.nowPlaying_.length > 0;
     this.nowPlaying_.push(playable);
-
-    if (!audioInitiallyPlaying) {
-      // TODO(newmuis): Dispatch event: audio is playing.
-    }
+    this.nowPlayingChanged_();
   }
 
   /**
@@ -234,11 +215,30 @@ export class AudioManager {
    */
   removeFromNowPlaying_(playable) {
     const index = this.nowPlaying_.indexOf(playable);
-    const removed = this.nowPlaying_.splice(index, 1);
+    this.nowPlaying_.splice(index, 1);
+    this.nowPlayingChanged_();
+  }
 
-    if (removed && this.nowPlaying_.length === 0) {
-      // TODO(newmuis): Dispatch event: no audio is playing.
-    }
+
+  nowPlayingChanged_() {
+    const isAudioPlaying = this.nowPlaying_.length > 0;
+    // TODO(newmuis): Dispatch AUDIO_PLAYING iff isAudioPlaying; else AUDIO_STOPPED.
+
+    // TODO(newmuis): Recalculate the volume of all playing audio.
+
+
+          playable.setVolume(1 /* volume */, 0 /* durationMs */,
+              VOLUME_EASING_FN);
+
+          if (this.isMuted_) {
+            playable.mute();
+          }
+
+          // Reduce the volume of ancestors.
+          for (let el = sourceElement.parentElement; el;
+              el = el.parentElement) {
+            this.setVolume(el, REDUCED_VOLUME);
+          }
   }
 }
 
