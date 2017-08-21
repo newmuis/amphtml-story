@@ -150,6 +150,7 @@ export class AudioManager {
             return;
           }
 
+<<<<<<< HEAD
           playable.setVolume(/* volume */ 1, /* durationMs */ 0,
               VOLUME_EASING_FN);
 
@@ -169,6 +170,8 @@ export class AudioManager {
 >>>>>>> b4d4ef91... Partial implementation of hooking into HTMLMediaElement events
           }
 
+=======
+>>>>>>> 2a9ffbcd... Pull from HEAD
           // Play the audio.
           this.addToNowPlaying_(playable);
           playable.play();
@@ -188,8 +191,6 @@ export class AudioManager {
     // Stop the audio.
     this.removeFromNowPlaying_(playable);
     playable.stop();
-
-    // TODO(newmuis): Return the volume of ancestor(s).
   }
 
   /**
@@ -248,6 +249,7 @@ export class AudioManager {
 
 
   nowPlayingChanged_() {
+<<<<<<< HEAD
     // TODO(newmuis): Dispatch AUDIO_PLAYING iff this.nowPlaying_.length > 0; else AUDIO_STOPPED.
 
     this.nowPlaying_.forEach(playable => {
@@ -266,6 +268,26 @@ export class AudioManager {
         this.setVolume(el, REDUCED_VOLUME);
       }
     });
+=======
+    const isAudioPlaying = this.nowPlaying_.length > 0;
+    // TODO(newmuis): Dispatch AUDIO_PLAYING iff isAudioPlaying; else AUDIO_STOPPED.
+
+    // TODO(newmuis): Recalculate the volume of all playing audio.
+
+
+          playable.setVolume(1 /* volume */, 0 /* durationMs */,
+              VOLUME_EASING_FN);
+
+          if (this.isMuted_) {
+            playable.mute();
+          }
+
+          // Reduce the volume of ancestors.
+          for (let el = sourceElement.parentElement; el;
+              el = el.parentElement) {
+            this.setVolume(el, REDUCED_VOLUME);
+          }
+>>>>>>> 2a9ffbcd... Pull from HEAD
   }
 }
 
