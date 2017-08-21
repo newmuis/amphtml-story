@@ -250,6 +250,7 @@ export class AudioManager {
 
   nowPlayingChanged_() {
 <<<<<<< HEAD
+<<<<<<< HEAD
     // TODO(newmuis): Dispatch AUDIO_PLAYING iff this.nowPlaying_.length > 0; else AUDIO_STOPPED.
 
     this.nowPlaying_.forEach(playable => {
@@ -273,21 +274,35 @@ export class AudioManager {
     // TODO(newmuis): Dispatch AUDIO_PLAYING iff isAudioPlaying; else AUDIO_STOPPED.
 
     // TODO(newmuis): Recalculate the volume of all playing audio.
+=======
+    // TODO(newmuis): Dispatch AUDIO_PLAYING iff this.nowPlaying_.length > 0; else AUDIO_STOPPED.
+>>>>>>> 073a456b... Restore previous version that somehow got overridden.
 
+    this.nowPlaying_.forEach(playable => {
+      // TODO(newmuis): Recalculate the volume of all playing audio.
 
-          playable.setVolume(1 /* volume */, 0 /* durationMs */,
-              VOLUME_EASING_FN);
+      playable.setVolume(1 /* volume */, 0 /* durationMs */,
+          VOLUME_EASING_FN);
 
-          if (this.isMuted_) {
-            playable.mute();
-          }
+      if (this.isMuted_) {
+        playable.mute();
+      }
 
+<<<<<<< HEAD
           // Reduce the volume of ancestors.
           for (let el = sourceElement.parentElement; el;
               el = el.parentElement) {
             this.setVolume(el, REDUCED_VOLUME);
           }
 >>>>>>> 2a9ffbcd... Pull from HEAD
+=======
+      // Reduce the volume of ancestors.
+      for (let el = playable.getSourceElement().parentElement; el;
+          el = el.parentElement) {
+        this.setVolume(el, REDUCED_VOLUME);
+      }
+    });
+>>>>>>> 073a456b... Restore previous version that somehow got overridden.
   }
 }
 
