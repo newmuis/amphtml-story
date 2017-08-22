@@ -51,7 +51,7 @@ import {
 } from '../../../src/experiments';
 import {registerServiceBuilder} from '../../../src/service';
 import {isFiniteNumber} from '../../../src/types';
-import {AudioManager} from './audio';
+import {AudioManager, upgradeBackgroundAudio} from './audio';
 import {setStyles} from '../../../src/style';
 
 
@@ -154,12 +154,22 @@ export class AmpStory extends AMP.BaseElement {
       this.unmute_();
     });
 
+    this.element.addEventListener('play', e => {
+      this.audioManager_.play(e.target);
+    }, true);
+
+    this.element.addEventListener('pause', e => {
+      this.audioManager_.stop(e.target);
+    }, true);
+
     this.win.document.addEventListener('keydown', e => {
       this.onKeyDown_(e);
     }, true);
 
     this.navigationState_.installConsumer(new AnalyticsTrigger(this.element));
     this.navigationState_.installConsumer(this.variableService_);
+
+    upgradeBackgroundAudio(this.element);
 
     registerServiceBuilder(this.win, 'story-variable',
         () => this.variableService_);
