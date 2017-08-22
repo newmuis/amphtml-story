@@ -26,8 +26,14 @@ export const EventType = {
   // Triggered when the user mutes the story
   MUTE: 'ampstory:mute',
 
-  // Triggered when the user mutes the story
+  // Triggered when the user unmutes the story
   UNMUTE: 'ampstory:unmute',
+
+  // Triggered when there are audio sources playing on the active page
+  AUDIO_PLAYING: 'ampstory:audioplaying',
+
+  // Triggered when there are no audio sources playing on the active page
+  AUDIO_STOPPED: 'ampstory:audiostopped',
 };
 
 

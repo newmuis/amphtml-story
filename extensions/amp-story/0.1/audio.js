@@ -1,5 +1,7 @@
 import {dev} from '../../../src/log';
 import {Services} from '../../../src/services';
+import {EventType, dispatch} from './events';
+
 
 /**
  * Copyright 2017 The AMP HTML Authors. All Rights Reserved.
@@ -71,7 +73,7 @@ export function upgradeBackgroundAudio(element) {
 
 
 export class AudioManager {
-  constructor(win) {
+  constructor(win, rootElement) {
     /** @private @const {!Object<!Element, !Playable>} */
     this.playables_ = {};
 
@@ -86,6 +88,9 @@ export class AudioManager {
 
     /** @private {!Window} */
     this.win_ = win;
+
+    /** @private {!Element} */
+    this.rootElement_ = rootElement;
   }
 
   /**
@@ -225,7 +230,11 @@ export class AudioManager {
 
 
   nowPlayingChanged_() {
-    // TODO(newmuis): Dispatch AUDIO_PLAYING iff this.nowPlaying_.length > 0; else AUDIO_STOPPED.
+    // Dispatch event to signal whether audio is playing.
+    const isAudioPlaying = this.nowPlaying_.length > 0;
+    const eventType = isAudioPlaying ?
+        EventType.AUDIO_PLAYING : EventType.AUDIO_STOPPED;
+    dispatch(this.rootElement_, eventType, /* opt_bubbles */ false);
 
     // Populate a sparse array where the indices of the array represent the
     // tree depths at which there is audio currently playing.

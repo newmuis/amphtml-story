@@ -154,6 +154,14 @@ export class AmpStory extends AMP.BaseElement {
       this.unmute_();
     });
 
+    this.element.addEventListener(EventType.AUDIO_PLAYING, () => {
+      this.audioPlaying_();
+    });
+
+    this.element.addEventListener(EventType.AUDIO_STOPPED, () => {
+      this.audioStopped_();
+    });
+
     this.element.addEventListener('play', e => {
       this.audioManager_.play(e.target);
     }, true);
@@ -759,6 +767,22 @@ export class AmpStory extends AMP.BaseElement {
   unmute_() {
     this.audioManager_.unmuteAll();
     this.element.classList.add('unmuted');
+  }
+
+  /**
+   * Marks the story as having audio playing on the active page.
+   * @private
+   */
+  audioPlaying_() {
+    this.element.classList.add('audio-playing');
+  }
+
+  /**
+   * Marks the story as not having audio playing on the active page.
+   * @private
+   */
+  audioStopped_() {
+    this.element.classList.remove('audio-playing');
   }
 }
 
