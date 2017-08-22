@@ -423,8 +423,9 @@ export class AmpStory extends AMP.BaseElement {
    * @private
    */
   isVideoInterfaceVideo_(el) {
-    // TODO(newmuis): Figure out the proper way to detect whether a video
-    // implements the video interface.
+    // TODO(newmuis): Check whether the element has the
+    // i-amphtml-video-interface class, after #11015 from amphtml is merged
+    // into amphtml-story.
     const tagName = el.tagName.toLowerCase();
 
     return tagName === 'amp-video' || tagName === 'amp-youtube' ||
