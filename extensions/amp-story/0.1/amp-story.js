@@ -407,8 +407,6 @@ export class AmpStory extends AMP.BaseElement {
     } else if (el.hasAttribute('background-audio') &&
         (tagName === 'amp-story' || tagName === 'amp-story-page')) {
       return el.querySelector('.i-amp-story-background-audio');
-    } else if (tagName === 'amp-video') {
-      return el.querySelector('video');
     } else if (tagName === 'amp-audio') {
       return el.querySelector('audio');
     }
