@@ -481,21 +481,3 @@ export class AnimationManager {
         el);
   }
 }
-
-
-/** Decouples constructor so it can be stubbed in tests. */
-export class AnimationManagerFactory {
-  /**
-   * @param {!Element} root
-   * @param {!Window} win
-   * @param {!../../../src/service/ampdoc-impl.AmpDoc} ampdoc
-   * @param {string} baseUrl
-   * @param {!../../../src/service/vsync-impl.Vsync} vsync
-   * @param {!../../../src/service/resources-impl.Resources} resources
-   * @param {!../../../src/service/timer-impl.Time} timer
-   */
-  static create(root, win, ampdoc, baseUrl, vsync, resources, timer) {
-    return new AnimationManager(
-        root, win, ampdoc, baseUrl, vsync, resources, timer);
-  }
-}
