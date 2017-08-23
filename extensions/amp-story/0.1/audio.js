@@ -107,6 +107,8 @@ export class AudioManager {
       if (!sourceElement.muted) {
         return new MediaElementPlayable(this.win_, sourceElement);
       }
+    } else if (sourceElement.hasAttribute('background-audio')) {
+      return new BackgroundPlayable(this.win_, sourceElement);
     }
   }
 
@@ -139,7 +141,7 @@ export class AudioManager {
   }
 
   /** @private */
-  getMediaElementChilden_(element) {
+  getMediaElementChildren_(element) {
     return element.querySelectorAll('audio, video');
   }
 
