@@ -22,15 +22,12 @@ import {Services} from '../../../src/services';
 /** @typedef {{ source: AudioBufferSourceNode, gainNode: GainNode }} */
 let AudioSource;
 
-/** @const {!AudioContext} */
-const context = new (window.AudioContext || window.webkitAudioContext)();
-
 /**
  * The volume to which audio should be reduced when other audio sources are
  * played.
  * @const {number}
  */
-const REDUCED_VOLUME = 0.3;
+const REDUCED_VOLUME = 0.5;
 
 /**
  * @const {number}
@@ -49,18 +46,32 @@ const PLAYABLE_ID_PREFIX = 'i-amphtml-playable-';
 
 
 export class AudioManager {
-  constructor() {
-    /** @const {!Object<!Element, !Playable>} */
+  constructor(win, rootElement) {
+    /** @private @const {!Object<!Element, !Playable>} */
     this.playables_ = {};
 
-    /** @const {!Array<!Playable>} */
+    /** @private @const {!Array<!Playable>} */
     this.nowPlaying_ = [];
 
-    /** @type {number} */
+    /** @private {number} */
     this.nextId_ = 0;
 
-    /** @type {boolean} */
+    /** @private {boolean} */
     this.isMuted_ = true;
+
+    /** @private {!Window} */
+    this.win_ = win;
+
+    /** @private {!Element} */
+    this.rootElement_ = rootElement;
+
+    rootElement.addEventListener('play', e => {
+      this.onMediaElementPlay_(e);
+    }, true);
+
+    rootElement.addEventListener('pause', e => {
+      this.onMediaElementPause_(e);
+    }, true);
   }
 
   /**
@@ -74,17 +85,30 @@ export class AudioManager {
     }
 
     if (sourceElement instanceof HTMLMediaElement) {
-      return new MediaElementPlayable(sourceElement);
-    } else if (sourceElement.hasAttribute('background-audio')) {
-      if (sourceElement.tagName.toLowerCase() === 'amp-story' ||
-          sourceElement.tagName.toLowerCase() === 'amp-story-page') {
-        return new BackgroundPlayable(sourceElement);
+      if (!sourceElement.muted) {
+        return new MediaElementPlayable(this.win_, sourceElement);
       }
+    } else if (sourceElement.hasAttribute('background-audio')) {
+      return new BackgroundPlayable(this.win_, sourceElement);
     }
   }
 
   /**
-   * @param {!Element} sourceElement 
+   * @param {!Event} e
+   */
+  onMediaElementPlay_(e) {
+    this.play(e.target);
+  }
+
+  /**
+   * @param {!Event} e
+   */
+  onMediaElementPause_(e) {
+    this.stop(e.target);
+  }
+
+  /**
+   * @param {!Element} sourceElement
    * @return {?Playable}
    */
   getPlayable_(sourceElement) {
@@ -107,39 +131,17 @@ export class AudioManager {
     return playable.load();
   }
 
+  /** @private */
+  getMediaElementChildren_(element) {
+    return element.querySelectorAll('[background-audio], audio, video');
+  }
+
   play(sourceElement) {
     this.load(sourceElement)
         .then(() => this.getPlayable_(sourceElement))
         .then(playable => {
-          playable.setVolume(/* volume */ 1, /* durationMs */ 0,
-              VOLUME_EASING_FN);
-          return playable;
-        })
-        .then(playable => {
-          if (this.isMuted_) {
-            playable.mute();
-          }
-          return playable;
-        })
-        .then(playable => {
-          if (!playable || playable.isPlaying()) {
+          if (!playable) {
             return;
-          }
-
-          // Stop all siblings.
-          for (let el = sourceElement.parentElement.firstElementChild; el;
-              el = el.nextElementSibling) {
-            if (el === sourceElement) {
-              continue;
-            }
-
-            this.stop(el);
-          }
-
-          // Reduce the volume of ancestors.
-          for (let el = sourceElement.parentElement; el;
-              el = el.parentElement) {
-            this.setVolume(el, REDUCED_VOLUME);
           }
 
           // Play the audio.
@@ -158,6 +160,7 @@ export class AudioManager {
       return;
     }
 
+    // Stop the audio.
     this.removeFromNowPlaying_(playable);
     playable.stop();
   }
@@ -201,12 +204,8 @@ export class AudioManager {
    * @private
    */
   addToNowPlaying_(playable) {
-    const audioInitiallyPlaying = this.nowPlaying_.length > 0;
     this.nowPlaying_.push(playable);
-
-    if (!audioInitiallyPlaying) {
-      // TODO(newmuis): Dispatch event: audio is playing.
-    }
+    this.nowPlayingChanged_();
   }
 
   /**
@@ -216,17 +215,41 @@ export class AudioManager {
    */
   removeFromNowPlaying_(playable) {
     const index = this.nowPlaying_.indexOf(playable);
-    const removed = this.nowPlaying_.splice(index, 1);
+    this.nowPlaying_.splice(index, 1);
+    this.nowPlayingChanged_();
+  }
 
-    if (removed && this.nowPlaying_.length === 0) {
-      // TODO(newmuis): Dispatch event: no audio is playing.
-    }
+
+  nowPlayingChanged_() {
+    // TODO(newmuis): Dispatch AUDIO_PLAYING iff this.nowPlaying_.length > 0; else AUDIO_STOPPED.
+
+    this.nowPlaying_.forEach(playable => {
+      // TODO(newmuis): Recalculate the volume of all playing audio.
+
+      playable.setVolume(1 /* volume */, 0 /* durationMs */,
+          VOLUME_EASING_FN);
+
+      if (this.isMuted_) {
+        playable.mute();
+      }
+
+      // Reduce the volume of ancestors.
+      for (let el = playable.getSourceElement().parentElement; el;
+          el = el.parentElement) {
+        this.setVolume(el, REDUCED_VOLUME);
+      }
+    });
   }
 }
 
 
 class Playable {
-  constructor(sourceElement) {
+  constructor(win, sourceElement) {
+    /**
+     * @protected @const {!Window}
+     */
+    this.win = win;
+
     /**
      * The element that is causing audio to be played.
      * @private @const {!Element}
@@ -311,8 +334,11 @@ class Playable {
  * WebAudio APIs.
  */
 class BackgroundPlayable extends Playable {
-  constructor(sourceElement) {
-    super(sourceElement);
+  constructor(win, sourceElement) {
+    super(win, sourceElement);
+
+    /** @private @const {!AudioContext} */
+    this.context_ = new (win.AudioContext || win.webkitAudioContext)();
 
     // TODO(newmuis): Assert source URI.
     /** @private @const {string} */
@@ -336,13 +362,13 @@ class BackgroundPlayable extends Playable {
    * @param {!AudioBuffer} buffer 
    */
   createSource_(buffer) {
-    const source = context.createBufferSource();
-    const gainNode = context.createGain();
+    const source = this.context_.createBufferSource();
+    const gainNode = this.context_.createGain();
 
     source.buffer = buffer;
     source.loop = true;
     source.connect(gainNode);
-    gainNode.connect(context.destination);
+    gainNode.connect(this.context_.destination);
 
     this.audioSource_ = {
       source,
@@ -362,7 +388,7 @@ class BackgroundPlayable extends Playable {
       return Promise.resolve(this.buffer_);
     }
 
-    return Services.xhrFor(window)
+    return Services.xhrFor(this.win)
         .fetch(this.sourceUri_)
         .then(response => response.arrayBuffer())
         .then(arrayBuffer => this.decodeAudioData_(arrayBuffer));
@@ -399,7 +425,7 @@ class BackgroundPlayable extends Playable {
    */
   decodeAudioData_(arrayBuffer) {
     return new Promise((resolve, reject) => {
-      context.decodeAudioData(arrayBuffer,
+      this.context_.decodeAudioData(arrayBuffer,
           audioBuffer => resolve(audioBuffer), error => reject(error));
     });
   }
@@ -475,9 +501,8 @@ class BackgroundPlayable extends Playable {
  * An HTMLMediaElement that potentially has audio.
  */
 class MediaElementPlayable extends Playable {
-  constructor(element) {
-    super(dev().assert(element instanceof HTMLMediaElement,
-        'Only media elements can be played.'));
+  constructor(win, element) {
+    super(win, element);
     this.element_ = element;
   }
 
@@ -498,22 +523,8 @@ class MediaElementPlayable extends Playable {
 
   /** @override */
   setVolume(volume, durationMs, easingFn) {
-    const startTimeMs = Date.now();
-
-    function stepVolume() {
-      this.vsync_.mutate(() => {
-        const currentTimeMs = Date.now();
-        const elapsedTimeMs = currentTimeMs - startTimeMs;
-        const currentPercentage = elapsedTimeMs / durationMs;
-        this.element_.volume = easingFn(currentPercentage);
-
-        if (currentPercentage < 1) {
-          stepVolume();
-        }
-      });
-    }
-
-    stepVolume();
+    // TODO(newmuis): Fade to volume over durationMs following easingFn.
+    this.element_.volume = volume;
   }
 
   /** @override */

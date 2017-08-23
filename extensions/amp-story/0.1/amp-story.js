@@ -123,7 +123,7 @@ export class AmpStory extends AMP.BaseElement {
     this.variableService_ = new VariableService();
 
     /** @const @private {!AudioManager} */
-    this.audioManager_ = new AudioManager();
+    this.audioManager_ = new AudioManager(this.win, this.element);
 
     /**
      * @private @const {
