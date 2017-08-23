@@ -25,20 +25,12 @@
  */
 
 import {Layout} from '../../../src/layout';
+import {upgradeBackgroundAudio} from './audio';
 
 export class AmpStoryPage extends AMP.BaseElement {
   /** @override */
   buildCallback() {
-    if (this.element.hasAttribute('background-audio')) {
-      const audioEl = this.element.ownerDocument.createElement('audio');
-      const audioSrc = this.element.getAttribute('background-audio');
-      audioEl.setAttribute('src', audioSrc);
-      audioEl.setAttribute('preload', 'auto');
-      audioEl.setAttribute('loop', '');
-      audioEl.setAttribute('autoplay', '');
-      audioEl.classList.add('i-amp-story-background-audio');
-      this.element.appendChild(audioEl);
-    }
+    upgradeBackgroundAudio(this.element);
     const mediaSet = this.element.querySelectorAll('amp-audio, amp-video');
     for (const mediaItem of mediaSet) {
       mediaItem.setAttribute('preload', 'auto');
