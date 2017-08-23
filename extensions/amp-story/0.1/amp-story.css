@@ -135,11 +135,12 @@ amp-story:fullscreen {
 }
 
 .i-amp-story-mute-audio-control,
-amp-story.unmuted .i-amp-story-unmute-audio-control {
+.i-amp-story-unmute-audio-control {
   display: none;
 }
 
-amp-story.unmuted .i-amp-story-mute-audio-control {
+.audio-playing.unmuted .i-amp-story-mute-audio-control,
+.audio-playing:not(.unmuted) .i-amp-story-unmute-audio-control {
   display: block;
 }
 
