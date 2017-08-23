@@ -25,7 +25,6 @@
  */
 import {
   AnimationManager,
-  AnimationManagerFactory,
   hasAnimations,
 } from './animation';
 import {Layout} from '../../../src/layout';
@@ -52,7 +51,7 @@ export class AmpStoryPage extends AMP.BaseElement {
         return;
       }
 
-      this.animationManager_ = AnimationManagerFactory.create(
+      this.animationManager_ = AnimationManager.create(
           this.element,
           this.getAmpDoc().win,
           this.getAmpDoc(),
