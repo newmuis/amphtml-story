@@ -102,6 +102,8 @@ export class AudioManager {
       if (!sourceElement.muted) {
         return new MediaElementPlayable(this.win_, sourceElement);
       }
+    } else if (sourceElement.hasAttribute('background-audio')) {
+      return new BackgroundPlayable(this.win_, sourceElement);
     }
   }
 
@@ -134,16 +136,8 @@ export class AudioManager {
   }
 
   /** @private */
-<<<<<<< HEAD
   getMediaElementChildren_(element) {
-=======
-  getMediaElementChilden_(element) {
-<<<<<<< HEAD
->>>>>>> 4a34b67f... Partial implementation of playing media embeds through AudioManager.
-    return element.querySelectorAll('[background-audio], audio, video');
-=======
     return element.querySelectorAll('audio, video');
->>>>>>> ebdc019a... Properly reduce audio based on tree depth.
   }
 
   /**
@@ -155,33 +149,9 @@ export class AudioManager {
         .then(() => this.getPlayable_(sourceElement))
         .then(playable => {
           if (!playable) {
-<<<<<<< HEAD
-=======
             return;
           }
 
-<<<<<<< HEAD
-          playable.setVolume(/* volume */ 1, /* durationMs */ 0,
-              VOLUME_EASING_FN);
-
-          if (this.isMuted_) {
-            playable.mute();
-          }
-
-<<<<<<< HEAD
-          if (playable.isPlaying()) {
->>>>>>> 4a34b67f... Partial implementation of playing media embeds through AudioManager.
-            return;
-=======
-          // Reduce the volume of ancestors.
-          for (let el = sourceElement.parentElement; el;
-              el = el.parentElement) {
-            this.setVolume(el, REDUCED_VOLUME);
->>>>>>> b4d4ef91... Partial implementation of hooking into HTMLMediaElement events
-          }
-
-=======
->>>>>>> 2a9ffbcd... Pull from HEAD
           // Play the audio.
           this.addToNowPlaying_(playable);
         });
@@ -257,8 +227,6 @@ export class AudioManager {
 
 
   nowPlayingChanged_() {
-<<<<<<< HEAD
-<<<<<<< HEAD
     // TODO(newmuis): Dispatch AUDIO_PLAYING iff this.nowPlaying_.length > 0; else AUDIO_STOPPED.
 
     this.nowPlaying_.forEach(playable => {
@@ -277,14 +245,6 @@ export class AudioManager {
         this.setVolume(el, REDUCED_VOLUME);
       }
     });
-=======
-    const isAudioPlaying = this.nowPlaying_.length > 0;
-    // TODO(newmuis): Dispatch AUDIO_PLAYING iff isAudioPlaying; else AUDIO_STOPPED.
-
-    // TODO(newmuis): Recalculate the volume of all playing audio.
-=======
-    // TODO(newmuis): Dispatch AUDIO_PLAYING iff this.nowPlaying_.length > 0; else AUDIO_STOPPED.
->>>>>>> 073a456b... Restore previous version that somehow got overridden.
 
     // Populate a sparse array where the indices of the array represent the
     // tree depths at which there is audio currently playing.
@@ -308,30 +268,13 @@ export class AudioManager {
       prioritiesByDepth[depth] = depthCount - iteration;
     });
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-          // Reduce the volume of ancestors.
-          for (let el = sourceElement.parentElement; el;
-              el = el.parentElement) {
-            this.setVolume(el, REDUCED_VOLUME);
-          }
->>>>>>> 2a9ffbcd... Pull from HEAD
-=======
-      // Reduce the volume of ancestors.
-      for (let el = playable.getSourceElement().parentElement; el;
-          el = el.parentElement) {
-        this.setVolume(el, REDUCED_VOLUME);
-      }
-=======
     // Set volumes on each of the playables that is currently playing, based on
     // its priority (higher priority results in louder volume).
     this.nowPlaying_.forEach(playable => {
       const depth = playable.getDepth();
       const volume = Math.pow(REDUCED_VOLUME, prioritiesByDepth[depth]);
       playable.setVolume(volume, VOLUME_CHANGE_DURATION_MS, VOLUME_EASING_FN);
->>>>>>> ebdc019a... Properly reduce audio based on tree depth.
     });
->>>>>>> 073a456b... Restore previous version that somehow got overridden.
   }
 }
 
@@ -625,18 +568,8 @@ class BackgroundPlayable extends Playable {
  * An HTMLMediaElement that potentially has audio.
  */
 class MediaElementPlayable extends Playable {
-<<<<<<< HEAD
-<<<<<<< HEAD
   constructor(win, element) {
     super(win, element);
-=======
-  constructor(element) {
-    super(dev().assertElement(element));
->>>>>>> 4a34b67f... Partial implementation of playing media embeds through AudioManager.
-=======
-  constructor(win, element) {
-    super(win, element);
->>>>>>> b4d4ef91... Partial implementation of hooking into HTMLMediaElement events
     this.element_ = element;
   }
 
