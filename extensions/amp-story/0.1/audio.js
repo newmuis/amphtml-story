@@ -132,7 +132,7 @@ export class AudioManager {
   }
 
   /** @private */
-  getMediaElementChilden_(element) {
+  getMediaElementChildren_(element) {
     return element.querySelectorAll('[background-audio], audio, video');
   }
 
