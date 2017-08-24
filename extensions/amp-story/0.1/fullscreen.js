@@ -66,6 +66,10 @@ const isFullScreenSupportedImpl = function(el) {
 };
 
 
+/**
+ * @param {!Document} doc
+ * @return {?Element}
+ */
 const getFullscreenElementImpl = function(doc) {
   return doc.fullscreenElement || doc.webkitFullscreenElement ||
       doc.mozFullScreenElement || doc.msFullscreenElement;
