@@ -134,6 +134,12 @@ export class AmpStory extends AMP.BaseElement {
 
     /** @private {?Element} */
     this.activePage_ = null;
+
+    /** @private {!../../../src/service/timer-impl.Timer} */
+    this.timer_ = Services.timerFor(this.win);
+
+    /** @private {number|string|null} */
+    this.autoAdvanceTimeoutId_ = null;
   }
 
   /** @override */
@@ -387,6 +393,11 @@ export class AmpStory extends AMP.BaseElement {
 
     const oldPage = this.activePage_;
 
+    if (this.autoAdvanceTimeoutId_) {
+      this.timer_.cancel(this.autoAdvanceTimeoutId_);
+      this.autoAdvanceTimeoutId_ = null;
+    }
+
     return this.mutateElement(() => {
       targetPage.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
       if (oldPage) {
@@ -505,7 +516,7 @@ export class AmpStory extends AMP.BaseElement {
           `Invalid automatic advance delay '${autoAdvanceAfter}' ` +
           `for page '${activePage.id}'.`);
 
-      this.win.setTimeout(
+      this.autoAdvanceTimeoutId_ = this.timer_.delay(
           () => this.next_(true /* opt_isAutomaticAdvance */), delayMs);
     } else {
       let mediaElement;
