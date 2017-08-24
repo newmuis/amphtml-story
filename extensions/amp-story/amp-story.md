@@ -17,4 +17,5 @@ limitations under the License.
 # <a name="`amp-story`"></a> `amp-story`
 
 **THIS IS EXPERIMENTAL AND UNDER ACTIVE DEVELOPMENT!!**
+
 `amp-story` is an extension to AMP that enables a new format for storytelling. Spec is subject to change and there will be bugs; please help by filing issues.
