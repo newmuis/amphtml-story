@@ -48,28 +48,36 @@ html[amp-story] > body > amp-story,
 html[📖] > body > amp-story {
   align-self: center;
   box-shadow: 2px 2px 20px rgba(0, 0, 0, 0.5);
-  height: 100vh !important;
+  height: 100% !important;
   justify-self: center;
   max-height: 736px;
   max-width: 414px;
 }
 
-amp-story:-webkit-full-screen {
+html[amp-story] > body > amp-story:-webkit-full-screen,
+html[📖] > body > amp-story:-webkit-full-screen {
+  height: 100vh !important;
   max-height: none;
   max-width: none;
 }
 
-amp-story:-moz-full-screen {
+html[amp-story] > body > amp-story:-moz-full-screen,
+html[📖] > body > amp-story:-moz-full-screen {
+  height: 100vh !important;
   max-height: none;
   max-width: none;
 }
 
-amp-story:-ms-fullscreen {
+html[amp-story] > body > amp-story:-ms-fullscreen,
+html[📖] > body > amp-story:-ms-fullscreen {
+  height: 100vh !important;
   max-height: none;
   max-width: none;
 }
 
-amp-story:fullscreen {
+html[amp-story] > body > amp-story:fullscreen,
+html[📖] > body > amp-story:fullscreen {
+  height: 100vh !important;
   max-height: none;
   max-width: none;
 }
