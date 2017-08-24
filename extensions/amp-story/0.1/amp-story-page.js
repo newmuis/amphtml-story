@@ -52,13 +52,7 @@ export class AmpStoryPage extends AMP.BaseElement {
       }
 
       this.animationManager_ = AnimationManager.create(
-          this.element,
-          this.getAmpDoc().win,
-          this.getAmpDoc(),
-          this.getAmpDoc().getUrl(),
-          this.getVsync(),
-          this.element.getResources(),
-          Services.timerFor(this.getAmpDoc().win));
+          this.element, this.getAmpDoc(), this.getAmpDoc().getUrl());
     }
   }
 

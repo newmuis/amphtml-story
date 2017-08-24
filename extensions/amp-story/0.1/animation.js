@@ -137,6 +137,10 @@ class AnimationRunner {
     /** @private */
     this.firstFrameApplied_ = false;
 
+    dev().assert(
+        !this.firstFrameDef_.offset,
+        'First keyframe offset for animation presets should be 0 or undefined');
+
     this.runnerPromise_.then(runner => this.onRunnerReady_(runner));
   }
 
@@ -171,14 +175,16 @@ class AnimationRunner {
   }
 
   /** @private */
-  resetFirstFrameUnderVsync_() {
+  resetFirstFrame_() {
     if (!this.firstFrameApplied_) {
       return;
     }
 
     this.firstFrameApplied_ = false;
 
-    resetStyles(this.target_, getCssProps(this.firstFrameDef_));
+    this.vsync_.mutate(() => {
+      resetStyles(this.target_, getCssProps(this.firstFrameDef_));
+    });
   }
 
   /** Starts or resumes the animation. */
@@ -199,16 +205,14 @@ class AnimationRunner {
 
     this.runnerReset_ = false;
 
-    this.vsync_.mutate(() => {
-      this.resetFirstFrameUnderVsync_();
+    this.resetFirstFrame_();
 
-      if (shouldStart) {
-        runner.start();
-        return;
-      }
+    if (shouldStart) {
+      runner.start();
+      return;
+    }
 
-      runner.resume();
-    });
+    runner.resume();
   }
 
   /** @return {!Promise<boolean>} */
@@ -220,12 +224,7 @@ class AnimationRunner {
 
   /** Force-finishes all animations. */
   finish() {
-    if (this.firstFrameApplied_) {
-      this.vsync_.mutate(() => {
-        this.resetFirstFrameUnderVsync_();
-      });
-    }
-
+    this.resetFirstFrame_();
     this.playback_(PlaybackActivity.FINISH);
   }
 
@@ -314,36 +313,25 @@ class AnimationRunner {
 export class AnimationManager {
   /**
    * @param {!Element} root
-   * @param {!Window} win
    * @param {!../../../src/service/ampdoc-impl.AmpDoc} ampdoc
-   * @param {string} baseUrl
-   * @param {!../../../src/service/vsync-impl.Vsync} vsync
-   * @param {!../../../src/service/resources-impl.Resources} resources
-   * @param {!../../../src/service/timer-impl.Time} timer
    */
-  constructor(root, win, ampdoc, baseUrl, vsync, resources, timer) {
+  constructor(root, ampdoc) {
     dev().assert(hasAnimations(root));
 
     /** @private @const */
     this.root = root;
 
     /** @private @const */
-    this.win_ = win;
-
-    /** @private @const */
     this.ampdoc_ = ampdoc;
 
     /** @private @const */
-    this.baseUrl_ = baseUrl;
+    this.vsync_ = Services.vsyncFor(this.ampdoc_.win);
 
     /** @private @const */
-    this.vsync_ = vsync;
+    this.resources_ = Services.resourcesForDoc(this.ampdoc_);
 
     /** @private @const */
-    this.resources_ = resources;
-
-    /** @private @const */
-    this.timer_ = timer;
+    this.timer_ = Services.timerFor(this.ampdoc_.win);
 
     /** @private @const */
     this.builderPromise_ = this.createAnimationBuilderPromise_();
@@ -355,17 +343,11 @@ export class AnimationManager {
   /**
    * Decouples constructor so it can be stubbed in tests.
    * @param {!Element} root
-   * @param {!Window} win
    * @param {!../../../src/service/ampdoc-impl.AmpDoc} ampdoc
-   * @param {string} baseUrl
-   * @param {!../../../src/service/vsync-impl.Vsync} vsync
-   * @param {!../../../src/service/resources-impl.Resources} resources
-   * @param {!../../../src/service/timer-impl.Time} timer
    * @return {!AnimationManager}
    */
-  static create(root, win, ampdoc, baseUrl, vsync, resources, timer) {
-    return new AnimationManager(
-        root, win, ampdoc, baseUrl, vsync, resources, timer);
+  static create(root, ampdoc, baseUrl) {
+    return new AnimationManager(root, ampdoc, baseUrl);
   }
 
   /**
@@ -451,8 +433,9 @@ export class AnimationManager {
    * @return {!Promise<!WebAnimationBuilder>}
    */
   createAnimationBuilderPromise_(el, animationDef) {
-    return Services.extensionsFor(this.win_).loadExtension('amp-animation')
-        .then(() => Services.webAnimationServiceForOrNull(this.win_))
+    return Services.extensionsFor(this.ampdoc_.win)
+        .loadExtension('amp-animation')
+        .then(() => Services.webAnimationServiceForOrNull(this.ampdoc_.win))
         .then(webAnimationService =>
             dev().assert(
                 webAnimationService,
@@ -461,7 +444,7 @@ export class AnimationManager {
             webAnimationService.createBuilder(
                     this.win_,
                     this.ampdoc_.getRootNode(),
-                    this.baseUrl_,
+                    this.ampdoc_.getUrl(),
                     this.vsync_,
                     this.resources_));
   }

@@ -4,8 +4,8 @@ import {registerServiceBuilder} from '../../../src/service';
 
 export class WebAnimationService {
   /**
-   * @param {!Element} root
    * @param {!Window} win
+   * @param {!Element} rootNode
    * @param {string} baseUrl
    * @param {!../../../src/service/vsync-impl.Vsync} vsync
    * @param {!../../../src/service/resources-impl.Resources} resources
@@ -18,9 +18,6 @@ export class WebAnimationService {
    * @param {!Window} win
    */
   static register(win) {
-    registerServiceBuilder(
-        win,
-        'web-animation',
-        () => new WebAnimationService());
+    registerServiceBuilder(win, 'web-animation', WebAnimationService);
   }
 }
