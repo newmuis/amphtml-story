@@ -31,21 +31,21 @@ amp-story {
 
 html[amp-story],
 html[📖],
-html[amp-story] > body,
-html[📖] > body {
+html[amp-story] body,
+html[📖] body {
   height: 100% !important;
   margin: 0 !important;
   padding: 0 !important;
   width: 100% !important;
 }
 
-html[amp-story] > body,
-html[📖] > body  {
+html[amp-story] body,
+html[📖] body  {
   display: grid !important;
 }
 
-html[amp-story] > body > amp-story,
-html[📖] > body > amp-story {
+html[amp-story] body > amp-story,
+html[📖] body > amp-story {
   align-self: center;
   box-shadow: 2px 2px 20px rgba(0, 0, 0, 0.5);
   height: 100% !important;
@@ -54,29 +54,29 @@ html[📖] > body > amp-story {
   max-width: 414px;
 }
 
-html[amp-story] > body > amp-story:-webkit-full-screen,
-html[📖] > body > amp-story:-webkit-full-screen {
+html[amp-story] body > amp-story:-webkit-full-screen,
+html[📖] body > amp-story:-webkit-full-screen {
   height: 100vh !important;
   max-height: none;
   max-width: none;
 }
 
-html[amp-story] > body > amp-story:-moz-full-screen,
-html[📖] > body > amp-story:-moz-full-screen {
+html[amp-story] body > amp-story:-moz-full-screen,
+html[📖] body > amp-story:-moz-full-screen {
   height: 100vh !important;
   max-height: none;
   max-width: none;
 }
 
-html[amp-story] > body > amp-story:-ms-fullscreen,
-html[📖] > body > amp-story:-ms-fullscreen {
+html[amp-story] body > amp-story:-ms-fullscreen,
+html[📖] body > amp-story:-ms-fullscreen {
   height: 100vh !important;
   max-height: none;
   max-width: none;
 }
 
-html[amp-story] > body > amp-story:fullscreen,
-html[📖] > body > amp-story:fullscreen {
+html[amp-story] body > amp-story:fullscreen,
+html[📖] body > amp-story:fullscreen {
   height: 100vh !important;
   max-height: none;
   max-width: none;
