@@ -67,6 +67,16 @@ const isFullScreenSupportedImpl = function(el) {
 
 
 /**
+ * @param {!Document} doc
+ * @return {?Element}
+ */
+const getFullscreenElementImpl = function(doc) {
+  return doc.fullscreenElement || doc.webkitFullscreenElement ||
+      doc.mozFullScreenElement || doc.msFullscreenElement;
+};
+
+
+/**
  * @param {!Element} el
  */
 export let requestFullScreen = requestFullScreenImpl;
@@ -83,6 +93,13 @@ export let exitFullScreen = exitFullScreenImpl;
  * @return {boolean}
  */
 export let isFullScreenSupported = isFullScreenSupportedImpl;
+
+
+/**
+ * @param {!Document} doc
+ * @return {?Element}
+ */
+export const getFullScreenElement = getFullscreenElementImpl;
 
 
 /** @visibleForTesting */
