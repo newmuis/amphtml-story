@@ -44,6 +44,7 @@ import {
   exitFullScreen,
   isFullScreenSupported,
   requestFullScreen,
+  getFullScreenElement,
 } from './fullscreen';
 import {once} from '../../../src/utils/function';
 import {
@@ -178,6 +179,15 @@ export class AmpStory extends AMP.BaseElement {
     this.win.document.addEventListener('keydown', e => {
       this.onKeyDown_(e);
     }, true);
+
+    this.win.document.addEventListener('fullscreenchange',
+        () => { this.onFullscreenChanged_(); });
+
+    this.win.document.addEventListener('webkitfullscreenchange',
+        () => { this.onFullscreenChanged_(); });
+
+    this.win.document.addEventListener('mozfullscreenchange',
+        () => { this.onFullscreenChanged_(); });
 
     this.navigationState_.installConsumer(new AnalyticsTrigger(this.element));
     this.navigationState_.installConsumer(this.variableService_);
@@ -567,7 +577,6 @@ export class AmpStory extends AMP.BaseElement {
 
   /** @private */
   enterFullScreen_() {
-    this.systemLayer_.setInFullScreen(true);
     requestFullScreen(this.element);
   }
 
@@ -581,8 +590,19 @@ export class AmpStory extends AMP.BaseElement {
       this.setAutoFullScreen(false);
     }
 
-    this.systemLayer_.setInFullScreen(false);
     exitFullScreen(this.element);
+  }
+
+
+  /**
+   * Invoked when the document has actually transitioned into or out of
+   * fullscreen mode.
+   * @private
+   */
+  onFullscreenChanged_() {
+    const isFullscreen = !!getFullScreenElement(this.win.document);
+    console.log('fullscreen changed: ', isFullscreen);
+    this.systemLayer_.setInFullScreen(isFullscreen);
   }
 
 
