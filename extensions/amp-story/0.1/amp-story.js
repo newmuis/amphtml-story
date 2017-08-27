@@ -55,7 +55,7 @@ import {isFiniteNumber} from '../../../src/types';
 import {AudioManager, upgradeBackgroundAudio} from './audio';
 import {setStyles} from '../../../src/style';
 import {VideoEvents} from '../../../src/video-interface';
-import {listenOncePromise} from '../../../src/event-helper';
+import {listenOnce} from '../../../src/event-helper';
 
 
 /** @private @const {number} */
@@ -135,6 +135,12 @@ export class AmpStory extends AMP.BaseElement {
 
     /** @private {?Element} */
     this.activePage_ = null;
+
+    /** @private {!../../../src/service/timer-impl.Timer} */
+    this.timer_ = Services.timerFor(this.win);
+
+    /** @private {?UnlistenDef} */
+    this.autoAdvanceUnlistenDef_ = null;
   }
 
   /** @override */
@@ -397,6 +403,11 @@ export class AmpStory extends AMP.BaseElement {
 
     const oldPage = this.activePage_;
 
+    if (this.autoAdvanceUnlistenDef_) {
+      this.autoAdvanceUnlistenDef_();
+      this.autoAdvanceUnlistenDef_ = null;
+    }
+
     return this.mutateElement(() => {
       targetPage.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
       if (oldPage) {
@@ -478,10 +489,11 @@ export class AmpStory extends AMP.BaseElement {
 
     const mediaElement = this.getMediaElement_(el);
     if (mediaElement) {
-      listenOncePromise(mediaElement, 'ended').then(() => callback());
+      this.autoAdvanceUnlistenDef_ =
+          listenOnce(mediaElement, 'ended', callback);
     } else if (this.isVideoInterfaceVideo_(el)) {
-      listenOncePromise(el, VideoEvents.ENDED, /* opt_capture */true)
-          .then(() => callback());
+      this.autoAdvanceUnlistenDef_ =
+          listenOnce(el, VideoEvents.ENDED, callback, /* opt_capture */ true);
     } else {
       user().error(TAG, `Element with ID ${el.id} is not a media element ` +
           'supported for automatic advancement.');
@@ -515,8 +527,11 @@ export class AmpStory extends AMP.BaseElement {
           `Invalid automatic advance delay '${autoAdvanceAfter}' ` +
           `for page '${activePage.id}'.`);
 
-      this.win.setTimeout(
+      const timeoutId = this.timer_.delay(
           () => this.next_(true /* opt_isAutomaticAdvance */), delayMs);
+      this.autoAdvanceUnlistenDef_ = () => {
+        this.timer_.cancel(timeoutId);
+      };
     } else {
       let mediaElement;
       try {
