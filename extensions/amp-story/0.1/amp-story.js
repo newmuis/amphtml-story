@@ -616,7 +616,6 @@ export class AmpStory extends AMP.BaseElement {
    */
   onFullscreenChanged_() {
     const isFullscreen = !!getFullScreenElement(this.win.document);
-    console.log('fullscreen changed: ', isFullscreen);
     this.systemLayer_.setInFullScreen(isFullscreen);
   }
 
