@@ -435,18 +435,8 @@ export class AnimationManager {
   createAnimationBuilderPromise_(el, animationDef) {
     return Services.extensionsFor(this.ampdoc_.win)
         .loadExtension('amp-animation')
-        .then(() => Services.webAnimationServiceForOrNull(this.ampdoc_))
-        .then(webAnimationService =>
-            dev().assert(
-                webAnimationService,
-                'Could not resolve WebAnimationService'))
-        .then(webAnimationService =>
-            webAnimationService.createBuilder(
-                    this.win_,
-                    this.ampdoc_.getRootNode(),
-                    this.ampdoc_.getUrl(),
-                    this.vsync_,
-                    this.resources_));
+        .then(() => Services.webAnimationServiceFor(this.ampdoc_))
+        .then(webAnimationService => webAnimationService.createBuilder());
   }
 
   /**

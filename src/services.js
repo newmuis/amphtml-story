@@ -260,11 +260,10 @@ export class Services {
 
   /**
    * @param {!Node|!./service/ampdoc-impl.AmpDoc} nodeOrDoc
-   * @return {?Promise<?../extensions/amp-animation/0.1/web-animation-service.WebAnimationService}>}
+   * @return {!Promise<!../extensions/amp-animation/0.1/web-animation-service.WebAnimationService}>}
    */
-  static webAnimationServiceForOrNull(nodeOrDoc) {
-    return getElementServiceIfAvailableForDoc(
-        nodeOrDoc, 'web-animation', 'amp-animation');
+  static webAnimationServiceFor(nodeOrDoc) {
+    return getElementServiceForDoc(nodeOrDoc, 'web-animation', 'amp-animation');
   }
 
   /**
