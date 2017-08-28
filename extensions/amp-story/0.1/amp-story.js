@@ -427,8 +427,8 @@ export class AmpStory extends AMP.BaseElement {
 
   /** @private */
   triggerActiveEventForPage_() {
-    // TODO(alanorozco): pass event priority once STAMP repo is merged with
-    // upstream.
+    // TODO(alanorozco): pass event priority once amphtml-story repo is merged
+    // with upstream.
     Services.actionServiceForDoc(this.element)
         .trigger(this.activePage_, 'active', /* event */ null);
   }

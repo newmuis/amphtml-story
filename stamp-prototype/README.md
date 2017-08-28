@@ -1,4 +1,4 @@
-# STAMP Prototype #
+# stamp-prototype #
 
 ## Deployment ##
 
