@@ -436,5 +436,5 @@ function ensurePolyfillInstalled(win) {
 
 AMP.extension(TAG, '0.1', function(AMP) {
   AMP.registerElement(TAG, AmpAnimation);
-  WebAnimationService.register(AMP.win);
+  AMP.registerServiceForDoc('web-animation', WebAnimationService);
 });

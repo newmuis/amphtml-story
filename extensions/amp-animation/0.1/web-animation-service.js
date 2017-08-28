@@ -13,11 +13,4 @@ export class WebAnimationService {
   createBuilder(win, rootNode, baseUrl, vsync, resources) {
     return new Builder(win, rootNode, baseUrl, vsync, resources);
   }
-
-  /**
-   * @param {!Window} win
-   */
-  static register(win) {
-    registerServiceBuilder(win, 'web-animation', WebAnimationService);
-  }
 }

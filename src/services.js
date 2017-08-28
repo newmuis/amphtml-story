@@ -259,12 +259,12 @@ export class Services {
   }
 
   /**
-   * @param {!Window} win
+   * @param {!Node|!./service/ampdoc-impl.AmpDoc} nodeOrDoc
    * @return {?Promise<?../extensions/amp-animation/0.1/web-animation-service.WebAnimationService}>}
    */
-  static webAnimationServiceForOrNull(win) {
-    return getElementServiceIfAvailable(
-        win, 'web-animation', 'amp-animation', true);
+  static webAnimationServiceForOrNull(nodeOrDoc) {
+    return getElementServiceIfAvailableForDoc(
+        nodeOrDoc, 'web-animation', 'amp-animation');
   }
 
   /**
