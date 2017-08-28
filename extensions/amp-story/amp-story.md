@@ -20,9 +20,9 @@ limitations under the License.
 
 `amp-story` is an extension to AMP that enables a new format for storytelling. Spec is subject to change and there will be bugs; please help by filing issues.
 
-## STAMP Format v0.0.7
+## `amp-story` Format
 
-### Create Your STAMP HTML Page
+### Create Your AMP HTML Page with `amp-story`
 
 The following markup is a decent starting point or boilerplate. Copy this and save it to a file with a `.html` extension.
 
@@ -34,8 +34,8 @@ The following markup is a decent starting point or boilerplate. Copy this and sa
     <script async src="https://stamp-prototype.appspot.com/v0.js"></script>
     <script async custom-element="amp-story"
         src="https://stamp-prototype.appspot.com/v0/amp-story-0.1.js"></script>
-    <title>Hello, STAMPs</title>
-    <link rel="canonical" href="http://example.ampproject.org/my-stamp.html" />
+    <title>Hello, amp-story</title>
+    <link rel="canonical" href="http://example.ampproject.org/my-story.html" />
     <meta name="viewport"
         content="width=device-width,minimum-scale=1,initial-scale=1">
     <style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}} @keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
@@ -49,7 +49,7 @@ The following markup is a decent starting point or boilerplate. Copy this and sa
           </amp-img>
         </amp-story-grid-layer>
         <amp-story-grid-layer template="vertical">
-          <h1>Hello, STAMP!</h1>
+          <h1>Hello, amp-story!</h1>
         </amp-story-grid-layer>
       </amp-story-page>
       <amp-story-page id="my-second-page">
@@ -73,17 +73,17 @@ But there's a lot of additional code in the head of the page that might not be i
 
 ### Required Markup
 
-STAMP HTML documents MUST:
+AMP HTML documents with `amp-story` MUST:
 
 | RULE | DESCRIPTION |
 | --- | --- |
 | Start with the `<!doctype html>` doctype. | Standard for HTML. |
-| Contain a top-level `<html ⚡ 📖>` tag (`<html amp amp-story>` is accepted as well). | Identifies the page as STAMP content. |
+| Contain a top-level `<html ⚡ 📖>` tag (`<html amp amp-story>` is accepted as well). | Identifies the page as having story content. |
 | Contain `<head>` and `<body>` tags. | Optional in HTML but not in AMP. |
 | Contain a `<meta charset="utf-8">` tag as the first child of their `<head>` tag. | Identifies the encoding for the page. |
-| Contain a `<script async src="https://stamp-prototype.appspot.com/v0.js"></script>` tag as the second child of their `<head>` tag. | Includes and loads the AMP JS library.  This is a forked version specific to STAMP; when the feature is generally available, the normal v0.js hosted from cdn.ampproject.org must be used. |
-| Contain a `<script async src="https://stamp-prototype.appspot.com/v0/amp-story-0.1.js" custom-element="amp-story"></script>` tag as the third child of their `<head>` tag. | Includes and loads the STAMP JS library. |
-| Contain a `<link rel="canonical" href="$STAMP_URL" />` tag inside their `<head>`. | Points to itself. Learn more in [Make Your Page Discoverable](https://www.ampproject.org/docs/guides/discovery.html). |
+| Contain a `<script async src="https://stamp-prototype.appspot.com/v0.js"></script>` tag as the second child of their `<head>` tag. | Includes and loads the AMP JS library.  This is a forked version specific to amp-story; when the feature is generally available, the normal v0.js hosted from cdn.ampproject.org must be used. |
+| Contain a `<script async src="https://stamp-prototype.appspot.com/v0/amp-story-0.1.js" custom-element="amp-story"></script>` tag as the third child of their `<head>` tag. | Includes and loads the amp-story JS library. |
+| Contain a `<link rel="canonical" href="$STORY_URL" />` tag inside their `<head>`. | Points to itself. Learn more in [Make Your Page Discoverable](https://www.ampproject.org/docs/guides/discovery.html). |
 | Contain a `<meta name="viewport" content="width=device-width,minimum-scale=1">` tag inside their `<head>` tag. It's also recommended to include `initial-scale=1`. | Specifies a responsive viewport. Learn more in [Create Responsive AMP Pages](https://www.ampproject.org/docs/guides/responsive/responsive_design.html). |
 | Contain the [AMP boilerplate code](https://www.ampproject.org/docs/reference/spec/amp-boilerplate.html) in their `<head>` tag. | CSS boilerplate to initially hide the content until AMP JS is loaded. |
 
