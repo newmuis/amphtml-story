@@ -34,7 +34,7 @@ The following markup is a decent starting point or boilerplate. Copy this and sa
     <script async src="https://stamp-prototype.appspot.com/v0.js"></script>
     <script async custom-element="amp-story"
         src="https://stamp-prototype.appspot.com/v0/amp-story-0.1.js"></script>
-    <title>Hello, STAMPs</title>
+    <title>Hello, amp-story</title>
     <link rel="canonical" href="http://example.ampproject.org/my-story.html" />
     <meta name="viewport"
         content="width=device-width,minimum-scale=1,initial-scale=1">
