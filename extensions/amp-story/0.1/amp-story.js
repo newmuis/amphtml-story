@@ -420,7 +420,8 @@ export class AmpStory extends AMP.BaseElement {
         this.schedulePause(oldPage);
       }
       this.scheduleResume(targetPage);
-    }).then(() => this.maybeScheduleAutoAdvance_());
+    }).then(() => this.forceRepaintForSafari_())
+    .then(() => this.maybeScheduleAutoAdvance_());
   }
 
 
@@ -430,6 +431,23 @@ export class AmpStory extends AMP.BaseElement {
     // upstream.
     Services.actionServiceForDoc(this.element)
         .trigger(this.activePage_, 'active', /* event */ null);
+  }
+
+
+  /**
+   * For some reason, Safari has an issue where sometimes when pages become
+   * visible, some descendants are not painted.  This is a hack where we detect
+   * that the browser is Safari and force it to repaint, to avoid this case.
+   * See newmuis/amphtml-story#106 for details.
+   * @private
+   */
+  forceRepaintForSafari_() {
+    const platform = Services.platformFor(this.win);
+    if (platform.isSafari() || platform.isIos()) {
+      this.element.style.display = 'none';
+      this.element.offsetHeight;
+      this.element.style.display = '';
+    }
   }
 
 
