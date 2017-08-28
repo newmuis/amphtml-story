@@ -25,6 +25,7 @@
  */
 
 import {Layout} from '../../../src/layout';
+import {Services} from '../../../src/services';
 import {upgradeBackgroundAudio} from './audio';
 
 export class AmpStoryPage extends AMP.BaseElement {
