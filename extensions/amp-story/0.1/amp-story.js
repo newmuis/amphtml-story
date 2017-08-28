@@ -44,6 +44,7 @@ import {
   exitFullScreen,
   isFullScreenSupported,
   requestFullScreen,
+  getFullScreenElement,
 } from './fullscreen';
 import {once} from '../../../src/utils/function';
 import {map} from '../../../src/utils/object';
@@ -52,8 +53,10 @@ import {
 } from '../../../src/experiments';
 import {registerServiceBuilder} from '../../../src/service';
 import {isFiniteNumber} from '../../../src/types';
-import {AudioManager} from './audio';
+import {AudioManager, upgradeBackgroundAudio} from './audio';
 import {setStyles} from '../../../src/style';
+import {VideoEvents} from '../../../src/video-interface';
+import {listenOnce} from '../../../src/event-helper';
 
 
 /** @private @const {number} */
@@ -72,6 +75,9 @@ const TIME_REGEX = {
 
 /** @private @const {number} */
 const FULLSCREEN_THRESHOLD = 1024;
+
+/** @type {string} */
+const TAG = 'amp-story';
 
 
 /**
@@ -119,7 +125,7 @@ export class AmpStory extends AMP.BaseElement {
     this.variableService_ = new VariableService();
 
     /** @const @private {!AudioManager} */
-    this.audioManager_ = new AudioManager();
+    this.audioManager_ = new AudioManager(this.win, this.element);
 
     /**
      * @private @const {
@@ -130,6 +136,12 @@ export class AmpStory extends AMP.BaseElement {
 
     /** @private {?Element} */
     this.activePage_ = null;
+
+    /** @private {!../../../src/service/timer-impl.Timer} */
+    this.timer_ = Services.timerFor(this.win);
+
+    /** @private {?UnlistenDef} */
+    this.autoAdvanceUnlistenDef_ = null;
   }
 
   /** @override */
@@ -147,12 +159,47 @@ export class AmpStory extends AMP.BaseElement {
       this.hideBookend_();
     });
 
+    this.element.addEventListener(EventType.MUTE, () => {
+      this.mute_();
+    });
+
+    this.element.addEventListener(EventType.UNMUTE, () => {
+      this.unmute_();
+    });
+
+    this.element.addEventListener(EventType.AUDIO_PLAYING, () => {
+      this.audioPlaying_();
+    });
+
+    this.element.addEventListener(EventType.AUDIO_STOPPED, () => {
+      this.audioStopped_();
+    });
+
+    this.element.addEventListener('play', e => {
+      this.audioManager_.play(e.target);
+    }, true);
+
+    this.element.addEventListener('pause', e => {
+      this.audioManager_.stop(e.target);
+    }, true);
+
     this.win.document.addEventListener('keydown', e => {
       this.onKeyDown_(e);
     }, true);
 
+    this.win.document.addEventListener('fullscreenchange',
+        () => { this.onFullscreenChanged_(); });
+
+    this.win.document.addEventListener('webkitfullscreenchange',
+        () => { this.onFullscreenChanged_(); });
+
+    this.win.document.addEventListener('mozfullscreenchange',
+        () => { this.onFullscreenChanged_(); });
+
     this.navigationState_.installConsumer(new AnalyticsTrigger(this.element));
     this.navigationState_.installConsumer(this.variableService_);
+
+    upgradeBackgroundAudio(this.element);
 
     registerServiceBuilder(this.win, 'story-variable',
         () => this.variableService_);
@@ -166,7 +213,13 @@ export class AmpStory extends AMP.BaseElement {
         'Story must have at least one page.');
 
     return this.switchTo_(firstPage)
-        .then(() => this.preloadPagesByDistance_());
+        .then(() => this.preloadPagesByDistance_())
+        .then(() => {
+          Array.prototype.forEach.call(this.getPages(), page => {
+            this.schedulePause(page);
+          });
+          this.scheduleResume(this.activePage_);
+        });
   }
 
 
@@ -369,17 +422,17 @@ export class AmpStory extends AMP.BaseElement {
 
   /**
    * Switches to a particular page.
-   * @param {!Element} page
+   * @param {!Element} targetPage
    * @return {!Promise}
    */
   // TODO: Update history state
-  switchTo_(page) {
+  switchTo_(targetPage) {
     if (this.isBookendActive_) {
       // Disallow switching pages while the bookend is active.
       return;
     }
 
-    const pageIndex = this.getPageIndex(page);
+    const pageIndex = this.getPageIndex(targetPage);
 
     if (this.shouldEnterFullScreenOnSwitch_()) {
       this.enterFullScreen_();
@@ -390,43 +443,139 @@ export class AmpStory extends AMP.BaseElement {
     this.systemLayer_.updateProgressBar(pageIndex, this.getPageCount() - 1);
 
     // TODO(alanorozco): check if autoplay
-    this.navigationState_.updateActivePage(pageIndex, page.id);
+    this.navigationState_.updateActivePage(pageIndex, targetPage.id);
 
-    if (this.activePage_) {
-      this.audioManager_.stop(this.activePage_);
+    const oldPage = this.activePage_;
+
+    if (this.autoAdvanceUnlistenDef_) {
+      this.autoAdvanceUnlistenDef_();
+      this.autoAdvanceUnlistenDef_ = null;
     }
 
-    this.audioManager_.play(page);
-
-    return this.maybeApplyFirstAnimationFrame_(page)
+    return this.maybeApplyFirstAnimationFrame_(targetPage)
         .then(() => {
           return this.mutateElement(() => {
-            page.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
-            if (this.activePage_) {
-              this.activePage_.removeAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME);
+            targetPage.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
+            if (oldPage) {
+              oldPage.removeAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME);
             }
-            this.activePage_ = page;
+            this.activePage_ = targetPage;
             this.triggerActiveEventForPage_();
-            this.maybeStartAnimations_(page);
-          }, page);
+            this.maybeStartAnimations_(targetPage);
+          }, targetPage);
         })
         .then(() => {
-          if (this.activePage_) {
-            this.schedulePause(this.activePage_);
+          if (oldPage) {
+            this.schedulePause(oldPage);
           }
-          this.scheduleResume(page);
-          this.updateInViewport(page, true);
+          this.scheduleResume(targetPage);
+          this.updateInViewport(targetPage, true);
         })
+        .then(() => this.forceRepaintForSafari_())
         .then(() => this.maybeScheduleAutoAdvance_());
   }
 
 
   /** @private */
   triggerActiveEventForPage_() {
-    // TODO(alanorozco): pass event priority once STAMP repo is merged with
-    // upstream.
+    // TODO(alanorozco): pass event priority once amphtml-story repo is merged
+    // with upstream.
     Services.actionServiceForDoc(this.element)
         .trigger(this.activePage_, 'active', /* event */ null);
+  }
+
+
+  /**
+   * For some reason, Safari has an issue where sometimes when pages become
+   * visible, some descendants are not painted.  This is a hack where we detect
+   * that the browser is Safari and force it to repaint, to avoid this case.
+   * See newmuis/amphtml-story#106 for details.
+   * @private
+   */
+  forceRepaintForSafari_() {
+    const platform = Services.platformFor(this.win);
+    if (platform.isSafari() || platform.isIos()) {
+      this.mutateElement(() => {
+        this.element.style.display = 'none';
+
+        // Reading the height is what forces the repaint.  The conditional exists
+        // only to workaround the fact that the closure compiler would otherwise
+        // think that only reading the height has no effect.  Since the height is
+        // always >= 0, this conditional will always be executed.
+        const height = this.element.offsetHeight;
+        if (height >= 0) {
+          this.element.style.display = '';
+        }
+      });
+    }
+  }
+
+
+  /**
+   * Gets an HTMLMediaElement from an element that wraps it.
+   * @param {!Element} el An element that wraps an HTMLMediaElement.
+   * @return {?Element} The underlying HTMLMediaElement, if one exists.
+   * @private
+   */
+  getMediaElement_(el) {
+    const tagName = el.tagName.toLowerCase();
+
+    if (el instanceof HTMLMediaElement) {
+      return el;
+    } else if (el.hasAttribute('background-audio') &&
+        (tagName === 'amp-story' || tagName === 'amp-story-page')) {
+      return el.querySelector('.i-amp-story-background-audio');
+    } else if (tagName === 'amp-audio') {
+      return el.querySelector('audio');
+    }
+
+    return null;
+  }
+
+
+  /**
+   * Determines whether a given element implements the video interface.
+   * @param {!Element} el The element to test
+   * @return {boolean} true, if the specified element implements the video
+   *     interface.
+   * @private
+   */
+  isVideoInterfaceVideo_(el) {
+    // TODO(newmuis): Check whether the element has the
+    // i-amphtml-video-interface class, after #11015 from amphtml is merged
+    // into amphtml-story.
+    const tagName = el.tagName.toLowerCase();
+
+    return tagName === 'amp-video' || tagName === 'amp-youtube' ||
+        tagName === 'amp-3q-player' || tagName === 'amp-ima-video' ||
+        tagName === 'amp-ooyala-player' || tagName === 'amp-nexxtv-player' ||
+        tagName === 'amp-brid-player' || tagName === 'amp-dailymotion';
+  }
+
+
+  /**
+   * Determines whether the specified element is a valid media element for auto-
+   * advance.
+   * @param {?Element} el
+   * @param {!function()} callback
+   * @return {!Element}
+   * @private
+   */
+  onMediaElementComplete_(el, callback) {
+    user().assertElement(el, 'ID specified for automatic advance ' +
+        `does not refer to any element on page '${this.activePage_.id}'.`);
+
+    const mediaElement = this.getMediaElement_(el);
+    if (mediaElement) {
+      this.autoAdvanceUnlistenDef_ =
+          listenOnce(mediaElement, 'ended', callback);
+    } else if (this.isVideoInterfaceVideo_(el)) {
+      this.autoAdvanceUnlistenDef_ =
+          listenOnce(el, VideoEvents.ENDED, callback, /* opt_capture */ true);
+    } else {
+      user().error(TAG, `Element with ID ${el.id} is not a media element ` +
+          'supported for automatic advancement.');
+    }
   }
 
 
@@ -451,12 +600,30 @@ export class AmpStory extends AMP.BaseElement {
       delayMs = Number(TIME_REGEX.SECONDS.exec(autoAdvanceAfter)[1]) * 1000;
     }
 
-    user().assert(isFiniteNumber(delayMs) && delayMs > 0,
-        `Invalid automatic advance delay '${autoAdvanceAfter}' ` +
-        `for page '${activePage.id}'.`);
+    if (delayMs) {
+      user().assert(isFiniteNumber(delayMs) && delayMs > 0,
+          `Invalid automatic advance delay '${autoAdvanceAfter}' ` +
+          `for page '${activePage.id}'.`);
 
-    this.win.setTimeout(
-        () => this.next_(true /* opt_isAutomaticAdvance */), delayMs);
+      const timeoutId = this.timer_.delay(
+          () => this.next_(true /* opt_isAutomaticAdvance */), delayMs);
+      this.autoAdvanceUnlistenDef_ = () => {
+        this.timer_.cancel(timeoutId);
+      };
+    } else {
+      let mediaElement;
+      try {
+        mediaElement = activePage.querySelector(`#${autoAdvanceAfter}`);
+      } catch (e) {
+        user().error(TAG, `Malformed ID '${autoAdvanceAfter}' for automatic ` +
+            `advance on page '${activePage.id}'.`);
+        return;
+      }
+
+      this.onMediaElementComplete_(mediaElement, () => {
+        this.next_(true /* opt_isAutomaticAdvance */);
+      });
+    }
   }
 
 
@@ -503,7 +670,6 @@ export class AmpStory extends AMP.BaseElement {
 
   /** @private */
   enterFullScreen_() {
-    this.systemLayer_.setInFullScreen(true);
     requestFullScreen(this.element);
   }
 
@@ -517,8 +683,18 @@ export class AmpStory extends AMP.BaseElement {
       this.setAutoFullScreen(false);
     }
 
-    this.systemLayer_.setInFullScreen(false);
     exitFullScreen(this.element);
+  }
+
+
+  /**
+   * Invoked when the document has actually transitioned into or out of
+   * fullscreen mode.
+   * @private
+   */
+  onFullscreenChanged_() {
+    const isFullscreen = !!getFullScreenElement(this.win.document);
+    this.systemLayer_.setInFullScreen(isFullscreen);
   }
 
 
@@ -652,19 +828,22 @@ export class AmpStory extends AMP.BaseElement {
   /** @private */
   preloadPagesByDistance_() {
     const pagesByDistance = this.getPagesByDistance_();
-    pagesByDistance.forEach((pageIds, distance) => {
-      pageIds.forEach(pageId => {
-        const page = this.getPageById_(pageId);
-        setStyles(page, {
-          transform: `translateY(${100 * distance}%)`,
+
+    this.mutateElement(() => {
+      pagesByDistance.forEach((pageIds, distance) => {
+        pageIds.forEach(pageId => {
+          const page = this.getPageById_(pageId);
+          setStyles(page, {
+            transform: `translateY(${100 * distance}%)`,
+          });
         });
       });
-    });
 
-    const next = this.getNextPage_(this.activePage_);
-    if (!next) {
-      this.buildBookend_();
-    }
+      const next = this.getNextPage_(this.activePage_);
+      if (!next) {
+        this.buildBookend_();
+      }
+    });
   }
 
 
@@ -775,6 +954,40 @@ export class AmpStory extends AMP.BaseElement {
    */
   getPageIndex(page) {
     return Array.prototype.indexOf.call(this.getPages(), page);
+  }
+
+  /**
+   * Mutes the audio for the story.
+   * @private
+   */
+  mute_() {
+    this.audioManager_.muteAll();
+    this.element.classList.remove('unmuted');
+  }
+
+  /**
+   * Unmutes the audio for the story.
+   * @private
+   */
+  unmute_() {
+    this.audioManager_.unmuteAll();
+    this.element.classList.add('unmuted');
+  }
+
+  /**
+   * Marks the story as having audio playing on the active page.
+   * @private
+   */
+  audioPlaying_() {
+    this.element.classList.add('audio-playing');
+  }
+
+  /**
+   * Marks the story as not having audio playing on the active page.
+   * @private
+   */
+  audioStopped_() {
+    this.element.classList.remove('audio-playing');
   }
 }
 

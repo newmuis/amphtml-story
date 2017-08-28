@@ -1,9 +1,5 @@
 /**
-<<<<<<< HEAD
  * Copyright 2017 The AMP HTML Authors. All Rights Reserved.
-=======
- * Copyright 2015 The AMP HTML Authors. All Rights Reserved.
->>>>>>> 95dcfda4... Add a base amp-story extension.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,45 +31,53 @@ amp-story {
 
 html[amp-story],
 html[📖],
-html[amp-story] > body,
-html[📖] > body {
+html[amp-story] body,
+html[📖] body {
   height: 100% !important;
   margin: 0 !important;
   padding: 0 !important;
   width: 100% !important;
 }
 
-html[amp-story] > body,
-html[📖] > body  {
+html[amp-story] body,
+html[📖] body  {
   display: grid !important;
 }
 
-html[amp-story] > body > amp-story,
-html[📖] > body > amp-story {
+html[amp-story] body > amp-story,
+html[📖] body > amp-story {
   align-self: center;
   box-shadow: 2px 2px 20px rgba(0, 0, 0, 0.5);
-  height: 100vh !important;
+  height: 100% !important;
   justify-self: center;
   max-height: 736px;
   max-width: 414px;
 }
 
-amp-story:-webkit-full-screen {
+html[amp-story] body > amp-story:-webkit-full-screen,
+html[📖] body > amp-story:-webkit-full-screen {
+  height: 100vh !important;
   max-height: none;
   max-width: none;
 }
 
-amp-story:-moz-full-screen {
+html[amp-story] body > amp-story:-moz-full-screen,
+html[📖] body > amp-story:-moz-full-screen {
+  height: 100vh !important;
   max-height: none;
   max-width: none;
 }
 
-amp-story:-ms-fullscreen {
+html[amp-story] body > amp-story:-ms-fullscreen,
+html[📖] body > amp-story:-ms-fullscreen {
+  height: 100vh !important;
   max-height: none;
   max-width: none;
 }
 
-amp-story:fullscreen {
+html[amp-story] body > amp-story:fullscreen,
+html[📖] body > amp-story:fullscreen {
+  height: 100vh !important;
   max-height: none;
   max-width: none;
 }
@@ -92,10 +96,11 @@ amp-story:fullscreen {
 
 .i-amp-story-ui-right {
   float: right;
+  margin: 4px 8px;
 }
 
 .i-amp-story-button {
-  margin: 0 8px;
+  float: left;
   height: 40px;
   width: 40px;
   cursor: pointer;
@@ -137,6 +142,20 @@ amp-story:fullscreen {
   transform-origin: right;
 }
 
+.i-amp-story-mute-audio-control,
+.i-amp-story-unmute-audio-control {
+  display: none;
+}
+
+.audio-playing.unmuted .i-amp-story-mute-audio-control,
+.audio-playing:not(.unmuted) .i-amp-story-unmute-audio-control {
+  display: block;
+}
+
+amp-story .amp-video-eq {
+  display: none !important;
+}
+
 /** Page level */
 amp-story-page {
   bottom: 0 !important;
@@ -149,10 +168,11 @@ amp-story-page {
 
 amp-story-page.i-amphtml-layout-container {
   display: block !important;
+  transform: translateY(1000%);
 }
 
 amp-story-page[active] {
-  transform: translateX(0) !important;
+  transform: translateY(0) !important;
 }
 
 /** Grid level */

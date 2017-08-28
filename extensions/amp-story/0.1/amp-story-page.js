@@ -29,6 +29,7 @@ import {
 } from './animation';
 import {Layout} from '../../../src/layout';
 import {Services} from '../../../src/services';
+import {upgradeBackgroundAudio} from './audio';
 
 
 export class AmpStoryPage extends AMP.BaseElement {
@@ -59,6 +60,7 @@ export class AmpStoryPage extends AMP.BaseElement {
 
   /** @override */
   buildCallback() {
+    upgradeBackgroundAudio(this.element);
     const mediaSet = this.element.querySelectorAll('amp-audio, amp-video');
     for (const mediaItem of mediaSet) {
       mediaItem.setAttribute('preload', 'auto');
@@ -81,12 +83,14 @@ export class AmpStoryPage extends AMP.BaseElement {
 
 
   /** @override */
-  viewportCallback(inViewport) {
-    if (inViewport) {
-      this.playAllMedia_();
-    } else {
-      this.pauseAllMedia_();
-    }
+  pauseCallback() {
+    this.pauseAllMedia_();
+  }
+
+
+  /** @override */
+  resumeCallback() {
+    this.playAllMedia_();
   }
 
 
@@ -113,6 +117,7 @@ export class AmpStoryPage extends AMP.BaseElement {
     const mediaSet = this.getAllMedia_();
     for (const mediaItem of mediaSet) {
       mediaItem.pause();
+      mediaItem.currentTime = 0;
     }
   }
 
