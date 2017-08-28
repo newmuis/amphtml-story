@@ -168,10 +168,11 @@ amp-story-page {
 
 amp-story-page.i-amphtml-layout-container {
   display: block !important;
+  transform: translateY(1000%);
 }
 
 amp-story-page[active] {
-  transform: translateX(0) !important;
+  transform: translateY(0) !important;
 }
 
 /** Grid level */
