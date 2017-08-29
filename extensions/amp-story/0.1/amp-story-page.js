@@ -71,12 +71,6 @@ export class AmpStoryPage extends AMP.BaseElement {
 
 
   /** @override */
-  layoutCallback() {
-    return this.maybeApplyFirstAnimationFrame();
-  }
-
-
-  /** @override */
   isLayoutSupported(layout) {
     return layout == Layout.CONTAINER;
   }
@@ -90,6 +84,7 @@ export class AmpStoryPage extends AMP.BaseElement {
 
   /** @override */
   resumeCallback() {
+    this.maybeApplyFirstAnimationFrame();
     this.playAllMedia_();
   }
 
