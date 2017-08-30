@@ -29,6 +29,8 @@ import {setStyles} from '../../../src/style';
 import {tryParseJson} from '../../../src/json';
 import {user, dev} from '../../../src/log';
 import {Services} from '../../../src/services';
+import {WebAnimationService} from './web-animation-service';
+
 
 const TAG = 'amp-animation';
 const POLYFILLED = '__AMP_WA';
@@ -455,4 +457,5 @@ function ensurePolyfillInstalled(win) {
 
 AMP.extension(TAG, '0.1', function(AMP) {
   AMP.registerElement(TAG, AmpAnimation);
+  AMP.registerServiceForDoc('web-animation', WebAnimationService);
 });
