@@ -23,11 +23,41 @@
  * </amp-story>
  * </code>
  */
-
+import {
+  AnimationManager,
+  hasAnimations,
+} from './animation';
 import {Layout} from '../../../src/layout';
+import {Services} from '../../../src/services';
 import {upgradeBackgroundAudio} from './audio';
 
+
 export class AmpStoryPage extends AMP.BaseElement {
+
+  /** @param {!AmpElement} element */
+  constructor(element) {
+    super(element);
+
+    /** @private @const {?AnimationManager} */
+    this.animationManager_ = null;
+  }
+
+
+  /*
+   * @return {?./animation.AnimationManager}
+   */
+  maybeCreateAnimationManager_() {
+    if (!this.animationManager_) {
+      if (!hasAnimations(this.element)) {
+        return;
+      }
+
+      this.animationManager_ = AnimationManager.create(
+          this.element, this.getAmpDoc(), this.getAmpDoc().getUrl());
+    }
+  }
+
+
   /** @override */
   buildCallback() {
     upgradeBackgroundAudio(this.element);
@@ -35,6 +65,8 @@ export class AmpStoryPage extends AMP.BaseElement {
     for (const mediaItem of mediaSet) {
       mediaItem.setAttribute('preload', 'auto');
     }
+
+    this.maybeCreateAnimationManager_();
   }
 
 
@@ -52,6 +84,7 @@ export class AmpStoryPage extends AMP.BaseElement {
 
   /** @override */
   resumeCallback() {
+    this.maybeApplyFirstAnimationFrame();
     this.playAllMedia_();
   }
 
@@ -93,6 +126,44 @@ export class AmpStoryPage extends AMP.BaseElement {
     for (const mediaItem of mediaSet) {
       mediaItem.play();
     }
+  }
+
+  /** */
+  maybeStartAnimations() {
+    if (!this.animationManager_) {
+      return;
+    }
+    this.animationManager_.animateIn();
+  }
+
+
+  /**
+   * @return {boolean} True if animations were stopped.
+   */
+  maybeFinishEnterAnimations() {
+    if (!this.animationManager_) {
+      return false;
+    }
+
+    if (!this.animationManager_.hasAnimationStarted()) {
+      return false;
+    }
+
+    this.animationManager_.finishAll();
+
+    return true;
+  }
+
+
+  /**
+   * @return {!Promise}
+   * @private
+   */
+  maybeApplyFirstAnimationFrame() {
+    if (!this.animationManager_) {
+      return Promise.resolve();
+    }
+    return this.animationManager_.applyFirstFrame();
   }
 }
 

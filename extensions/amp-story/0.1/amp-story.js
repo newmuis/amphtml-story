@@ -47,6 +47,7 @@ import {
   getFullScreenElement,
 } from './fullscreen';
 import {once} from '../../../src/utils/function';
+import {map} from '../../../src/utils/object';
 import {
   toggleExperiment,
 } from '../../../src/experiments';
@@ -375,6 +376,49 @@ export class AmpStory extends AMP.BaseElement {
         .then(() => this.preloadPagesByDistance_());
   }
 
+  /**
+   * @param {!Element} page
+   * @param {function(!AmpStoryPage):T} callback
+   * @return {!Promise<T>}
+   * @template T
+   */
+  withPageImpl_(page, callback) {
+    return page.getImpl().then(impl => {
+      dev().assert(
+          impl instanceof AmpStoryPage,
+          'Tried to execute page method on non-page element');
+      return callback(/** @type {!AmpStoryPage} */ (impl));
+    });
+  }
+
+  /**
+   * @param {!Element} page
+   * @return {!Promise}
+   */
+  maybeApplyFirstAnimationFrame_(page) {
+    return this.withPageImpl_(page,
+        impl => impl.maybeApplyFirstAnimationFrame());
+  }
+
+  /**
+   * @param {!Element} page
+   * @return {!Promise}
+   */
+  maybeStartAnimations_(page) {
+    return this.withPageImpl_(page, impl => impl.maybeStartAnimations());
+  }
+
+  /**
+   * @return {!Promise<boolean>}
+   * @private
+   */
+  maybeFinishActiveAnimation_() {
+    const activePage = dev().assert(this.activePage_,
+        'No active page set when navigating to next page.');
+
+    return this.withPageImpl_(activePage,
+        impl => impl.maybeFinishEnterAnimations());
+  }
 
   /**
    * Switches to a particular page.
@@ -408,20 +452,27 @@ export class AmpStory extends AMP.BaseElement {
       this.autoAdvanceUnlistenDef_ = null;
     }
 
-    return this.mutateElement(() => {
-      targetPage.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
-      if (oldPage) {
-        oldPage.removeAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME);
-      }
-      this.activePage_ = targetPage;
-      this.triggerActiveEventForPage_();
-    }, targetPage).then(() => {
-      if (oldPage) {
-        this.schedulePause(oldPage);
-      }
-      this.scheduleResume(targetPage);
-    }).then(() => this.forceRepaintForSafari_())
-    .then(() => this.maybeScheduleAutoAdvance_());
+    return this.maybeApplyFirstAnimationFrame_(targetPage)
+        .then(() => {
+          return this.mutateElement(() => {
+            targetPage.setAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME, '');
+            if (oldPage) {
+              oldPage.removeAttribute(ACTIVE_PAGE_ATTRIBUTE_NAME);
+            }
+            this.activePage_ = targetPage;
+            this.triggerActiveEventForPage_();
+            this.maybeStartAnimations_(targetPage);
+          }, targetPage);
+        })
+        .then(() => {
+          if (oldPage) {
+            this.schedulePause(oldPage);
+          }
+          this.scheduleResume(targetPage);
+          this.updateInViewport(targetPage, true);
+        })
+        .then(() => this.forceRepaintForSafari_())
+        .then(() => this.maybeScheduleAutoAdvance_());
   }
 
 
@@ -696,20 +747,26 @@ export class AmpStory extends AMP.BaseElement {
       return;
     }
 
-    // TODO(newmuis): This will need to be flipped for RTL.
-    const nextScreenAreaMin = this.element.offsetLeft +
-        ((1 - NEXT_SCREEN_AREA_RATIO) * this.element.offsetWidth);
-    const nextScreenAreaMax = this.element.offsetLeft +
-        this.element.offsetWidth;
-
-    if (event.pageX >= nextScreenAreaMin && event.pageX < nextScreenAreaMax) {
-      this.next_();
-    } else if (event.pageX >= this.element.offsetLeft &&
-        event.pageX < nextScreenAreaMin) {
-      this.previous_();
-    }
-
     event.stopPropagation();
+
+    this.maybeFinishActiveAnimation_().then(wasAnimationRunning => {
+      if (wasAnimationRunning) {
+        return;
+      }
+
+      // TODO(newmuis): This will need to be flipped for RTL.
+      const nextScreenAreaMin = this.element.offsetLeft +
+          ((1 - NEXT_SCREEN_AREA_RATIO) * this.element.offsetWidth);
+      const nextScreenAreaMax = this.element.offsetLeft +
+          this.element.offsetWidth;
+
+      if (event.pageX >= nextScreenAreaMin && event.pageX < nextScreenAreaMax) {
+        this.next_();
+      } else if (event.pageX >= this.element.offsetLeft &&
+          event.pageX < nextScreenAreaMin) {
+        this.previous_();
+      }
+    });
   }
 
 
