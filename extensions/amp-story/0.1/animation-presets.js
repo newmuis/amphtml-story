@@ -53,43 +53,42 @@ export const PRESETS = {
   },
   'bounce': {
     duration: 1600,
-    keyframes: [
-      {
-        offset: 0,
-        transform: 'translateY(-200px)',
-        opacity: 0,
-        easing: 'cubic-bezier(.75,.05,.86,.08)'
-      },
-      {
-        offset: 0.3,
-        transform: 'translateY(0)',
-        opacity: 1,
-        easing: 'cubic-bezier(.22,.61,.35,1)'
-      },
-      {
-        offset: 0.52,
-        transform: 'translateY(-110px)',
-        opacity: 1,
-        easing: 'cubic-bezier(.75,.05,.86,.08)'
-      },
-      {
-        offset: 0.74,
-        transform: 'translateY(0)',
-        opacity: 1,
-        easing: 'cubic-bezier(.22,.61,.35,1)'
-      },
-      {
-        offset: 0.83,
-        transform: 'translateY(-50px)',
-        opacity: 1,
-        easing: 'cubic-bezier(.75,.05,.86,.08)'
-      },
-      {
-        offset: 1,
-        transform: 'translateY(0)',
-        opacity: 1,
-        easing: 'cubic-bezier(.22,.61,.35,1)'
-      }
-    ]
+    keyframes(dimensions) {
+      const maxBounceHeight =
+          Math.max(160, dimensions.targetY + dimensions.targetHeight);
+
+      return [
+        {
+          offset: 0,
+          transform: `translateY(${px(-maxBounceHeight)})`,
+          easing: 'cubic-bezier(.75,.05,.86,.08)'
+        },
+        {
+          offset: 0.3,
+          transform: 'translateY(0)',
+          easing: 'cubic-bezier(.22,.61,.35,1)'
+        },
+        {
+          offset: 0.52,
+          transform: `translateY(${px(-0.6 * maxBounceHeight)})`,
+          easing: 'cubic-bezier(.75,.05,.86,.08)'
+        },
+        {
+          offset: 0.74,
+          transform: 'translateY(0)',
+          easing: 'cubic-bezier(.22,.61,.35,1)'
+        },
+        {
+          offset: 0.83,
+          transform: `translateY(${px(-0.3 * maxBounceHeight)})`,
+          easing: 'cubic-bezier(.75,.05,.86,.08)'
+        },
+        {
+          offset: 1,
+          transform: 'translateY(0)',
+          easing: 'cubic-bezier(.22,.61,.35,1)'
+        }
+      ];
+    }
   }
 };
