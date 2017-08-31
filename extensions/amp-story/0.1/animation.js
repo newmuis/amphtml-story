@@ -167,8 +167,8 @@ class AnimationRunner {
         pageHeight: pageBoundingRect.height,
         targetWidth: targetBoundingRect.width,
         targetHeight: targetBoundingRect.height,
-        targetX: targetBoundingRect.left,
-        targetY: targetBoundingRect.top,
+        targetX: targetBoundingRect.left - pageBoundingRect.left,
+        targetY: targetBoundingRect.top - pageBoundingRect.top,
       });
     });
   }
