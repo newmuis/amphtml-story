@@ -1,3 +1,6 @@
+import {px} from '../../../src/style';
+
+
 /** @const {!Object<string, ./animation-types.AnimationPresetDef>} */
 // First keyframe will always be considered offset: 0 and will be applied to the
 // element as the first frame before animation starts.
@@ -27,16 +30,26 @@ export const PRESETS = {
   'fly-in-left': {
     duration: 500,
     easing: 'ease-out',
-    keyframes: [
-      {
-        opacity: 0,
-        transform: 'translate(-100px, 0)',
-      },
-      {
-        opacity: 1,
-        transform: 'translate(0, 0)',
-      },
-    ],
+    keyframes(dimensions) {
+      const offsetX = -(dimensions.targetX + dimensions.targetWidth);
+
+      return [
+        {transform: `translate(${px(offsetX)}, 0)`},
+        {transform: 'translate(0, 0)'},
+      ];
+    },
+  },
+  'fly-in-right': {
+    duration: 500,
+    easing: 'ease-out',
+    keyframes(dimensions) {
+      const offsetX = dimensions.pageWidth - dimensions.targetX;
+
+      return [
+        {transform: `translate(${px(offsetX)}, 0)`},
+        {transform: 'translate(0, 0)'},
+      ];
+    },
   },
   'bounce': {
     duration: 1600,

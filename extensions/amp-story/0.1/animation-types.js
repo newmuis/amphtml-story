@@ -1,8 +1,29 @@
+/** @typedef {!Array<!Object<string, *>>} */
+export let Keyframes;
+
+
+/** @typedef {(function(StoryAnimationTargetDims):!Keyframes)|!Keyframes} */
+export let KeyframesOrFilterFn;
+
+
+/**
+ * @typedef {{
+ *   pageWidth: number,
+ *   pageHeight: number,
+ *   targetWidth: number,
+ *   targetHeight: number,
+ *   targetX: number,
+ *   targetY: number,
+ * }}
+ */
+export let StoryAnimationDims;
+
+
 /**
  * @typedef {{
  *   duration: number,
  *   easing: string,
- *   keyframes: !Array<!Object<string, *>>
+ *   keyframes: !KeyframesOrFilterFn,
  * }}
  */
 export let StoryAnimationPresetDef;

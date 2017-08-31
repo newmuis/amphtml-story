@@ -87,17 +87,24 @@ const PlaybackActivity = {
 /** Wraps WebAnimationRunner for story page elements. */
 class AnimationRunner {
   /**
+   * @param {!Element} page
    * @param {!StoryAnimationDef} animationDef
    * @param {!Promise<!WebAnimationBuilder>} webAnimationBuilderPromise
    * @param {!../../../src/service/vsync-impl.Vsync} vsync
    * @param {!../../../src/service/timer-impl.Timer} timer
    */
-  constructor(animationDef, webAnimationBuilderPromise, vsync, timer) {
+  constructor(page, animationDef, webAnimationBuilderPromise, vsync, timer) {
+    /** @private @const */
+    this.page_ = page;
+
     /** @private @const */
     this.timer_ = timer;
 
     /** @private @const */
     this.vsync_ = vsync;
+
+    /** @private @const */
+    this.target_ = dev().assertElement(animationDef.target);
 
     /** @private @const */
     this.animationDef_ = animationDef;
@@ -109,7 +116,7 @@ class AnimationRunner {
     this.target_ = dev().assertElement(animationDef.target);
 
     /** @private @const */
-    this.firstFrameDef_ = dev().assert(animationDef.preset.keyframes[0]);
+    this.keyframes_ = this.filterKeyframes_(animationDef.preset.keyframes);
 
     /** @private @const */
     this.delay_ = animationDef.delay || this.presetDef_.delay || 0;
@@ -119,8 +126,10 @@ class AnimationRunner {
 
     /** @private @const {!Promise<!WebAnimationRunner>} */
     this.runnerPromise_ =
-        webAnimationBuilderPromise
-            .then(builder => builder.createRunner(this.getWebAnimationDef_()));
+        Promise.all([
+          webAnimationBuilderPromise,
+          this.getWebAnimationDef_(),
+        ]).then(([builder, webAnimDef]) => builder.createRunner(webAnimDef));
 
     /** @private {?WebAnimationRunner} */
     this.runner_ = null;
@@ -137,23 +146,55 @@ class AnimationRunner {
     /** @private */
     this.firstFrameApplied_ = false;
 
-    dev().assert(
-        !this.firstFrameDef_.offset,
-        'First keyframe offset for animation presets should be 0 or undefined');
+    this.keyframes_.then(keyframes => dev().assert(
+        !keyframes[0].offset,
+        'First keyframe offset for animation preset should be 0 or undefined'));
 
     this.runnerPromise_.then(runner => this.onRunnerReady_(runner));
   }
 
   /**
-   * @return {!WebKeyframeAnimationDef}
+   * @return {!Promise<!./animation-types.StoryAnimationTargetDims>}
+   * @visibleForTesting
+   */
+  getDims() {
+    return this.vsync_.measurePromise(() => {
+      const targetBoundingRect = this.target_.getBoundingClientRect();
+      const pageBoundingRect = this.page_.getBoundingClientRect();
+
+      return /** @type {!./animation-types.StoryAnimationTargetDims} */ ({
+        pageWidth: pageBoundingRect.width,
+        pageHeight: pageBoundingRect.height,
+        targetWidth: targetBoundingRect.width,
+        targetHeight: targetBoundingRect.height,
+        targetX: targetBoundingRect.left,
+        targetY: targetBoundingRect.top,
+      });
+    });
+  }
+
+  /**
+   * @param {!./animation-types.KeyframesOrFilterFn}
+   * @return {!./animation-types.Keyframes}
+   * @private
+   */
+  filterKeyframes_(keyframesArrayOrFn) {
+    if (Array.isArray(keyframesArrayOrFn)) {
+      return Promise.resolve(keyframesArrayOrFn);
+    }
+    return this.getDims().then(keyframesArrayOrFn);
+  }
+
+  /**
+   * @return {!Promise<!WebKeyframeAnimationDef>}
    * @private
    */
   getWebAnimationDef_() {
-    return {
+    return this.keyframes_.then(keyframes => ({
+      keyframes,
       target: this.target_,
       duration: `${this.duration_}ms`,
-      keyframes: this.presetDef_.keyframes,
-    };
+    }));
   }
 
   /**
@@ -162,14 +203,19 @@ class AnimationRunner {
    */
   applyFirstFrame() {
     if (this.firstFrameApplied_) {
-      return;
+      return Promise.resolve();
     }
 
     this.firstFrameApplied_ = true;
 
-    return this.vsync_.mutatePromise(() => {
-      getCssProps(this.firstFrameDef_).forEach(k => {
-        setStyle(this.target_, k, this.firstFrameDef_[k]);
+    return this.keyframes_.then(keyframes => {
+      const firstFrameDef = keyframes[0];
+      const firstFrameProps = getCssProps(firstFrameDef);
+
+      return this.vsync_.mutatePromise(() => {
+        firstFrameProps.forEach(k => {
+          setStyle(this.target_, k, firstFrameDef[k]);
+        });
       });
     });
   }
@@ -182,8 +228,13 @@ class AnimationRunner {
 
     this.firstFrameApplied_ = false;
 
-    this.vsync_.mutate(() => {
-      resetStyles(this.target_, getCssProps(this.firstFrameDef_));
+    this.keyframes_.then(keyframes => {
+      const firstFrameDef = keyframes[0];
+      const firstFrameProps = getCssProps(firstFrameDef);
+
+      this.vsync_.mutate(() => {
+        resetStyles(this.target_, firstFrameProps);
+      });
     });
   }
 
@@ -401,6 +452,7 @@ export class AnimationManager {
     const animationDef = this.createAnimationDef(el, preset);
 
     return new AnimationRunner(
+        this.root,
         animationDef,
         dev().assert(this.builderPromise_),
         this.vsync_,
