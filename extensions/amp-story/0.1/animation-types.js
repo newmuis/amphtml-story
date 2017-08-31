@@ -11,6 +11,7 @@ export let StoryAnimationPresetDef;
 /**
  * @typedef {{
  *  target: !Element,
+ *  startAfterId: string|undefined,
  *  preset: !StoryAnimationPresetDef,
  *  duration: number=,
  *  delay: number=,
