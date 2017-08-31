@@ -1,6 +1,5 @@
 import {Builder} from './web-animations';
 import {Services} from '../../../src/services';
-import {registerServiceBuilder} from '../../../src/service';
 
 
 export class WebAnimationService {
