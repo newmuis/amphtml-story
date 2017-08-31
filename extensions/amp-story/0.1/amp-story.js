@@ -469,7 +469,6 @@ export class AmpStory extends AMP.BaseElement {
             this.schedulePause(oldPage);
           }
           this.scheduleResume(targetPage);
-          this.updateInViewport(targetPage, true);
         })
         .then(() => this.forceRepaintForSafari_())
         .then(() => this.maybeScheduleAutoAdvance_());
