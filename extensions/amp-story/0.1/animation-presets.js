@@ -38,6 +38,18 @@ export const PRESETS = {
       },
     ],
   },
+  'fade-in': {
+    duration: 500,
+    easing: 'ease-out',
+    keyframes: [
+      {
+        opacity: 0,
+      },
+      {
+        opacity: 1,
+      },
+    ],
+  },
   'bounce': {
     duration: 1600,
     keyframes: [
