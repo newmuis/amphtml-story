@@ -148,6 +148,10 @@ class AnimationRunner {
         !this.firstFrameDef_.offset,
         'First keyframe offset for animation presets should be 0 or undefined');
 
+    user().assert(
+        this.delay_ >= 0,
+        'Negative delays are not allowed in amp-story entrance animations.');
+
     this.runnerPromise_.then(runner => this.onRunnerReady_(runner));
   }
 
