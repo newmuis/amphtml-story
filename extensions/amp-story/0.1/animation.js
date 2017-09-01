@@ -14,6 +14,7 @@ import {PRESETS} from './animation-presets';
 const ANIMATE_IN_ATTRIBUTE_NAME = 'animate-in';
 const ANIMATE_IN_DURATION_ATTRIBUTE_NAME = 'animate-in-duration';
 const ANIMATE_IN_DELAY_ATTRIBUTE_NAME = 'animate-in-delay';
+const ANIMATE_IN_AFTER_ATTRIBUTE_NAME = 'animate-in-after';
 
 
 const ANIMATABLE_ELEMENTS_SELECTOR = `[${ANIMATE_IN_ATTRIBUTE_NAME}]`;
@@ -92,8 +93,10 @@ class AnimationRunner {
    * @param {!Promise<!WebAnimationBuilder>} webAnimationBuilderPromise
    * @param {!../../../src/service/vsync-impl.Vsync} vsync
    * @param {!../../../src/service/timer-impl.Timer} timer
+   * @param {!AnimationSequence} sequence
    */
-  constructor(page, animationDef, webAnimationBuilderPromise, vsync, timer) {
+  constructor(
+      page, animationDef, webAnimationBuilderPromise, vsync, timer, sequence) {
     /** @private @const */
     this.page_ = page;
 
@@ -105,6 +108,9 @@ class AnimationRunner {
 
     /** @private @const */
     this.target_ = dev().assertElement(animationDef.target);
+
+    /** @private @const */
+    this.sequence_ = sequence;
 
     /** @private @const */
     this.animationDef_ = animationDef;
@@ -150,6 +156,10 @@ class AnimationRunner {
         !keyframes[0].offset,
         'First keyframe offset for animation preset should be 0 or undefined'));
 
+    user().assert(
+        this.delay_ >= 0,
+        'Negative delays are not allowed in amp-story entrance animations.');
+
     this.runnerPromise_.then(runner => this.onRunnerReady_(runner));
   }
 
@@ -175,7 +185,7 @@ class AnimationRunner {
 
   /**
    * @param {!./animation-types.KeyframesOrFilterFn}
-   * @return {!./animation-types.Keyframes}
+   * @return {!Promise<./animation-types.Keyframes>}
    * @private
    */
   filterKeyframes_(keyframesArrayOrFn) {
@@ -244,7 +254,26 @@ class AnimationRunner {
       return;
     }
 
-    this.playback_(PlaybackActivity.START, this.delay_);
+    this.playback_(PlaybackActivity.START, this.getStartWaitPromise_());
+  }
+
+  /**
+   * @return {!Promise}
+   * @private
+   */
+  getStartWaitPromise_() {
+    let promise = Promise.resolve();
+
+    if (this.animationDef_.startAfterId) {
+      const startAfterId = this.animationDef_.startAfterId;
+      promise = promise.then(() => this.sequence_.waitFor(startAfterId));
+    }
+
+    if (this.delay_) {
+      promise = promise.then(() => this.timer_.promise(this.delay_));
+    }
+
+    return promise;
   }
 
   /**
@@ -275,7 +304,12 @@ class AnimationRunner {
 
   /** Force-finishes all animations. */
   finish() {
+    if (this.firstFrameApplied_) {
+      this.notifyFinish_();
+    }
+
     this.resetFirstFrame_();
+
     this.playback_(PlaybackActivity.FINISH);
   }
 
@@ -292,10 +326,10 @@ class AnimationRunner {
 
   /**
    * @param {!PlaybackActivity}
-   * @param {number=} opt_delay
+   * @param {!Promise=} opt_wait
    */
-  playback_(activity, opt_delay) {
-    const wait = opt_delay ? this.timer_.promise(opt_delay) : null;
+  playback_(activity, opt_wait) {
+    const wait = opt_wait || null;
 
     this.scheduledActivity_ = activity;
     this.scheduledWait_ = wait;
@@ -339,6 +373,12 @@ class AnimationRunner {
   onRunnerReady_(runner) {
     this.runner_ = runner;
 
+    runner.onPlayStateChanged(state => {
+      if (state == WebAnimationPlayState.FINISHED) {
+        this.notifyFinish_();
+      }
+    });
+
     if (!this.isActivityScheduled_()) {
       return;
     }
@@ -355,6 +395,13 @@ class AnimationRunner {
       return this.scheduledActivity_ !== null;
     }
     return this.scheduledActivity_ === opt_activity;
+  }
+
+  /** @private */
+  notifyFinish_() {
+    if (this.target_.id) {
+      this.sequence_.notifyFinish(this.target_.id);
+    }
   }
 }
 
@@ -389,6 +436,9 @@ export class AnimationManager {
 
     /** @private {?Array<!Promise<!AnimationRunner>>} */
     this.runners_ = null;
+
+    /** @private */
+    this.sequence_ = AnimationSequence.create();
   }
 
   /**
@@ -456,7 +506,8 @@ export class AnimationManager {
         animationDef,
         dev().assert(this.builderPromise_),
         this.vsync_,
-        this.timer_);
+        this.timer_,
+        this.sequence_);
   }
 
   /**
@@ -475,6 +526,20 @@ export class AnimationManager {
     if (el.hasAttribute(ANIMATE_IN_DELAY_ATTRIBUTE_NAME)) {
       animationDef.delay =
           timeStrToMillis(el.getAttribute(ANIMATE_IN_DELAY_ATTRIBUTE_NAME));
+    }
+
+    if (el.hasAttribute(ANIMATE_IN_AFTER_ATTRIBUTE_NAME)) {
+      const dependencyId = el.getAttribute(ANIMATE_IN_AFTER_ATTRIBUTE_NAME);
+
+      user().assertElement(
+          this.root.querySelector(`#${dependencyId}`),
+          `The attribute '${ANIMATE_IN_AFTER_ATTRIBUTE_NAME}' in tag ` +
+              `'${el.tagName}' is set to the invalid value '${dependencyId}'.` +
+              ` No children of parenting 'amp-story-page' exist with id `+
+              dependencyId);
+
+      animationDef.startAfterId =
+          el.getAttribute(ANIMATE_IN_AFTER_ATTRIBUTE_NAME);
     }
 
     return animationDef;
@@ -504,5 +569,45 @@ export class AnimationManager {
         ANIMATE_IN_ATTRIBUTE_NAME,
         name,
         el);
+  }
+}
+
+
+/** Observer bus for animation sequencing. */
+class AnimationSequence {
+  constructor() {
+    this.subscriptionPromises_ = {};
+    this.subscriptionResolvers_ = {};
+  }
+
+  /** Decouples constructor for testing. */
+  static create() {
+    return new AnimationSequence();
+  }
+
+  /**
+   * Notifies dependent elements that animation has finished.
+   * @param {string} id
+   */
+  notifyFinish(id) {
+    if (id in this.subscriptionPromises_) {
+      dev().assert(this.subscriptionResolvers_)[id]();
+
+      delete this.subscriptionPromises_[id];
+    }
+  }
+
+  /**
+   * Waits for another element to finish animating.
+   * @param {string} id
+   * @return {!Promise<void>}
+   */
+  waitFor(id) {
+    if (!(id in this.subscriptionPromises_)) {
+      this.subscriptionPromises_[id] = new Promise(resolve => {
+        this.subscriptionResolvers_[id] = resolve;
+      });
+    }
+    return this.subscriptionPromises_[id];
   }
 }
