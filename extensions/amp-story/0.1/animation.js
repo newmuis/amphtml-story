@@ -204,6 +204,7 @@ class AnimationRunner {
       keyframes,
       target: this.target_,
       duration: `${this.duration_}ms`,
+      easing: this.presetDef_.easing,
     }));
   }
 
