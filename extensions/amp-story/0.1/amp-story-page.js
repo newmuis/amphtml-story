@@ -331,7 +331,7 @@ class PageElement {
     }
 
     return new Promise(resolve => {
-      this.element.addEventListener(this.loadEventName_, e => {
+      this.element.addEventListener(this.loadEventName_, () => {
         if (this.isLoaded()) {
           resolve();
         }
@@ -392,13 +392,13 @@ class MediaElement extends PageElement {
   /** @override */
   canBeShown() {
     const mediaElement = this.getMediaElement_();
-    return Boolean(mediaElement && mediaElement.readyState >= 2);
+    return Boolean(mediaElement && mediaElement.readyState >= 3);
   }
 
   /** @override */
   isLoaded() {
     const mediaElement = this.getMediaElement_();
-    return Boolean(mediaElement && mediaElement.readyState >= 3);
+    return Boolean(mediaElement && mediaElement.readyState >= 4);
   }
 }
 
