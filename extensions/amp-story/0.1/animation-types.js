@@ -22,7 +22,7 @@ export let StoryAnimationDims;
 /**
  * @typedef {{
  *   duration: number,
- *   easing: string,
+ *   easing: string|undefined,
  *   keyframes: !KeyframesOrFilterFn,
  * }}
  */
