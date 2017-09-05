@@ -113,6 +113,7 @@ export class AmpStoryPage extends AMP.BaseElement {
       this.animationManager_ = AnimationManager.create(
           this.element, this.getAmpDoc(), this.getAmpDoc().getUrl());
     }
+  }
 
 
   /** @override */
