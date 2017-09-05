@@ -51,6 +51,54 @@ export const PRESETS = {
       ];
     },
   },
+  'fly-in-top': {
+    duration: 500,
+    easing: 'ease-out',
+    keyframes(dimensions) {
+      const offsetY = -(dimensions.targetY + dimensions.targetHeight);
+
+      return [
+        {transform: `translate(0, ${px(offsetY)})`},
+        {transform: 'translate(0, 0)'},
+      ];
+    },
+  },
+  'fly-in-bottom': {
+    duration: 500,
+    easing: 'ease-out',
+    keyframes(dimensions) {
+      const offsetY = dimensions.pageHeight - dimensions.targetY;
+
+      return [
+        {transform: `translate(0, ${px(offsetY)})`},
+        {transform: 'translate(0, 0)'},
+      ];
+    },
+  },
+  'rotate-in-left': {
+    duration: 700,
+    easing: 'ease-out',
+    keyframes(dimensions) {
+      const offsetX = -(dimensions.targetX + dimensions.targetWidth);
+
+      return [
+        {transform: `translate(${px(offsetX)}, 0) rotate(-360deg)`},
+        {transform: 'translate(0, 0) rotate(0)'},
+      ];
+    },
+  },
+  'rotate-in-right': {
+    duration: 700,
+    easing: 'ease-out',
+    keyframes(dimensions) {
+      const offsetX = dimensions.pageWidth - dimensions.targetX;
+
+      return [
+        {transform: `translate(${px(offsetX)}, 0) rotate(360deg)`},
+        {transform: 'translate(0, 0) rotate(0)'},
+      ];
+    },
+  },
   'fade-in': {
     duration: 500,
     easing: 'ease-out',
@@ -63,7 +111,7 @@ export const PRESETS = {
       },
     ],
   },
-  'bounce': {
+  'drop-in': {
     duration: 1600,
     keyframes(dimensions) {
       const maxBounceHeight =
@@ -102,5 +150,55 @@ export const PRESETS = {
         }
       ];
     }
-  }
+  },
+  'twirl-in': {
+    duration: 1000,
+    easing: 'cubic-bezier(.2,.75,.4,1)',
+    keyframes: [
+      {
+        transform: `rotate(-540deg) scale(0.1)`,
+        opacity: 0,
+      },
+      {
+        transform: 'none',
+        opacity: 1,
+      }
+    ],
+  },
+  'whoosh-in-left': {
+    duration: 500,
+    easing: 'ease-out',
+    keyframes(dimensions) {
+      const offsetX = -(dimensions.targetX + dimensions.targetWidth);
+
+      return [
+        {
+          opacity: 0,
+          transform: `translate(${px(offsetX)}, 0) scale(0.15)`,
+        },
+        {
+          opacity: 1,
+          transform: 'translate(0, 0) scale(1)',
+        },
+      ];
+    },
+  },
+  'whoosh-in-right': {
+    duration: 500,
+    easing: 'ease-out',
+    keyframes(dimensions) {
+      const offsetX = dimensions.pageWidth - dimensions.targetX;
+
+      return [
+        {
+          opacity: 0,
+          transform: `translate(${px(offsetX)}, 0) scale(0.15)`,
+        },
+        {
+          opacity: 1,
+          transform: 'translate(0, 0) scale(1)',
+        },
+      ];
+    },
+  },
 };
