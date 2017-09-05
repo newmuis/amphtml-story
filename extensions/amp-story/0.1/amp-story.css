@@ -191,17 +191,8 @@ amp-story-page[active] {
   z-index: 9999 !important;
 }
 
-amp-story-page[active] .i-amp-story-page-loading-screen,
-amp-story-page[active] .i-amp-story-page-element {
+amp-story-page[active] .i-amp-story-page-loading-screen {
   transition: opacity 0.2s ease !important;
-}
-
-.i-amp-story-page-element {
-  opacity: 0.01;
-}
-
-.i-amp-story-page-element-shown {
-  opacity: 1;
 }
 
 .i-amp-story-page-loading-dots {
@@ -248,19 +239,6 @@ amp-story-page[active] .i-amp-story-page-element {
 amp-story-page.i-amp-story-page-loaded > .i-amp-story-page-loading-screen {
   opacity: 0;
 }
-
-/* blur */
-/* amp-story-page:not(.i-amp-story-page-loaded) {
-  filter: blur(30px) !important;
-}
-
-amp-story-page[active] {
-  transition: scale 0.2s ease, filter 0.2s ease;
-}
-
-amp-story-page.i-amp-story-page-loaded {
-  filter: blur(0px) !important;
-} */
 
 /** Grid level */
 amp-story-grid-layer {
