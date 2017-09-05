@@ -768,5 +768,9 @@ amp-story, amp-story-page {
 }
 
 amp-story-page {
+<<<<<<< HEAD
   background-color: #757575;
+=======
+  background-color: #888;
+>>>>>>> 2b127476c... Add initial styles to amp-story elements and make it a render-blocking extension.
 }
