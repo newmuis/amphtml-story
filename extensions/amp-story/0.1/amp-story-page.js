@@ -332,8 +332,6 @@ class PageElement {
 
     return new Promise(resolve => {
       this.element.addEventListener(this.loadEventName_, e => {
-        const isLoaded = this.isLoaded();
-        console.log(`element is ${isLoaded ? '' : 'not '}loaded`, this.element);
         if (this.isLoaded()) {
           resolve();
         }
@@ -394,18 +392,12 @@ class MediaElement extends PageElement {
   /** @override */
   canBeShown() {
     const mediaElement = this.getMediaElement_();
-    if (mediaElement) {
-      console.log(`canBeShown: element ready state is ${mediaElement.readyState}`, mediaElement);
-    }
     return Boolean(mediaElement && mediaElement.readyState >= 2);
   }
 
   /** @override */
   isLoaded() {
     const mediaElement = this.getMediaElement_();
-    if (mediaElement) {
-      console.log(`isLoaded: element ready state is ${mediaElement.readyState}`, mediaElement);
-    }
     return Boolean(mediaElement && mediaElement.readyState >= 3);
   }
 }
