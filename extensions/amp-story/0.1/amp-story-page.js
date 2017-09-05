@@ -392,7 +392,7 @@ class MediaElement extends PageElement {
   /** @override */
   canBeShown() {
     const mediaElement = this.getMediaElement_();
-    return Boolean(mediaElement && mediaElement.readyState >= 3);
+    return Boolean(mediaElement && mediaElement.readyState >= 2);
   }
 
   /** @override */
