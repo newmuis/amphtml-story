@@ -11,7 +11,8 @@
   },
   "dependencies": {
     "express": "4.14.1",
-    "express-force-https": "1.0.0"
+    "express-force-https": "1.0.0",
+    "node-fetch": "1.6.3"
   },
   "devDependencies": {
     "cheerio": "^1.0.0-rc.2",
