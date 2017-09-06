@@ -1,7 +1,4 @@
 import {Services} from '../../../src/services';
-import {
-  WebAnimationPlayState,
-} from '../../amp-animation/0.1/web-animation-types';
 import {dev, user} from '../../../src/log';
 import {map} from '../../../src/utils/object';
 import {once} from '../../../src/utils/function';
@@ -20,20 +17,51 @@ const ANIMATE_IN_AFTER_ATTRIBUTE_NAME = 'animate-in-after';
 const ANIMATABLE_ELEMENTS_SELECTOR = `[${ANIMATE_IN_ATTRIBUTE_NAME}]`;
 
 
-/** @typedef {!../../amp-animation/0.1/web-animations.WebAnimationRunner} */
+/**
+ * TODO(#161): Merge this with
+ * !../../amp-animation/0.1/web-animations.WebAnimationRunner.
+ * @typedef {*}
+ */
 let WebAnimationRunner;
 
 
-/** @typedef {!../../amp-animation/0.1/web-animations.Builder} */
+/**
+ * TODO(#161): Merge this with !../../amp-animation/0.1/web-animations.Builder.
+ * @typedef {*}
+ */
 let WebAnimationBuilder;
 
 
 /**
- * @typedef {
- *   !../../amp-animation/0.1/web-animation-types.WebKeyframeAnimationDef
- * }
+ * TODO(#161): Merge this with
+ * !../../amp-animation/0.1/web-animation-types.WebKeyframesDef.
+ * @typedef {!Object<string, *>|!Array<!Object<string, *>>}
+ */
+let WebKeyframesDef;
+
+
+/**
+ * TODO(#161) Merge this with
+ * !../../amp-animation/0.1/web-animation-types.WebKeyframeAnimationDef.
+ * @typedef {{
+ *   keyframes: (string|!WebKeyframesDef),
+ * }}
  */
 let WebKeyframeAnimationDef;
+
+
+/**
+ * TODO(#161): Merge this with
+ * ../../amp-animation/0.1/web-animation-types.WebAnimationPlayState.
+ * @enum {string}
+ */
+const WebAnimationPlayState = {
+  IDLE: 'idle',
+  PENDING: 'pending',
+  RUNNING: 'running',
+  PAUSED: 'paused',
+  FINISHED: 'finished',
+};
 
 
 // This format does not match what's in amp-animation, but that shouldn't matter
