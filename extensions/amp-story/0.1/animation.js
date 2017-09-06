@@ -32,13 +32,13 @@ let WebAnimationRunner;
 let WebAnimationBuilder;
 
 
-
 /**
  * TODO(#161): Merge this with
  * !../../amp-animation/0.1/web-animation-types.WebKeyframesDef.
  * @typedef {!Object<string, *>|!Array<!Object<string, *>>}
  */
 let WebKeyframesDef;
+
 
 /**
  * TODO(#161) Merge this with
