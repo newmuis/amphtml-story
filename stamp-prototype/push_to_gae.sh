@@ -13,10 +13,10 @@ gulp dist
 cp -a -v ../dist/* ./www
 
 # Copy examples to the stamp-prototype/www/ directory.
-cp -a -v ../examples/stamp/* ./www
+cp -a -v ../examples/amp-story/* ./www
 
-# Generate index file 
-node generator ../examples/stamp/samples www/samples
+# Generate index file.
+node generator ../examples/amp-story/samples www/samples
 
 # Replace 'cdn.ampproject.org' with 'stamp-prototype.appspot.com' in examples.
 find . -name '*.html' -exec sed -i '' -e 's/cdn.ampproject.org/stamp-prototype.appspot.com/g' {} \;
