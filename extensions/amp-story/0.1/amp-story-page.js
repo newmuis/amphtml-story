@@ -30,7 +30,7 @@ import {
 import {Layout} from '../../../src/layout';
 import {Services} from '../../../src/services';
 import {upgradeBackgroundAudio} from './audio';
-import {dev} from '../../../src/log';
+import {dev, user} from '../../../src/log';
 
 const LOADING_SCREEN_CONTENTS_TEMPLATE =
     `<ul class="i-amp-story-page-loading-dots">
@@ -255,7 +255,9 @@ export class AmpStoryPage extends AMP.BaseElement {
   playAllMedia_() {
     const mediaSet = this.getAllMedia_();
     for (const mediaItem of mediaSet) {
-      mediaItem.play();
+      mediaItem.play().catch(() => {
+        user().error(`Failed to play media element with src ${mediaItem.src}.`);
+      });
     }
   }
 
