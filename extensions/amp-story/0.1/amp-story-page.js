@@ -288,7 +288,7 @@ class PageElement {
      * @public @const {!Promise<undefined>}
      */
     this.loadPromise = this.getLoadPromise_()
-        .then(() => this.onLoad_());
+        .then(() => this.onLoad_(), () => this.onError_());
 
     /**
      * A promise that is resolved when this element can be shown on the page.
@@ -297,7 +297,7 @@ class PageElement {
      * @public @const {!Promise<undefined>}
      */
     this.showPromise = this.getShowPromise_()
-        .then(() => this.onShow_(), () => this.onError_());
+        .then(() => this.onShow_());
   }
 
   /**
