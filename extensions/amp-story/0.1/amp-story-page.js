@@ -269,22 +269,17 @@ export class AmpStoryPage extends AMP.BaseElement {
 class PageElement {
   /**
    * @param {!Element} element The element on the page.
-   * @param {string} loadEventName The name of the event triggered when this
-   *     element is considered loaded.
-   * @param {string=} opt_showEventName The name of the event triggered when
-   *     this element can be shown.  If unspecified, the element will be shown
-   *     when the element is loaded.
+   * @param {!Object<string, string>} eventNames A map of event names that
+   *     trigger a set of predefined actions for PageElements (load, show, and
+   *     error).
    */
-  constructor(element, loadEventName, opt_showEventName) {
+  constructor(element, eventNames) {
     /** @protected @const {!Element} */
     this.element = element;
     this.element.classList.add(ELEMENT_CLASS_NAME);
 
-    /** @private @const {string} */
-    this.loadEventName_ = loadEventName;
-
-    /** @private @const {string} */
-    this.showEventName_ = opt_showEventName || loadEventName;
+    /** @private @const {!Object<string, string>} */
+    this.eventNames_ = eventNames;
 
     /**
      * A promise that is resolved when this element is considered to be loaded.
@@ -292,7 +287,8 @@ class PageElement {
      * each subclass of PageElement.
      * @public @const {!Promise<undefined>}
      */
-    this.loadPromise = this.getLoadPromise_().then(() => this.onLoad_());
+    this.loadPromise = this.getLoadPromise_()
+        .then(() => this.onLoad_());
 
     /**
      * A promise that is resolved when this element can be shown on the page.
@@ -300,7 +296,8 @@ class PageElement {
      * subclass of PageElement.
      * @public @const {!Promise<undefined>}
      */
-    this.showPromise = this.getShowPromise_().then(() => this.onShow_());
+    this.showPromise = this.getShowPromise_()
+        .then(() => this.onShow_(), () => this.onError_());
   }
 
   /**
@@ -313,7 +310,7 @@ class PageElement {
     }
 
     return new Promise(resolve => {
-      this.element.addEventListener(this.showEventName_, () => {
+      this.element.addEventListener(this.eventNames_.show, () => {
         if (this.canBeShown()) {
           resolve();
         }
@@ -330,10 +327,15 @@ class PageElement {
       return Promise.resolve();
     }
 
-    return new Promise(resolve => {
-      this.element.addEventListener(this.loadEventName_, () => {
+    return new Promise((resolve, reject) => {
+      this.element.addEventListener(this.eventNames_.load, () => {
         if (this.isLoaded()) {
           resolve();
+        }
+      }, true);
+      this.element.addEventListener(this.eventNames_.error, () => {
+        if (this.hasFailed()) {
+          reject();
         }
       }, true);
     });
@@ -347,6 +349,13 @@ class PageElement {
   /** @private */
   onShow_() {
     this.element.classList.add(ELEMENT_SHOW_CLASS_NAME);
+  }
+
+  /** @private */
+  onError_() {
+    // We have currently decided not to show a separate failure state, and
+    // simply show the failing UI.
+    this.onLoad_();
   }
 
   /**
@@ -364,11 +373,22 @@ class PageElement {
   isLoaded() {
     return false;
   }
+
+  /**
+   * @return {boolean} Whether this element has failed to load.
+   */
+  hasFailed() {
+    return false;
+  }
 }
 
 class MediaElement extends PageElement {
   constructor(element) {
-    super(element, 'loadeddata');
+    super(element, {
+      load: 'loadeddata',
+      show: 'loadeddata',
+      error: 'error',
+    });
 
     /**
      * @private {?HTMLMediaElement}
@@ -400,11 +420,21 @@ class MediaElement extends PageElement {
     const mediaElement = this.getMediaElement_();
     return Boolean(mediaElement && mediaElement.readyState >= 4);
   }
+
+  /** @override */
+  hasFailed() {
+    const mediaElement = this.getMediaElement_();
+    return !!mediaElement.error;
+  }
 }
 
 class ImageElement extends PageElement {
   constructor(element) {
-    super(element, 'load');
+    super(element, {
+      load: 'load',
+      show: 'load',
+      error: 'error',
+    });
 
     /**
      * @private {?HTMLImageElement}
@@ -431,16 +461,37 @@ class ImageElement extends PageElement {
     return Boolean(imageElement && imageElement.complete &&
         imageElement.naturalWidth && imageElement.naturalHeight);
   }
+
+  /** @override */
+  hasFailed() {
+    const imageElement = this.getImageElement_();
+    return Boolean(imageElement && imageElement.complete &&
+        (imageElement.naturalWidth === 0 || imageElement.naturalHeight === 0));
+  }
 }
 
 class VideoInterfaceElement extends PageElement {
   constructor(element) {
-    super(element, 'load');
+    super(element, {
+      load: 'load',
+      show: 'load',
+      error: 'error',
+    });
+  }
+
+  /** @private */
+  isLaidOut_() {
+    return this.element.hasAttribute('i-amphtml-layout');
   }
 
   /** @override */
   isLoaded() {
-    return this.element.hasAttribute('i-amphtml-layout');
+    return this.isLaidOut_();
+  }
+
+  /** @override */
+  hasFailed() {
+    return !this.isLaidOut_();
   }
 }
 
