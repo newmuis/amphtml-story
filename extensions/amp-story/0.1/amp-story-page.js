@@ -87,6 +87,14 @@ const ELEMENT_SHOW_CLASS_NAME = 'i-amp-story-page-element-shown';
 const PAGE_LOADED_CLASS_NAME = 'i-amp-story-page-loaded';
 
 
+/**
+ * The duration of time (in milliseconds) to show the loading screen for this
+ * page, before showing the page content.
+ * @const {number}
+ */
+const LOAD_TIMEOUT_MS = 8000;
+
+
 
 export class AmpStoryPage extends AMP.BaseElement {
   /** @param {!AmpElement} element */
@@ -96,8 +104,17 @@ export class AmpStoryPage extends AMP.BaseElement {
     /** @private @const {?AnimationManager} */
     this.animationManager_ = null;
 
-    /** @private {!Array<!PageElement>} */
+    /** @private @const {!Array<!PageElement>} */
     this.pageElements_ = [];
+
+    /** @private {?Promise<undefined>} */
+    this.loadPromise_ = null;
+
+    /** @private {?Promise<undefined>} */
+    this.loadTimeoutPromise_ = null;
+
+    /** @private @const {!../../../src/service/timer-impl.Timer} */
+    this.timer_ = Services.timerFor(this.win);
   }
 
 
@@ -161,10 +178,8 @@ export class AmpStoryPage extends AMP.BaseElement {
     });
 
     // Wait for all load promises to mark the page as loaded.
-    Promise.all(loadPromises)
-        .then(() => {
-          this.element.classList.add(PAGE_LOADED_CLASS_NAME);
-        });
+    this.loadPromise_ = Promise.all(loadPromises);
+    this.loadPromise_.then(() => this.markPageAsLoaded_());
   }
 
 
@@ -182,8 +197,26 @@ export class AmpStoryPage extends AMP.BaseElement {
 
   /** @override */
   resumeCallback() {
-    this.maybeApplyFirstAnimationFrame();
-    this.playAllMedia_();
+    if (!this.loadPromise_) {
+      return;
+    }
+
+    if (!this.loadTimeoutPromise_) {
+      this.loadTimeoutPromise_ = this.timer_.promise(LOAD_TIMEOUT_MS);
+    }
+
+    Promise.race([this.loadPromise_, this.loadTimeoutPromise_]).then(() => {
+      this.maybeApplyFirstAnimationFrame();
+      this.markPageAsLoaded_();
+      this.playAllMedia_();
+    });
+  }
+
+
+  /** @private */
+  markPageAsLoaded_() {
+    this.element.classList.add(PAGE_LOADED_CLASS_NAME);
+    this.isLoaded_ = true;
   }
 
 
