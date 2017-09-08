@@ -150,7 +150,8 @@ export class AmpStoryPage extends AMP.BaseElement {
     /** @private @const {!../../../src/service/timer-impl.Timer} */
     this.timer_ = Services.timerFor(this.win);
 
-    this.pollCount_ = 1;
+    /** @private {boolean} */
+    this.isLoaded_ = false;
   }
 
 
@@ -463,15 +464,16 @@ class MediaElement extends PageElement {
   /** @override */
   isLoaded_() {
     const mediaElement = this.getMediaElement_();
+    const firstTimeRange = this.getFirstTimeRange_();
+
     if (!mediaElement || !mediaElement.buffered ||
-        mediaElement.buffered.length === 0 ||
-        mediaElement.buffered.start(0) > 0) {
+        mediaElement.buffered.length === 0 || firstTimeRange === null) {
       return false;
     }
 
-    const bufferedSeconds = mediaElement.buffered.end(0);
+    const bufferedSeconds = mediaElement.buffered.end(firstTimeRange);
     const bufferedPercentage =
-        (mediaElement.buffered.end(0) / mediaElement.duration) || 0;
+        (mediaElement.buffered.end(firstTimeRange) / mediaElement.duration);
 
     return bufferedSeconds >= MINIMUM_MEDIA_BUFFER_SECONDS_FROM_BEGINNING ||
         bufferedPercentage >= MINIMUM_MEDIA_BUFFER_PERCENTAGE_FROM_BEGINNING;
@@ -481,6 +483,21 @@ class MediaElement extends PageElement {
   hasFailed_() {
     const mediaElement = this.getMediaElement_();
     return !!mediaElement.error;
+  }
+
+  /**
+   * @return {?number} The numbered index of the first buffered time range in
+   *     this media element.
+   */
+  getFirstTimeRange_() {
+    const mediaElement = this.getMediaElement_();
+    for (let i = 0; i < mediaElement.buffered.length; i++) {
+      if (mediaElement.buffered.start(i) === 0) {
+        return i;
+      }
+    }
+
+    return null;
   }
 }
 
