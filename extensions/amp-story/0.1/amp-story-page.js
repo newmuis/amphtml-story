@@ -214,8 +214,7 @@ export class AmpStoryPage extends AMP.BaseElement {
 
     // Wait for all load promises to mark the page as loaded.
     this.loadPromise_ = this.timer_.poll(TIMER_POLL_DELAY_MS, () => {
-      const result = this.calculateLoadStatus();
-      return result;
+      return this.calculateLoadStatus();
     }).then(() => this.markPageAsLoaded_());
   }
 
@@ -436,10 +435,11 @@ class MediaElement extends PageElement {
   constructor(element) {
     super(element);
 
-    /**
-     * @private {?HTMLMediaElement}
-     */
+    /** @private {?HTMLMediaElement} */
     this.mediaElement_ = null;
+
+    /** @private {boolean} */
+    this.manualLoadInitiated_ = false;
   }
 
   /**
@@ -466,8 +466,21 @@ class MediaElement extends PageElement {
     const mediaElement = this.getMediaElement_();
     const firstTimeRange = this.getFirstTimeRange_();
 
-    if (!mediaElement || !mediaElement.buffered ||
-        mediaElement.buffered.length === 0 || firstTimeRange === null) {
+    if (!mediaElement) {
+      return false;
+    }
+
+    if (!mediaElement.buffered || mediaElement.buffered.length === 0) {
+      if (!this.manualLoadInitiated_) {
+        // We sometimes initiate manual load, as iOS Safari seems to not load
+        // the media element while it is not visible, which will always be the
+        // case while the loading screen is present.  We only do this if the
+        // video has not yet buffered anything (an indication that we don't need
+        // manual intervention), since calling an HTMLMediaElement's load method
+        // will restart loading for the resource.
+        mediaElement.load();
+        this.manualLoadInitiated_ = true;
+      }
       return false;
     }
 
@@ -491,9 +504,11 @@ class MediaElement extends PageElement {
    */
   getFirstTimeRange_() {
     const mediaElement = this.getMediaElement_();
-    for (let i = 0; i < mediaElement.buffered.length; i++) {
-      if (mediaElement.buffered.start(i) === 0) {
-        return i;
+    if (mediaElement) {
+      for (let i = 0; i < mediaElement.buffered.length; i++) {
+        if (mediaElement.buffered.start(i) === 0) {
+          return i;
+        }
       }
     }
 
