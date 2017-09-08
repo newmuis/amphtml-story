@@ -81,6 +81,14 @@ const ELEMENT_SHOW_CLASS_NAME = 'i-amp-story-page-element-shown';
 
 
 /**
+ * CSS class for an element on an amp-story-page that indicates the element has
+ * failed to load.
+ * @const {string}
+ */
+const ELEMENT_FAILED_CLASS_NAME = 'i-amp-story-page-element-failed';
+
+
+/**
  * CSS class for an amp-story-page that indicates the entire page is loaded.
  * @const {string}
  */
@@ -95,6 +103,27 @@ const PAGE_LOADED_CLASS_NAME = 'i-amp-story-page-loaded';
 const LOAD_TIMEOUT_MS = 8000;
 
 
+/**
+ * The delay (in milliseconds) to wait between polling for loaded resources.
+ */
+const TIMER_POLL_DELAY_MS = 250;
+
+
+/**
+ * The minimum amount of a media item (by percentage) that must be loaded in
+ * order for that element to be considered "loaded".  Note that if the total
+ * size cannot be determined, this criteria is simply ignored.
+ */
+const MINIMUM_MEDIA_BUFFER_PERCENTAGE_FROM_BEGINNING = 0.25;
+
+
+/**
+ * The minimum amount of a media item (in seconds) that must be loaded in order
+ * for that element to be considered "loaded".
+ */
+const MINIMUM_MEDIA_BUFFER_SECONDS_FROM_BEGINNING = 3;
+
+
 
 export class AmpStoryPage extends AMP.BaseElement {
   /** @param {!AmpElement} element */
@@ -107,14 +136,21 @@ export class AmpStoryPage extends AMP.BaseElement {
     /** @private @const {!Array<!PageElement>} */
     this.pageElements_ = [];
 
+    /** @private {?function()} */
+    this.resolveLoadPromise_ = null;
+
     /** @private {?Promise<undefined>} */
-    this.loadPromise_ = null;
+    this.loadPromise_ = new Promise(resolve => {
+      this.resolveLoadPromise_ = resolve;
+    });
 
     /** @private {?Promise<undefined>} */
     this.loadTimeoutPromise_ = null;
 
     /** @private @const {!../../../src/service/timer-impl.Timer} */
     this.timer_ = Services.timerFor(this.win);
+
+    this.pollCount_ = 1;
   }
 
 
@@ -166,20 +202,20 @@ export class AmpStoryPage extends AMP.BaseElement {
     this.element.appendChild(loadingScreen);
 
     // Build load promises for each of the page elements.
-    const loadPromises = [];
     Object.keys(PAGE_ELEMENT_FACTORIES).forEach(query => {
       const elements = this.element.querySelectorAll(query);
       const factory = PAGE_ELEMENT_FACTORIES[query];
       Array.prototype.forEach.call(elements, element => {
         const pageElement = factory(element);
-        loadPromises.push(pageElement.loadPromise);
         this.pageElements_.push(pageElement);
       });
     });
 
     // Wait for all load promises to mark the page as loaded.
-    this.loadPromise_ = Promise.all(loadPromises);
-    this.loadPromise_.then(() => this.markPageAsLoaded_());
+    this.loadPromise_ = this.timer_.poll(TIMER_POLL_DELAY_MS, () => {
+      const result = this.calculateLoadStatus();
+      return result;
+    }).then(() => this.markPageAsLoaded_());
   }
 
 
@@ -216,7 +252,34 @@ export class AmpStoryPage extends AMP.BaseElement {
   /** @private */
   markPageAsLoaded_() {
     this.element.classList.add(PAGE_LOADED_CLASS_NAME);
-    this.isLoaded_ = true;
+    this.resolveLoadPromise_();
+  }
+
+
+  /**
+   * @return {boolean} true, if the page is completely loaded; false otherwise.
+   * @public
+   */
+  calculateLoadStatus() {
+    if (this.isLoaded_) {
+      return true;
+    }
+
+    const isLoaded = this.pageElements_.reduce(
+        (otherPageElementsAreLoaded, pageElement) => {
+          pageElement.updateState();
+          const currentPageElementIsLoaded =
+              (pageElement.isLoaded || pageElement.hasFailed);
+          return otherPageElementsAreLoaded && currentPageElementIsLoaded;
+        }, /* initialValue */ true);
+
+    this.isLoaded_ = isLoaded;
+
+    if (this.isLoaded_) {
+      this.markPageAsLoaded_();
+    }
+
+    return this.isLoaded_;
   }
 
 
@@ -304,126 +367,73 @@ export class AmpStoryPage extends AMP.BaseElement {
 class PageElement {
   /**
    * @param {!Element} element The element on the page.
-   * @param {!Object<string, string>} eventNames A map of event names that
-   *     trigger a set of predefined actions for PageElements (load, show, and
-   *     error).
    */
-  constructor(element, eventNames) {
+  constructor(element) {
     /** @protected @const {!Element} */
     this.element = element;
     this.element.classList.add(ELEMENT_CLASS_NAME);
 
-    /** @private @const {!Object<string, string>} */
-    this.eventNames_ = eventNames;
+    /** @public {boolean} */
+    this.isLoaded = false;
 
-    /**
-     * A promise that is resolved when this element is considered to be loaded.
-     * The decision as to whether an element is considered loaded is deferred to
-     * each subclass of PageElement.
-     * @public @const {!Promise<undefined>}
-     */
-    this.loadPromise = this.getLoadPromise_()
-        .then(() => this.onLoad_(), () => this.onError_());
+    /** @public {boolean} */
+    this.canBeShown = false;
 
-    /**
-     * A promise that is resolved when this element can be shown on the page.
-     * The decision as to whether an element can be shown is deferred to each
-     * subclass of PageElement.
-     * @public @const {!Promise<undefined>}
-     */
-    this.showPromise = this.getShowPromise_()
-        .then(() => this.onShow_());
-  }
-
-  /**
-   * @return {!Promise<undefined>}
-   * @private
-   */
-  getShowPromise_() {
-    if (this.canBeShown()) {
-      return Promise.resolve();
-    }
-
-    return new Promise(resolve => {
-      this.element.addEventListener(this.eventNames_.show, () => {
-        if (this.canBeShown()) {
-          resolve();
-        }
-      }, true);
-    });
-  }
-
-  /**
-   * @return {!Promise<undefined>}
-   * @private
-   */
-  getLoadPromise_() {
-    if (this.isLoaded()) {
-      return Promise.resolve();
-    }
-
-    return new Promise((resolve, reject) => {
-      this.element.addEventListener(this.eventNames_.load, () => {
-        if (this.isLoaded()) {
-          resolve();
-        }
-      }, true);
-      this.element.addEventListener(this.eventNames_.error, () => {
-        if (this.hasFailed()) {
-          reject();
-        }
-      }, true);
-    });
-  }
-
-  /** @private */
-  onLoad_() {
-    this.element.classList.add(ELEMENT_LOADED_CLASS_NAME);
-  }
-
-  /** @private */
-  onShow_() {
-    this.element.classList.add(ELEMENT_SHOW_CLASS_NAME);
-  }
-
-  /** @private */
-  onError_() {
-    // We have currently decided not to show a separate failure state, and
-    // simply show the failing UI.
-    this.onLoad_();
+    /** @public {boolean} */
+    this.failed = false;
   }
 
   /**
    * @return {boolean} Whether this element can be shown.
    * @protected
    */
-  canBeShown() {
-    return this.isLoaded();
+  canBeShown_() {
+    return false;
   }
 
   /**
    * @return {boolean} Whether this element is considered loaded.
    * @protected
    */
-  isLoaded() {
+  isLoaded_() {
     return false;
   }
 
   /**
    * @return {boolean} Whether this element has failed to load.
+   * @protected
    */
-  hasFailed() {
+  hasFailed_() {
     return false;
+  }
+
+  /**
+   * @public
+   */
+  updateState() {
+    if (!this.canBeShown) {
+      this.canBeShown = this.canBeShown_();
+      this.element.classList
+          .toggle(ELEMENT_SHOW_CLASS_NAME, /* force */ this.canBeShown);
+    }
+
+    if (!this.isLoaded && !this.hasFailed) {
+      this.isLoaded = this.isLoaded_();
+      this.element.classList
+          .toggle(ELEMENT_LOADED_CLASS_NAME, /* force */ this.isLoaded);
+    }
+
+    if (!this.hasFailed && !this.isLoaded) {
+      this.hasFailed = this.hasFailed_();
+      this.element.classList
+          .toggle(ELEMENT_FAILED_CLASS_NAME, /* force */ this.hasFailed);
+    }
   }
 }
 
 class MediaElement extends PageElement {
   constructor(element) {
-    super(element, {
-      load: 'loadeddata',
-      show: 'loadeddata',
-      error: 'error',
-    });
+    super(element);
 
     /**
      * @private {?HTMLMediaElement}
@@ -445,19 +455,30 @@ class MediaElement extends PageElement {
   }
 
   /** @override */
-  canBeShown() {
+  canBeShown_() {
     const mediaElement = this.getMediaElement_();
     return Boolean(mediaElement && mediaElement.readyState >= 2);
   }
 
   /** @override */
-  isLoaded() {
+  isLoaded_() {
     const mediaElement = this.getMediaElement_();
-    return Boolean(mediaElement && mediaElement.readyState >= 4);
+    if (!mediaElement || !mediaElement.buffered ||
+        mediaElement.buffered.length === 0 ||
+        mediaElement.buffered.start(0) > 0) {
+      return false;
+    }
+
+    const bufferedSeconds = mediaElement.buffered.end(0);
+    const bufferedPercentage =
+        (mediaElement.buffered.end(0) / mediaElement.duration) || 0;
+
+    return bufferedSeconds >= MINIMUM_MEDIA_BUFFER_SECONDS_FROM_BEGINNING ||
+        bufferedPercentage >= MINIMUM_MEDIA_BUFFER_PERCENTAGE_FROM_BEGINNING;
   }
 
   /** @override */
-  hasFailed() {
+  hasFailed_() {
     const mediaElement = this.getMediaElement_();
     return !!mediaElement.error;
   }
@@ -465,11 +486,7 @@ class MediaElement extends PageElement {
 
 class ImageElement extends PageElement {
   constructor(element) {
-    super(element, {
-      load: 'load',
-      show: 'load',
-      error: 'error',
-    });
+    super(element);
 
     /**
      * @private {?HTMLImageElement}
@@ -491,14 +508,14 @@ class ImageElement extends PageElement {
   }
 
   /** @override */
-  isLoaded() {
+  isLoaded_() {
     const imageElement = this.getImageElement_();
     return Boolean(imageElement && imageElement.complete &&
         imageElement.naturalWidth && imageElement.naturalHeight);
   }
 
   /** @override */
-  hasFailed() {
+  hasFailed_() {
     const imageElement = this.getImageElement_();
     return Boolean(imageElement && imageElement.complete &&
         (imageElement.naturalWidth === 0 || imageElement.naturalHeight === 0));
@@ -507,11 +524,7 @@ class ImageElement extends PageElement {
 
 class VideoInterfaceElement extends PageElement {
   constructor(element) {
-    super(element, {
-      load: 'load',
-      show: 'load',
-      error: 'error',
-    });
+    super(element);
   }
 
   /** @private */
@@ -520,12 +533,12 @@ class VideoInterfaceElement extends PageElement {
   }
 
   /** @override */
-  isLoaded() {
+  isLoaded_() {
     return this.isLaidOut_();
   }
 
   /** @override */
-  hasFailed() {
+  hasFailed_() {
     return !this.isLaidOut_();
   }
 }
