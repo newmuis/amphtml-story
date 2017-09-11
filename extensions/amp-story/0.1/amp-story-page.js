@@ -176,6 +176,7 @@ export class AmpStoryPage extends AMP.BaseElement {
   buildCallback() {
     upgradeBackgroundAudio(this.element);
     this.markMediaElementsWithPreload_();
+    this.maybeCreateAnimationManager_();
     this.initializeLoading_();
   }
 
@@ -188,8 +189,6 @@ export class AmpStoryPage extends AMP.BaseElement {
     for (const mediaItem of mediaSet) {
       mediaItem.setAttribute('preload', 'auto');
     }
-
-    this.maybeCreateAnimationManager_();
   }
 
 
@@ -251,7 +250,7 @@ export class AmpStoryPage extends AMP.BaseElement {
     });
 
     Promise.race([this.loadPromise_, this.loadTimeoutPromise_]).then(() => {
-      this.maybeApplyFirstAnimationFrame();
+      //this.maybeApplyFirstAnimationFrame();
       this.markPageAsLoaded_();
       this.playAllMedia_();
     });
