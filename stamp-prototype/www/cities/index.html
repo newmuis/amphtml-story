@@ -5,8 +5,11 @@
     <script async src="https://stamp-prototype.appspot.com/v0.js"></script>
     <script async custom-element="amp-story"
         src="https://stamp-prototype.appspot.com/v0/amp-story-0.1.js"></script>
-    <script async custom-element="amp-story"
-        src="https://cdn.ampproject.org/v0/amp-video-0.1.js"></script>
+    <script async custom-element="amp-video"
+        src="https://stamp-prototype.appspot.com/v0/amp-video-0.1.js"></script>
+    <script async custom-element="amp-viewer-integration"
+        src="https://stamp-prototype.appspot.com/v0/amp-viewer-integration-0.1.js">
+    </script>
     <title>These are the Top 5 World's Most Expensive Cities</title>
     <link rel="canonical" href="https://stamp-prototype.appspot.com/cities/index.html" />
     <meta name="viewport"
@@ -24,6 +27,7 @@
       }
 
       amp-story {
+        background-color: #000;
         color: #fff;
         text-align: center;
       }
@@ -82,7 +86,7 @@
       <!-- Cover -->
       <amp-story-page id="intro">
         <amp-story-grid-layer template="fill">
-          <amp-video src="./media/cover.mp4" muted autoplay loop></amp-video>
+          <amp-video src="./media/cover.mp4" poster="./media/cover-poster.png" muted autoplay loop></amp-video>
         </amp-story-grid-layer>
         <amp-story-grid-layer template="vertical" anchor="top">
           <h1>These are the Top 5 World's Most Expensive Cities</h1>
@@ -95,9 +99,9 @@
       </amp-story-page>
 
       <!-- #5: Osaka -->
-      <amp-story-page id="5-osaka">
+      <amp-story-page id="osaka" auto-advance-after="osaka-vid" background-audio="./media/japan.mp3">
         <amp-story-grid-layer template="fill">
-          <amp-video src="./media/05-osaka.mp4" muted autoplay loop></amp-video>
+          <amp-video id="osaka-vid" src="./media/05-osaka.mp4" poster="./media/05-osaka-poster.png" muted autoplay></amp-video>
         </amp-story-grid-layer>
         <amp-story-grid-layer template="vertical" class="city">
           <h2>5</h2>
@@ -109,9 +113,9 @@
       </amp-story-page>
 
       <!-- #4: Tokyo -->
-      <amp-story-page id="4-tokyo">
+      <amp-story-page id="tokyo" auto-advance-after="tokyo-vid" background-audio="./media/japan.mp3">
         <amp-story-grid-layer template="fill">
-          <amp-video src="./media/04-tokyo.mp4" muted autoplay loop></amp-video>
+          <amp-video id="tokyo-vid" src="./media/04-tokyo.mp4" poster="./media/04-tokyo-poster.png" muted autoplay></amp-video>
         </amp-story-grid-layer>
         <amp-story-grid-layer template="vertical" class="city">
           <h2>4</h2>
@@ -123,9 +127,9 @@
       </amp-story-page>
 
       <!-- #3: Zurich -->
-      <amp-story-page id="3-zurich">
+      <amp-story-page id="zurich" auto-advance-after="zurich-vid" poster="./media/03-zurich-poster.png" background-audio="./media/switzerland.mp3">
         <amp-story-grid-layer template="fill">
-          <amp-video src="./media/03-zurich.mp4" muted autoplay loop></amp-video>
+          <amp-video id="zurich-vid" src="./media/03-zurich.mp4" muted autoplay></amp-video>
         </amp-story-grid-layer>
         <amp-story-grid-layer template="vertical" class="city">
           <h2>3</h2>
@@ -137,9 +141,9 @@
       </amp-story-page>
 
       <!-- #2: Hong Kong -->
-      <amp-story-page id="2-hongkong">
+      <amp-story-page id="hongkong" auto-advance-after="hongkong-vid" poster="./media/02-hong-kong-poster.png" background-audio="./media/china.mp3">
         <amp-story-grid-layer template="fill">
-          <amp-video src="./media/02-hong-kong.mp4" muted autoplay loop></amp-video>
+          <amp-video id="hongkong-vid" src="./media/02-hong-kong.mp4" muted autoplay></amp-video>
         </amp-story-grid-layer>
         <amp-story-grid-layer template="vertical" class="city">
           <h2>2</h2>
@@ -151,9 +155,9 @@
       </amp-story-page>
 
       <!-- #1: Singapore -->
-      <amp-story-page id="1-singapore">
+      <amp-story-page id="singapore" auto-advance-after="singapore-vid" poster="./media/01-osaka-poster.png" background-audio="./media/singapore.mp3">
         <amp-story-grid-layer template="fill">
-          <amp-video src="./media/01-singapore.mp4" muted autoplay loop></amp-video>
+          <amp-video id="singapore-vid" src="./media/01-singapore.mp4" muted autoplay></amp-video>
         </amp-story-grid-layer>
         <amp-story-grid-layer template="vertical" class="city">
           <h2>1</h2>
