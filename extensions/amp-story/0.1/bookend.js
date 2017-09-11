@@ -27,16 +27,6 @@ const TEMPLATE =
     <ul class="i-amp-story-bookend-share">
       <li>
         <div class="i-amp-story-bookend-share-icon">
-          ${ICONS.googleplus}
-        </div>
-      </li>
-      <li>
-        <div class="i-amp-story-bookend-share-icon">
-          ${ICONS.mail}
-        </div>
-      </li>
-      <li>
-        <div class="i-amp-story-bookend-share-icon">
           ${ICONS.link}
         </div>
       </li>
