@@ -47,13 +47,15 @@ const LOADING_SCREEN_CONTENTS_TEMPLATE =
  * method that will return a PageElement to define rendering and loading
  * strategies.
  *
- * @const {!Object<string, string>}
+ * @const {!Object<string, !function(!Element, !AmpStoryPage): !PageElement>}
  */
 const PAGE_ELEMENT_FACTORIES = {
   'amp-audio, amp-video, .i-amp-story-background-audio':
-      element => new MediaElement(element),
-  'amp-img, amp-anim': element => new ImageElement(element),
-  '.i-amphtml-video-interface': element => new VideoInterfaceElement(element),
+      (element, page) => new MediaElement(element, page),
+  'amp-img, amp-anim':
+      (element, page) => new ImageElement(element, page),
+  '.i-amphtml-video-interface':
+      (element, page) => new VideoInterfaceElement(element, page),
 };
 
 
@@ -207,7 +209,7 @@ export class AmpStoryPage extends AMP.BaseElement {
       const elements = this.element.querySelectorAll(query);
       const factory = PAGE_ELEMENT_FACTORIES[query];
       Array.prototype.forEach.call(elements, element => {
-        const pageElement = factory(element);
+        const pageElement = factory(element, this);
         this.pageElements_.push(pageElement);
       });
     });
@@ -228,6 +230,9 @@ export class AmpStoryPage extends AMP.BaseElement {
   /** @override */
   pauseCallback() {
     this.pauseAllMedia_();
+    this.pageElements_.forEach(pageElement => {
+      pageElement.pauseCallback();
+    });
   }
 
 
@@ -240,6 +245,10 @@ export class AmpStoryPage extends AMP.BaseElement {
     if (!this.loadTimeoutPromise_) {
       this.loadTimeoutPromise_ = this.timer_.promise(LOAD_TIMEOUT_MS);
     }
+
+    this.pageElements_.forEach(pageElement => {
+      pageElement.resumeCallback();
+    });
 
     Promise.race([this.loadPromise_, this.loadTimeoutPromise_]).then(() => {
       this.maybeApplyFirstAnimationFrame();
@@ -361,17 +370,30 @@ export class AmpStoryPage extends AMP.BaseElement {
     }
     return this.animationManager_.applyFirstFrame();
   }
+
+
+  /**
+   * @return {boolean} Whether this page is currently active.
+   * @public
+   */
+  isActive() {
+    return this.element.getAttribute('active');
+  }
 }
 
 
 class PageElement {
   /**
    * @param {!Element} element The element on the page.
+   * @param {!AmpStoryPage} page The page that the element is on.
    */
-  constructor(element) {
+  constructor(element, page) {
     /** @protected @const {!Element} */
     this.element = element;
     this.element.classList.add(ELEMENT_CLASS_NAME);
+
+    /** @protected @const {!AmpStoryPage} */
+    this.page = page;
 
     /** @public {boolean} */
     this.isLoaded = false;
@@ -429,17 +451,29 @@ class PageElement {
           .toggle(ELEMENT_FAILED_CLASS_NAME, /* force */ this.hasFailed);
     }
   }
+
+  /**
+   * Called when the page the element is on becomes active.
+   * @public
+   */
+  resumeCallback() {}
+
+  /**
+   * Called when the page the element is on is no longer active.
+   * @public
+   */
+  pauseCallback() {}
 }
 
 class MediaElement extends PageElement {
-  constructor(element) {
-    super(element);
+  constructor(element, page) {
+    super(element, page);
 
     /** @private {?HTMLMediaElement} */
     this.mediaElement_ = null;
 
     /** @private {boolean} */
-    this.manualLoadInitiated_ = false;
+    this.manualLoadInitiatedOnBuild_ = false;
   }
 
   /**
@@ -462,6 +496,22 @@ class MediaElement extends PageElement {
   }
 
   /** @override */
+  resumeCallback() {
+    this.maybeManuallyForceLoading_();
+  }
+
+  /** @private */
+  maybeManuallyForceLoading_() {
+    const mediaElement = this.getMediaElement_();
+    if (!mediaElement ||
+        (mediaElement.buffered && mediaElement.buffered.length > 0)) {
+      return;
+    }
+
+    mediaElement.load();
+  }
+
+  /** @override */
   isLoaded_() {
     const mediaElement = this.getMediaElement_();
     const firstTimeRange = this.getFirstTimeRange_();
@@ -471,15 +521,9 @@ class MediaElement extends PageElement {
     }
 
     if (!mediaElement.buffered || mediaElement.buffered.length === 0) {
-      if (!this.manualLoadInitiated_) {
-        // We sometimes initiate manual load, as iOS Safari seems to not load
-        // the media element while it is not visible, which will always be the
-        // case while the loading screen is present.  We only do this if the
-        // video has not yet buffered anything (an indication that we don't need
-        // manual intervention), since calling an HTMLMediaElement's load method
-        // will restart loading for the resource.
-        mediaElement.load();
-        this.manualLoadInitiated_ = true;
+      if (!this.manualLoadInitiatedOnBuild_) {
+        this.maybeManuallyForceLoading_();
+        this.manualLoadInitiatedOnBuild_ = true;
       }
       return false;
     }
@@ -517,8 +561,8 @@ class MediaElement extends PageElement {
 }
 
 class ImageElement extends PageElement {
-  constructor(element) {
-    super(element);
+  constructor(element, page) {
+    super(element, page);
 
     /**
      * @private {?HTMLImageElement}
@@ -555,8 +599,8 @@ class ImageElement extends PageElement {
 }
 
 class VideoInterfaceElement extends PageElement {
-  constructor(element) {
-    super(element);
+  constructor(element, page) {
+    super(element, page);
   }
 
   /** @private */
