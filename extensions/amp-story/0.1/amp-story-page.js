@@ -31,6 +31,7 @@ import {Layout} from '../../../src/layout';
 import {Services} from '../../../src/services';
 import {upgradeBackgroundAudio} from './audio';
 import {dev, user} from '../../../src/log';
+import {EventType, dispatch} from './events';
 
 const LOADING_SCREEN_CONTENTS_TEMPLATE =
     `<ul class="i-amp-story-page-loading-dots">
@@ -252,6 +253,7 @@ export class AmpStoryPage extends AMP.BaseElement {
     Promise.race([this.loadPromise_, this.loadTimeoutPromise_]).then(() => {
       //this.maybeApplyFirstAnimationFrame();
       this.markPageAsLoaded_();
+      this.toggleAudioIcon_();
       this.playAllMedia_();
     });
   }
@@ -261,6 +263,32 @@ export class AmpStoryPage extends AMP.BaseElement {
   markPageAsLoaded_() {
     this.element.classList.add(PAGE_LOADED_CLASS_NAME);
     this.resolveLoadPromise_();
+  }
+
+
+  /** @private */
+  toggleAudioIcon_() {
+    // Dispatch event to signal whether audio is playing.
+    const eventType = this.hasAudio_() ?
+        EventType.AUDIO_PLAYING : EventType.AUDIO_STOPPED;
+    dispatch(this.element, eventType, /* opt_bubbles */ true);
+  }
+
+
+  /**
+   * @return {boolean}
+   * @private
+   */
+  hasAudio_() {
+    let hasAudio = false;
+    this.pageElements_.forEach(pageElement => {
+      if (pageElement.hasAudio()) {
+        hasAudio = true;
+        return;
+      }
+    });
+
+    return hasAudio;
   }
 
 
@@ -462,6 +490,13 @@ class PageElement {
    * @public
    */
   pauseCallback() {}
+
+  /**
+   * @return {boolean} Whether this element produces audio.
+   */
+  hasAudio() {
+    return false;
+  }
 }
 
 class MediaElement extends PageElement {
@@ -557,6 +592,14 @@ class MediaElement extends PageElement {
 
     return null;
   }
+
+  /** @override */
+  hasAudio() {
+    const mediaElement = this.getMediaElement_();
+    return mediaElement.mozHasAudio ||
+        Boolean(mediaElement.webkitAudioDecodedByteCount) ||
+        Boolean(mediaElement.audioTracks && mediaElement.audioTracks.length);
+  }
 }
 
 class ImageElement extends PageElement {
@@ -595,6 +638,11 @@ class ImageElement extends PageElement {
     return Boolean(imageElement && imageElement.complete &&
         (imageElement.naturalWidth === 0 || imageElement.naturalHeight === 0));
   }
+
+  /** @override */
+  hasAudio() {
+    return false;
+  }
 }
 
 class VideoInterfaceElement extends PageElement {
@@ -615,6 +663,11 @@ class VideoInterfaceElement extends PageElement {
   /** @override */
   hasFailed_() {
     return !this.isLaidOut_();
+  }
+
+  /** @override */
+  hasAudio() {
+    return true;
   }
 }
 
