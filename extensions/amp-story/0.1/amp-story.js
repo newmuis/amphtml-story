@@ -150,8 +150,7 @@ export class AmpStory extends AMP.BaseElement {
   /** @override */
   buildCallback() {
     if (this.element.hasAttribute(AMP_STORY_STANDALONE_ATTRIBUTE)) {
-      const ampdoc = Services.ampdocServiceFor(AMP.win).getAmpDoc();
-      ampdoc.win.document.documentElement.classList
+      this.getAmpDoc().win.document.documentElement.classList
           .add('i-amp-story-standalone');
     }
 
