@@ -31,7 +31,11 @@ import {Layout} from '../../../src/layout';
 import {Services} from '../../../src/services';
 import {upgradeBackgroundAudio} from './audio';
 import {dev, user} from '../../../src/log';
+<<<<<<< HEAD
 import {EventType, dispatch} from './events';
+=======
+import {PageElement} from './page-element';
+>>>>>>> 629a08614... Move PageElement and its subclasses to a new file.
 
 const LOADING_SCREEN_CONTENTS_TEMPLATE =
     `<ul class="i-amp-story-page-loading-dots">
@@ -40,55 +44,6 @@ const LOADING_SCREEN_CONTENTS_TEMPLATE =
       <li class="i-amp-story-page-loading-dot"></li>
     </ul>
     <p class="i-amp-story-page-loading-text">Loading</p>`;
-
-
-/**
- * A map of elements to delay showing the page.  The key is a DOM query to find
- * all elements that should wait for the specified event; the value is a factory
- * method that will return a PageElement to define rendering and loading
- * strategies.
- *
- * @const {!Object<string, !function(!Element, !AmpStoryPage): !PageElement>}
- */
-const PAGE_ELEMENT_FACTORIES = {
-  'amp-audio, amp-video, .i-amp-story-background-audio':
-      (element, page) => new MediaElement(element, page),
-  'amp-img, amp-anim':
-      (element, page) => new ImageElement(element, page),
-  '.i-amphtml-video-interface':
-      (element, page) => new VideoInterfaceElement(element, page),
-};
-
-
-/**
- * CSS class for an element on an amp-story-page.
- * @const {string}
- */
-const ELEMENT_CLASS_NAME = 'i-amp-story-page-element';
-
-
-/**
- * CSS class for an element on an amp-story-page that indicates the element is
- * loaded.
- * @const {string}
- */
-const ELEMENT_LOADED_CLASS_NAME = 'i-amp-story-page-element-loaded';
-
-
-/**
- * CSS class for an element on an amp-story-page that indicates the element can
- * be shown in the UI.
- * @const {string}
- */
-const ELEMENT_SHOW_CLASS_NAME = 'i-amp-story-page-element-shown';
-
-
-/**
- * CSS class for an element on an amp-story-page that indicates the element has
- * failed to load.
- * @const {string}
- */
-const ELEMENT_FAILED_CLASS_NAME = 'i-amp-story-page-element-failed';
 
 
 /**
@@ -109,23 +64,7 @@ const LOAD_TIMEOUT_MS = 8000;
 /**
  * The delay (in milliseconds) to wait between polling for loaded resources.
  */
-const TIMER_POLL_DELAY_MS = 250;
-
-
-/**
- * The minimum amount of a media item (by percentage) that must be loaded in
- * order for that element to be considered "loaded".  Note that if the total
- * size cannot be determined, this criteria is simply ignored.
- */
-const MINIMUM_MEDIA_BUFFER_PERCENTAGE_FROM_BEGINNING = 0.25;
-
-
-/**
- * The minimum amount of a media item (in seconds) that must be loaded in order
- * for that element to be considered "loaded".
- */
-const MINIMUM_MEDIA_BUFFER_SECONDS_FROM_BEGINNING = 3;
-
+const LOAD_TIMER_POLL_DELAY_MS = 250;
 
 
 export class AmpStoryPage extends AMP.BaseElement {
@@ -204,18 +143,9 @@ export class AmpStoryPage extends AMP.BaseElement {
     loadingScreen./*OK*/innerHTML = LOADING_SCREEN_CONTENTS_TEMPLATE;
     this.element.appendChild(loadingScreen);
 
-    // Build load promises for each of the page elements.
-    Object.keys(PAGE_ELEMENT_FACTORIES).forEach(query => {
-      const elements = this.element.querySelectorAll(query);
-      const factory = PAGE_ELEMENT_FACTORIES[query];
-      Array.prototype.forEach.call(elements, element => {
-        const pageElement = factory(element, this);
-        this.pageElements_.push(pageElement);
-      });
-    });
-
-    // Wait for all load promises to mark the page as loaded.
-    this.loadPromise_ = this.timer_.poll(TIMER_POLL_DELAY_MS, () => {
+    // Build a list of page elements and poll until they are all loaded.
+    this.pageElements_ = PageElement.getElementsFromPage(this);
+    this.loadPromise_ = this.timer_.poll(LOAD_TIMER_POLL_DELAY_MS, () => {
       return this.calculateLoadStatus();
     }).then(() => this.markPageAsLoaded_());
   }
@@ -397,269 +327,6 @@ export class AmpStoryPage extends AMP.BaseElement {
    */
   isActive() {
     return this.element.getAttribute('active');
-  }
-}
-
-
-class PageElement {
-  /**
-   * @param {!Element} element The element on the page.
-   * @param {!AmpStoryPage} page The page that the element is on.
-   */
-  constructor(element, page) {
-    /** @protected @const {!Element} */
-    this.element = element;
-    this.element.classList.add(ELEMENT_CLASS_NAME);
-
-    /** @protected @const {!AmpStoryPage} */
-    this.page = page;
-
-    /** @public {boolean} */
-    this.isLoaded = false;
-
-    /** @public {boolean} */
-    this.canBeShown = false;
-
-    /** @public {boolean} */
-    this.failed = false;
-  }
-
-  /**
-   * @return {boolean} Whether this element can be shown.
-   * @protected
-   */
-  canBeShown_() {
-    return false;
-  }
-
-  /**
-   * @return {boolean} Whether this element is considered loaded.
-   * @protected
-   */
-  isLoaded_() {
-    return false;
-  }
-
-  /**
-   * @return {boolean} Whether this element has failed to load.
-   * @protected
-   */
-  hasFailed_() {
-    return false;
-  }
-
-  /**
-   * @public
-   */
-  updateState() {
-    if (!this.canBeShown) {
-      this.canBeShown = this.canBeShown_();
-      this.element.classList
-          .toggle(ELEMENT_SHOW_CLASS_NAME, /* force */ this.canBeShown);
-    }
-
-    if (!this.isLoaded && !this.hasFailed) {
-      this.isLoaded = this.isLoaded_();
-      this.element.classList
-          .toggle(ELEMENT_LOADED_CLASS_NAME, /* force */ this.isLoaded);
-    }
-
-    if (!this.hasFailed && !this.isLoaded) {
-      this.hasFailed = this.hasFailed_();
-      this.element.classList
-          .toggle(ELEMENT_FAILED_CLASS_NAME, /* force */ this.hasFailed);
-    }
-  }
-
-  /**
-   * Called when the page the element is on becomes active.
-   * @public
-   */
-  resumeCallback() {}
-
-  /**
-   * Called when the page the element is on is no longer active.
-   * @public
-   */
-  pauseCallback() {}
-
-  /**
-   * @return {boolean} Whether this element produces audio.
-   */
-  hasAudio() {
-    return false;
-  }
-}
-
-class MediaElement extends PageElement {
-  constructor(element, page) {
-    super(element, page);
-
-    /** @private {?HTMLMediaElement} */
-    this.mediaElement_ = null;
-
-    /** @private {boolean} */
-    this.manualLoadInitiatedOnBuild_ = false;
-  }
-
-  /**
-   * @return {!HTMLMediaElement}
-   * @private
-   */
-  getMediaElement_() {
-    if (this.element instanceof HTMLMediaElement) {
-      this.mediaElement_ = this.element;
-    } else if (!this.mediaElement_) {
-      this.mediaElement_ = this.element.querySelector('audio, video');
-    }
-    return this.mediaElement_;
-  }
-
-  /** @override */
-  canBeShown_() {
-    const mediaElement = this.getMediaElement_();
-    return Boolean(mediaElement && mediaElement.readyState >= 2);
-  }
-
-  /** @override */
-  resumeCallback() {
-    this.maybeManuallyForceLoading_();
-  }
-
-  /** @private */
-  maybeManuallyForceLoading_() {
-    const mediaElement = this.getMediaElement_();
-    if (!mediaElement ||
-        (mediaElement.buffered && mediaElement.buffered.length > 0)) {
-      return;
-    }
-
-    mediaElement.load();
-  }
-
-  /** @override */
-  isLoaded_() {
-    const mediaElement = this.getMediaElement_();
-    const firstTimeRange = this.getFirstTimeRange_();
-
-    if (!mediaElement) {
-      return false;
-    }
-
-    if (!mediaElement.buffered || mediaElement.buffered.length === 0) {
-      if (!this.manualLoadInitiatedOnBuild_) {
-        this.maybeManuallyForceLoading_();
-        this.manualLoadInitiatedOnBuild_ = true;
-      }
-      return false;
-    }
-
-    const bufferedSeconds = mediaElement.buffered.end(firstTimeRange);
-    const bufferedPercentage =
-        (mediaElement.buffered.end(firstTimeRange) / mediaElement.duration);
-
-    return bufferedSeconds >= MINIMUM_MEDIA_BUFFER_SECONDS_FROM_BEGINNING ||
-        bufferedPercentage >= MINIMUM_MEDIA_BUFFER_PERCENTAGE_FROM_BEGINNING;
-  }
-
-  /** @override */
-  hasFailed_() {
-    const mediaElement = this.getMediaElement_();
-    return !!mediaElement.error;
-  }
-
-  /**
-   * @return {?number} The numbered index of the first buffered time range in
-   *     this media element.
-   */
-  getFirstTimeRange_() {
-    const mediaElement = this.getMediaElement_();
-    if (mediaElement) {
-      for (let i = 0; i < mediaElement.buffered.length; i++) {
-        if (mediaElement.buffered.start(i) === 0) {
-          return i;
-        }
-      }
-    }
-
-    return null;
-  }
-
-  /** @override */
-  hasAudio() {
-    const mediaElement = this.getMediaElement_();
-    return mediaElement.mozHasAudio ||
-        Boolean(mediaElement.webkitAudioDecodedByteCount) ||
-        Boolean(mediaElement.audioTracks && mediaElement.audioTracks.length);
-  }
-}
-
-class ImageElement extends PageElement {
-  constructor(element, page) {
-    super(element, page);
-
-    /**
-     * @private {?HTMLImageElement}
-     */
-    this.imageElement_ = null;
-  }
-
-  /**
-   * @return {!HTMLImageElement}
-   * @private
-   */
-  getImageElement_() {
-    if (this.element instanceof HTMLImageElement) {
-      this.imageElement_ = this.element;
-    } else if (!this.imageElement_) {
-      this.imageElement_ = this.element.querySelector('img');
-    }
-    return this.imageElement_;
-  }
-
-  /** @override */
-  isLoaded_() {
-    const imageElement = this.getImageElement_();
-    return Boolean(imageElement && imageElement.complete &&
-        imageElement.naturalWidth && imageElement.naturalHeight);
-  }
-
-  /** @override */
-  hasFailed_() {
-    const imageElement = this.getImageElement_();
-    return Boolean(imageElement && imageElement.complete &&
-        (imageElement.naturalWidth === 0 || imageElement.naturalHeight === 0));
-  }
-
-  /** @override */
-  hasAudio() {
-    return false;
-  }
-}
-
-class VideoInterfaceElement extends PageElement {
-  constructor(element, page) {
-    super(element, page);
-  }
-
-  /** @private */
-  isLaidOut_() {
-    return this.element.hasAttribute('i-amphtml-layout');
-  }
-
-  /** @override */
-  isLoaded_() {
-    return this.isLaidOut_();
-  }
-
-  /** @override */
-  hasFailed_() {
-    return !this.isLaidOut_();
-  }
-
-  /** @override */
-  hasAudio() {
-    return true;
   }
 }
 
