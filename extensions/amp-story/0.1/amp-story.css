@@ -29,8 +29,10 @@ amp-story {
   width: 100% !important;
 }
 
+html.i-amp-story-standalone,
 html[amp-story],
 html[📖],
+html.i-amp-story-standalone body,
 html[amp-story] body,
 html[📖] body {
   height: 100% !important;
@@ -39,11 +41,13 @@ html[📖] body {
   width: 100% !important;
 }
 
+html.i-amp-story-standalone body,
 html[amp-story] body,
 html[📖] body  {
   display: grid !important;
 }
 
+amp-story[standalone],
 html[amp-story] body > amp-story,
 html[📖] body > amp-story {
   align-self: center;
@@ -54,6 +58,7 @@ html[📖] body > amp-story {
   max-width: 414px;
 }
 
+amp-story[standalone]:-webkit-full-screen,
 html[amp-story] body > amp-story:-webkit-full-screen,
 html[📖] body > amp-story:-webkit-full-screen {
   height: 100vh !important;
@@ -61,6 +66,7 @@ html[📖] body > amp-story:-webkit-full-screen {
   max-width: none;
 }
 
+amp-story[standalone]:-moz-full-screen,
 html[amp-story] body > amp-story:-moz-full-screen,
 html[📖] body > amp-story:-moz-full-screen {
   height: 100vh !important;
@@ -68,6 +74,7 @@ html[📖] body > amp-story:-moz-full-screen {
   max-width: none;
 }
 
+amp-story[standalone]:-ms-fullscreen,
 html[amp-story] body > amp-story:-ms-fullscreen,
 html[📖] body > amp-story:-ms-fullscreen {
   height: 100vh !important;
@@ -75,6 +82,7 @@ html[📖] body > amp-story:-ms-fullscreen {
   max-width: none;
 }
 
+amp-story[standalone]:fullscreen,
 html[amp-story] body > amp-story:fullscreen,
 html[📖] body > amp-story:fullscreen {
   height: 100vh !important;
