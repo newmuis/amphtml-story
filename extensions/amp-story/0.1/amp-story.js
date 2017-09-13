@@ -756,24 +756,18 @@ export class AmpStory extends AMP.BaseElement {
 
     event.stopPropagation();
 
-    this.maybeFinishActiveAnimation_().then(wasAnimationRunning => {
-      if (wasAnimationRunning) {
-        return;
-      }
+    // TODO(newmuis): This will need to be flipped for RTL.
+    const nextScreenAreaMin = this.element.offsetLeft +
+        ((1 - NEXT_SCREEN_AREA_RATIO) * this.element.offsetWidth);
+    const nextScreenAreaMax = this.element.offsetLeft +
+        this.element.offsetWidth;
 
-      // TODO(newmuis): This will need to be flipped for RTL.
-      const nextScreenAreaMin = this.element.offsetLeft +
-          ((1 - NEXT_SCREEN_AREA_RATIO) * this.element.offsetWidth);
-      const nextScreenAreaMax = this.element.offsetLeft +
-          this.element.offsetWidth;
-
-      if (event.pageX >= nextScreenAreaMin && event.pageX < nextScreenAreaMax) {
-        this.next_();
-      } else if (event.pageX >= this.element.offsetLeft &&
-          event.pageX < nextScreenAreaMin) {
-        this.previous_();
-      }
-    });
+    if (event.pageX >= nextScreenAreaMin && event.pageX < nextScreenAreaMax) {
+      this.next_();
+    } else if (event.pageX >= this.element.offsetLeft &&
+        event.pageX < nextScreenAreaMin) {
+      this.previous_();
+    }
   }
 
 
