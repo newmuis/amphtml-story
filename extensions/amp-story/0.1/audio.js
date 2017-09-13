@@ -103,9 +103,7 @@ export class AudioManager {
     }
 
     if (sourceElement instanceof HTMLMediaElement) {
-      if (!sourceElement.muted) {
-        return new MediaElementPlayable(this.win_, sourceElement);
-      }
+      return new MediaElementPlayable(this.win_, sourceElement);
     }
   }
 
@@ -148,8 +146,8 @@ export class AudioManager {
    */
   play(sourceElement) {
     this.load(sourceElement)
-        .then(() => this.getPlayable_(sourceElement))
-        .then(playable => {
+        .then(() => {
+          const playable = this.getPlayable_(sourceElement);
           if (!playable) {
             return;
           }
@@ -206,6 +204,8 @@ export class AudioManager {
     playable.setVolume(1 /* volume */, 0 /* durationMs */, VOLUME_EASING_FN);
     if (this.isMuted_) {
       playable.mute();
+    } else {
+      playable.unmute();
     }
 
     this.nowPlaying_.push(playable);
