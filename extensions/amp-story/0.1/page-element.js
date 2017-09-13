@@ -145,6 +145,12 @@ export class PageElement {
    */
   pauseCallback() {}
 
+  /**
+   * @return {boolean} Whether this element produces audio.
+   */
+  hasAudio() {
+    return false;
+  }
 
   /**
    * @param {!AmpStoryPage}
@@ -241,7 +247,7 @@ class MediaElement extends PageElement {
   /** @override */
   hasFailed_() {
     const mediaElement = this.getMediaElement_();
-    return mediaElement && !!mediaElement.error;
+    return !!mediaElement.error;
   }
 
   /**
@@ -259,6 +265,14 @@ class MediaElement extends PageElement {
     }
 
     return null;
+  }
+
+  /** @override */
+  hasAudio() {
+    const mediaElement = this.getMediaElement_();
+    return mediaElement.mozHasAudio ||
+        Boolean(mediaElement.webkitAudioDecodedByteCount) ||
+        Boolean(mediaElement.audioTracks && mediaElement.audioTracks.length);
   }
 }
 
@@ -298,6 +312,11 @@ class ImageElement extends PageElement {
     return Boolean(imageElement && imageElement.complete &&
         (imageElement.naturalWidth === 0 || imageElement.naturalHeight === 0));
   }
+
+  /** @override */
+  hasAudio() {
+    return false;
+  }
 }
 
 class VideoInterfaceElement extends PageElement {
@@ -318,5 +337,10 @@ class VideoInterfaceElement extends PageElement {
   /** @override */
   hasFailed_() {
     return !this.isLaidOut_();
+  }
+
+  /** @override */
+  hasAudio() {
+    return true;
   }
 }

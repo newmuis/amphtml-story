@@ -31,11 +31,8 @@ import {Layout} from '../../../src/layout';
 import {Services} from '../../../src/services';
 import {upgradeBackgroundAudio} from './audio';
 import {dev, user} from '../../../src/log';
-<<<<<<< HEAD
 import {EventType, dispatch} from './events';
-=======
 import {PageElement} from './page-element';
->>>>>>> 629a08614... Move PageElement and its subclasses to a new file.
 
 const LOADING_SCREEN_CONTENTS_TEMPLATE =
     `<ul class="i-amp-story-page-loading-dots">
