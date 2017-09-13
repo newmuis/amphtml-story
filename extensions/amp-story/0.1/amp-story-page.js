@@ -280,15 +280,7 @@ export class AmpStoryPage extends AMP.BaseElement {
    * @private
    */
   hasAudio_() {
-    let hasAudio = false;
-    this.pageElements_.forEach(pageElement => {
-      if (pageElement.hasAudio()) {
-        hasAudio = true;
-        return;
-      }
-    });
-
-    return hasAudio;
+    return this.pageElements_.some(pageElement => pageElement.hasAudio());
   }
 
 
