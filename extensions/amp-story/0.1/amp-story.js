@@ -68,6 +68,9 @@ const ACTIVE_PAGE_ATTRIBUTE_NAME = 'active';
 /** @private @const {string} */
 const RELATED_ARTICLES_ATTRIBUTE_NAME = 'related-articles';
 
+/** @private @const {string} */
+const AMP_STORY_STANDALONE_ATTRIBUTE = 'standalone';
+
 const TIME_REGEX = {
   MILLISECONDS: /^(\d+)ms$/,
   SECONDS: /^(\d+)s$/,
@@ -146,6 +149,12 @@ export class AmpStory extends AMP.BaseElement {
 
   /** @override */
   buildCallback() {
+    if (this.element.hasAttribute(AMP_STORY_STANDALONE_ATTRIBUTE)) {
+      const ampdoc = Services.ampdocServiceFor(AMP.win).getAmpDoc();
+      ampdoc.win.document.documentElement.classList
+          .add('i-amp-story-standalone');
+    }
+
     this.element.appendChild(this.systemLayer_.build());
 
     this.element.addEventListener('click',
