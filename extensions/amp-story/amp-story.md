@@ -204,13 +204,9 @@ Layers are stacked on top of one another to create the desired visual effect.
 All layers can contain any number of the following elements:
 
   * Rich AMP components
-    * `<amp-anim>`
     * `<amp-img>`
     * `<amp-video>`
-    * `<amp-twitter>`
-    * `<amp-instagram>`
     * `<amp-gfycat>`
-    * `<amp-soundcloud>`
     * `<amp-audio>`
   * Headings
     * `<h1>` — `<h6>`
