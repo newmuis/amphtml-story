@@ -28,7 +28,7 @@ The following markup is a decent starting point or boilerplate. Copy this and sa
 
 ```html
 <!doctype html>
-<html amp amp-story lang="en">
+<html amp lang="en">
   <head>
     <meta charset="utf-8">
     <script async src="https://stamp-prototype.appspot.com/v0.js"></script>
@@ -41,7 +41,7 @@ The following markup is a decent starting point or boilerplate. Copy this and sa
     <style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}} @keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
   </head>
   <body>
-    <amp-story>
+    <amp-story standalone>
       <amp-story-page id="my-first-page">
         <amp-story-grid-layer template="fill">
           <amp-img src="https://stamp-prototype.appspot.com/helloworld/bg1.jpg"
@@ -78,7 +78,7 @@ AMP HTML documents with `amp-story` MUST:
 | RULE | DESCRIPTION |
 | --- | --- |
 | Start with the `<!doctype html>` doctype. | Standard for HTML. |
-| Contain a top-level `<html ⚡ 📖>` tag (`<html amp amp-story>` is accepted as well). | Identifies the page as having story content. |
+| Contain a top-level `<html ⚡>` tag (`<html amp>` is accepted as well). | Identifies the page as AMP content. |
 | Contain `<head>` and `<body>` tags. | Optional in HTML but not in AMP. |
 | Contain a `<meta charset="utf-8">` tag as the first child of their `<head>` tag. | Identifies the encoding for the page. |
 | Contain a `<script async src="https://stamp-prototype.appspot.com/v0.js"></script>` tag as the second child of their `<head>` tag. | Includes and loads the AMP JS library.  This is a forked version specific to amp-story; when the feature is generally available, the normal v0.js hosted from cdn.ampproject.org must be used. |
@@ -86,6 +86,7 @@ AMP HTML documents with `amp-story` MUST:
 | Contain a `<link rel="canonical" href="$STORY_URL" />` tag inside their `<head>`. | Points to itself. Learn more in [Make Your Page Discoverable](https://www.ampproject.org/docs/guides/discovery.html). |
 | Contain a `<meta name="viewport" content="width=device-width,minimum-scale=1">` tag inside their `<head>` tag. It's also recommended to include `initial-scale=1`. | Specifies a responsive viewport. Learn more in [Create Responsive AMP Pages](https://www.ampproject.org/docs/guides/responsive/responsive_design.html). |
 | Contain the [AMP boilerplate code](https://www.ampproject.org/docs/reference/spec/amp-boilerplate.html) in their `<head>` tag. | CSS boilerplate to initially hide the content until AMP JS is loaded. |
+| Contain an `<amp-story standalone>` tag in the body of the document | Identifies that the document is a story. |
 
 ## Story
 
@@ -99,6 +100,7 @@ This component represents an entire Story.  The component itself will implement 
 
 #### Attributes
 
+  * **standalone** [required]: Identifies that the document is a story.
   * **related-articles** [optional]: A URL endpoint that accepts GET requests and returns a JSON response with links to related and trending stories, to be shown on a screen at the end of the story.  If omitted, the amp-story component will render a default UI for the end screen.  See the [related-articles endpoint section](#related-articles-json-endpoint) for the JSON response format.
   * **background-audio** [optional]: A URI to an audio file that should be played throughout the story.
 
@@ -109,7 +111,7 @@ One or more [`<amp-story-page>`](#amp-story-page-component) components, containi
 #### Example
 
 ```html
-<amp-story>
+<amp-story standalone>
   <amp-story-page>[...]</amp-story-page>
   <amp-story-page>[...]</amp-story-page>
   <amp-story-page>[...]</amp-story-page>
