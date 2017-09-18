@@ -417,18 +417,6 @@ export class AmpStory extends AMP.BaseElement {
   }
 
   /**
-   * @return {!Promise<boolean>}
-   * @private
-   */
-  maybeFinishActiveAnimation_() {
-    const activePage = dev().assert(this.activePage_,
-        'No active page set when navigating to next page.');
-
-    return this.withPageImpl_(activePage,
-        impl => impl.maybeFinishEnterAnimations());
-  }
-
-  /**
    * Switches to a particular page.
    * @param {!Element} targetPage
    * @return {!Promise}

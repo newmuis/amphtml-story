@@ -353,6 +353,12 @@ class AnimationRunner {
     }
   }
 
+  /** Cancels animation. */
+  cancel() {
+    this.scheduledActivity_ = null;
+    this.scheduledWait_ = null;
+  }
+
   /**
    * @param {!PlaybackActivity}
    * @param {!Promise=} opt_wait
@@ -497,6 +503,15 @@ export class AnimationManager {
   /** Skips all transition-in animations for the page. */
   finishAll() {
     this.getRunners_().forEach(runner => runner.finish());
+  }
+
+  /** Cancels all transition-in animations for the page. */
+  cancelAll() {
+    if (!this.runners_) {
+      // nothing to cancel when the first frame has not been applied yet.
+      return;
+    }
+    this.getRunners_().forEach(runner => runner.cancel());
   }
 
   /** Determines if there is a transition-in animation running. */
