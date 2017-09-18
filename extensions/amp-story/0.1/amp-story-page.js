@@ -160,6 +160,10 @@ export class AmpStoryPage extends AMP.BaseElement {
     this.pageElements_.forEach(pageElement => {
       pageElement.pauseCallback();
     });
+
+    if (this.animationManager_) {
+      this.animationManager_.cancelAll();
+    }
   }
 
 
