@@ -201,31 +201,96 @@ Layers are stacked on top of one another to create the desired visual effect.
 
 #### Children
 
-All layers can contain any number of the following elements:
+Layers can contain any of the following elements (to be expanded over time):
 
-  * Rich AMP components
+  * Media
+    * `<amp-audio>`
+    * `<amp-gfycat>`
+    * `<amp-google-vrview-image>`
     * `<amp-img>`
     * `<amp-video>`
-    * `<amp-gfycat>`
-    * `<amp-audio>`
-  * Headings
+    * `<source>`
+    * `<track>`
+  * Analytics & Measurement
+    * `<amp-analytics>`
+    * `<amp-experiment>`
+    * `<amp-pixel>`
+  * Sectioning
+    * `<address>`
+    * `<article>`
+    * `<aside>`
+    * `<footer>`
     * `<h1>` — `<h6>`
+    * `<header>`
+    * `<hgroup>`
+    * `<nav>`
+    * `<section>`
   * Text
-    * `<p>`
-    * `<strong>`
+    * `<abbr>`
+    * `<amp-fit-text>`
+    * `<amp-font>`
+    * `<amp-gist>`
+    * `<b>`
+    * `<bdi>`
+    * `<bdo>`
+    * `<blockquote>`
+    * `<br>`
+    * `<cite>`
+    * `<code>`
+    * `<data>`
+    * `<del>`
+    * `<dfn>`
+    * `<div>`
     * `<em>`
-    * `<blockquote>` / `<q>`
+    * `<figcaption>`
+    * `<figure>`
+    * `<hr>`
+    * `<i>`
+    * `<ins>`
+    * `<kbd>`
+    * `<main>`
+    * `<mark>`
+    * `<p>`
+    * `<pre>`
+    * `<q>`
+    * `<rp>`
+    * `<rt>`
+    * `<rtc>`
+    * `<ruby>`
+    * `<s>`
+    * `<samp>`
+    * `<small>`
+    * `<span>`
+    * `<strong>`
+    * `<sub>`
+    * `<sup>`
+    * `<time>`
+    * `<u>`
+    * `<var>`
+    * `<wbr>`
   * Lists
-    * `<dl>` / `<dd>` / `<dt>`
-    * `<li>` / `<ul>` / `<ol>`
+    * `<amp-list>`
+    * `<amp-live-list>`
+    * `<dd>`
+    * `<dl>`
+    * `<dt>`
+    * `<li>`
+    * `<ol>`
+    * `<ul>`
   * Tables
-    * `<table>`
-    * `<tr>`
-    * `<td>` / `<th>`
-    * `<thead>` / `<tbody>` / `<tfoot>`
     * `<caption>`
+    * `<col>`
+    * `<colgroup>`
+    * `<table>`
+    * `<tbody>`
+    * `<td>`
+    * `<tfoot>`
+    * `<th>`
+    * `<thead>`
+    * `<tr>`
   * Other
-    * `<button>`
+    * `<amp-install-serviceworker>`
+    * `<noscript>`
 
 ### `<amp-story-grid-layer>` component
 
