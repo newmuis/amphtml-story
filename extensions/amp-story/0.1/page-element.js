@@ -114,12 +114,6 @@ export class PageElement {
    * @public
    */
   updateState() {
-    if (!this.canBeShown) {
-      this.canBeShown = this.canBeShown_();
-      this.element.classList
-          .toggle(ELEMENT_SHOW_CLASS_NAME, /* force */ this.canBeShown);
-    }
-
     if (!this.isLoaded && !this.hasFailed) {
       this.isLoaded = this.isLoaded_();
       this.element.classList
@@ -130,6 +124,12 @@ export class PageElement {
       this.hasFailed = this.hasFailed_();
       this.element.classList
           .toggle(ELEMENT_FAILED_CLASS_NAME, /* force */ this.hasFailed);
+    }
+
+    if (!this.canBeShown) {
+      this.canBeShown = this.canBeShown_() || this.isLoaded;
+      this.element.classList
+          .toggle(ELEMENT_SHOW_CLASS_NAME, /* force */ this.canBeShown);
     }
   }
 
@@ -200,7 +200,11 @@ class MediaElement extends PageElement {
   /** @override */
   canBeShown_() {
     const mediaElement = this.getMediaElement_();
-    return Boolean(mediaElement && mediaElement.readyState >= 2);
+    if (!mediaElement) {
+      return false;
+    }
+
+    return mediaElement.readyState >= 2 || mediaElement.hasAttribute('poster');
   }
 
   /** @override */

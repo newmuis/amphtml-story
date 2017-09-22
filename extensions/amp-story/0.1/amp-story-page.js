@@ -51,6 +51,13 @@ const PAGE_LOADED_CLASS_NAME = 'i-amp-story-page-loaded';
 
 
 /**
+ * CSS class for an amp-story-page that indicates the entire page can be shown.
+ * @const {string}
+ */
+const PAGE_SHOWN_CLASS_NAME = 'i-amp-story-page-shown';
+
+
+/**
  * The duration of time (in milliseconds) to show the loading screen for this
  * page, before showing the page content.
  * @const {number}
@@ -192,8 +199,15 @@ export class AmpStoryPage extends AMP.BaseElement {
 
   /** @private */
   markPageAsLoaded_() {
+    this.isLoaded_ = true;
     this.element.classList.add(PAGE_LOADED_CLASS_NAME);
     this.resolveLoadPromise_();
+  }
+
+
+  /** @private */
+  markPageAsShown_() {
+    this.element.classList.add(PAGE_SHOWN_CLASS_NAME);
   }
 
 
@@ -224,21 +238,30 @@ export class AmpStoryPage extends AMP.BaseElement {
       return true;
     }
 
-    const isLoaded = this.pageElements_.reduce(
-        (otherPageElementsAreLoaded, pageElement) => {
-          pageElement.updateState();
-          const currentPageElementIsLoaded =
-              (pageElement.isLoaded || pageElement.hasFailed);
-          return otherPageElementsAreLoaded && currentPageElementIsLoaded;
-        }, /* initialValue */ true);
+    let isPageLoaded = true;
+    let canPageBeShown = false;
 
-    this.isLoaded_ = isLoaded;
+    this.pageElements_.forEach(pageElement => {
+      pageElement.updateState();
 
-    if (this.isLoaded_) {
+      if (isPageLoaded) {
+        isPageLoaded = pageElement.isLoaded || pageElement.hasFailed;
+      }
+
+      if (!canPageBeShown) {
+        canPageBeShown = pageElement.canBeShown;
+      }
+    });
+
+    if (isPageLoaded) {
       this.markPageAsLoaded_();
     }
 
-    return this.isLoaded_;
+    if (canPageBeShown) {
+      this.markPageAsShown_();
+    }
+
+    return isPageLoaded;
   }
 
 
