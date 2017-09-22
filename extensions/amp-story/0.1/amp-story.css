@@ -244,8 +244,9 @@ amp-story-page[active] .i-amp-story-page-loading-screen {
   font-size: 14px;
 }
 
-amp-story-page.i-amp-story-page-loaded > .i-amp-story-page-loading-screen {
+amp-story-page.i-amp-story-page-shown > .i-amp-story-page-loading-screen {
   opacity: 0;
+  pointer-events: none;
 }
 
 /** Grid level */
