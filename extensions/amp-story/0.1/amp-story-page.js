@@ -31,8 +31,11 @@ import {Layout} from '../../../src/layout';
 import {Services} from '../../../src/services';
 import {upgradeBackgroundAudio} from './audio';
 import {dev, user} from '../../../src/log';
-import {EventType, dispatch} from './events';
+import {EventType, dispatch, dispatchCustom} from './events';
 import {PageElement} from './page-element';
+import {isFiniteNumber} from '../../../src/types';
+import {VideoEvents} from '../../../src/video-interface';
+import {listenOnce} from '../../../src/event-helper';
 
 const LOADING_SCREEN_CONTENTS_TEMPLATE =
     `<ul class="i-amp-story-page-loading-dots">
@@ -71,6 +74,19 @@ const LOAD_TIMEOUT_MS = 8000;
 const LOAD_TIMER_POLL_DELAY_MS = 250;
 
 
+
+/** @private @enum {!RegExp} */
+const TIME_REGEX = {
+  MILLISECONDS: /^(\d+)ms$/,
+  SECONDS: /^(\d+)s$/,
+};
+
+
+/** @private @const {string} */
+const TAG = 'amp-story-page';
+
+
+
 export class AmpStoryPage extends AMP.BaseElement {
   /** @param {!AmpElement} element */
   constructor(element) {
@@ -98,6 +114,9 @@ export class AmpStoryPage extends AMP.BaseElement {
 
     /** @private {boolean} */
     this.isLoaded_ = false;
+
+    /** @private {?UnlistenDef} */
+    this.autoAdvanceUnlistenDef_ = null;
   }
 
 
@@ -168,8 +187,14 @@ export class AmpStoryPage extends AMP.BaseElement {
       pageElement.pauseCallback();
     });
 
+<<<<<<< HEAD
     if (this.animationManager_) {
       this.animationManager_.cancelAll();
+=======
+    if (this.autoAdvanceUnlistenDef_) {
+      this.autoAdvanceUnlistenDef_();
+      this.autoAdvanceUnlistenDef_ = null;
+>>>>>>> 42c9cdd2f... Partial commit for issuing navigation events from the page-level instead of the story-level
     }
   }
 
@@ -189,11 +214,18 @@ export class AmpStoryPage extends AMP.BaseElement {
     });
 
     Promise.race([this.loadPromise_, this.loadTimeoutPromise_]).then(() => {
-      //this.maybeApplyFirstAnimationFrame();
-      this.markPageAsLoaded_();
-      this.toggleAudioIcon_();
-      this.playAllMedia_();
+      this.onPageVisible_();
     });
+  }
+
+
+  /** @private */
+  onPageVisible_() {
+    this.markPageAsLoaded_();
+    this.maybeApplyFirstAnimationFrame();
+    this.maybeScheduleAutoAdvance_();
+    this.updateAudioIcon_();
+    this.playAllMedia_();
   }
 
 
@@ -206,6 +238,7 @@ export class AmpStoryPage extends AMP.BaseElement {
 
 
   /** @private */
+<<<<<<< HEAD
   markPageAsShown_() {
     this.element.classList.add(PAGE_SHOWN_CLASS_NAME);
   }
@@ -213,6 +246,9 @@ export class AmpStoryPage extends AMP.BaseElement {
 
   /** @private */
   toggleAudioIcon_() {
+=======
+  updateAudioIcon_() {
+>>>>>>> 42c9cdd2f... Partial commit for issuing navigation events from the page-level instead of the story-level
     // Dispatch event to signal whether audio is playing.
     const eventType = this.hasAudio_() ?
         EventType.AUDIO_PLAYING : EventType.AUDIO_STOPPED;
@@ -351,6 +387,164 @@ export class AmpStoryPage extends AMP.BaseElement {
    */
   isActive() {
     return this.element.getAttribute('active');
+  }
+
+
+  /**
+   * Gets an HTMLMediaElement from an element that wraps it.
+   * @param {!Element} el An element that wraps an HTMLMediaElement.
+   * @return {?Element} The underlying HTMLMediaElement, if one exists.
+   * @private
+   */
+  getMediaElement_(el) {
+    const tagName = el.tagName.toLowerCase();
+
+    if (el instanceof HTMLMediaElement) {
+      return el;
+    } else if (el.hasAttribute('background-audio') &&
+        (tagName === 'amp-story' || tagName === 'amp-story-page')) {
+      return el.querySelector('.i-amp-story-background-audio');
+    } else if (tagName === 'amp-audio') {
+      return el.querySelector('audio');
+    }
+
+    return null;
+  }
+
+
+  /**
+   * Determines whether a given element implements the video interface.
+   * @param {!Element} el The element to test
+   * @return {boolean} true, if the specified element implements the video
+   *     interface.
+   * @private
+   */
+  isVideoInterfaceVideo_(el) {
+    // TODO(newmuis): Check whether the element has the
+    // i-amphtml-video-interface class, after #11015 from amphtml is merged
+    // into amphtml-story.
+    const tagName = el.tagName.toLowerCase();
+
+    return tagName === 'amp-video' || tagName === 'amp-youtube' ||
+        tagName === 'amp-3q-player' || tagName === 'amp-ima-video' ||
+        tagName === 'amp-ooyala-player' || tagName === 'amp-nexxtv-player' ||
+        tagName === 'amp-brid-player' || tagName === 'amp-dailymotion';
+  }
+
+
+  /**
+   * Determines whether the specified element is a valid media element for auto-
+   * advance.
+   * @param {?Element} el
+   * @param {!function()} callback
+   * @return {!Element}
+   * @private
+   */
+  onMediaElementComplete_(el, callback) {
+    user().assertElement(el, 'ID specified for automatic advance ' +
+        `does not refer to any element on page '${this.element.id}'.`);
+
+    const mediaElement = this.getMediaElement_(el);
+    if (mediaElement) {
+      this.autoAdvanceUnlistenDef_ =
+          listenOnce(mediaElement, 'ended', callback);
+    } else if (this.isVideoInterfaceVideo_(el)) {
+      this.autoAdvanceUnlistenDef_ =
+          listenOnce(el, VideoEvents.ENDED, callback, /* opt_capture */ true);
+    } else {
+      user().error(TAG, `Element with ID ${el.id} is not a media element ` +
+          'supported for automatic advancement.');
+    }
+  }
+
+
+  /**
+   * If the auto-advance-after property is set, a timer is set for that
+   * duration, after which next_() will be invoked.
+   * @private
+   */
+  maybeScheduleAutoAdvance_() {
+    const autoAdvanceAfter = this.element.getAttribute('auto-advance-after');
+
+    if (!autoAdvanceAfter) {
+      return;
+    }
+
+    let delayMs;
+    if (TIME_REGEX.MILLISECONDS.test(autoAdvanceAfter)) {
+      delayMs = Number(TIME_REGEX.MILLISECONDS.exec(autoAdvanceAfter)[1]);
+    } else if (TIME_REGEX.SECONDS.test(autoAdvanceAfter)) {
+      delayMs = Number(TIME_REGEX.SECONDS.exec(autoAdvanceAfter)[1]) * 1000;
+    }
+
+    if (delayMs) {
+      user().assert(isFiniteNumber(delayMs) && delayMs > 0,
+          `Invalid automatic advance delay '${autoAdvanceAfter}' ` +
+          `for page '${this.element.id}'.`);
+
+      const timeoutId = this.timer_.delay(
+          () => this.next_(true /* opt_isAutomaticAdvance */), delayMs);
+      this.autoAdvanceUnlistenDef_ = () => {
+        this.timer_.cancel(timeoutId);
+      };
+    } else {
+      let mediaElement;
+      try {
+        mediaElement = this.element.querySelector(`#${autoAdvanceAfter}`);
+      } catch (e) {
+        user().error(TAG, `Malformed ID '${autoAdvanceAfter}' for automatic ` +
+            `advance on page '${this.element.id}'.`);
+        return;
+      }
+
+      this.onMediaElementComplete_(mediaElement, () => {
+        this.next_(true /* opt_isAutomaticAdvance */);
+      });
+    }
+  }
+
+
+  /**
+   * Gets the ID of the next page in the story (after the current page).
+   * @param {boolean=} opt_isAutomaticAdvance Whether this navigation was caused
+   *     by an automatic advancement after a timeout.
+   * @return {?string} Returns the ID of the next page in the story, or null if
+   *     there isn't one.
+   * @private
+   */
+  getNextPageId_(opt_isAutomaticAdvance) {
+    if (opt_isAutomaticAdvance &&
+        this.element.hasAttribute('auto-advance-to')) {
+      return this.element.getAttribute('auto-advance-to');
+    }
+
+    if (this.element.hasAttribute('advance-to')) {
+      return this.element.getAttribute('advance-to');
+    }
+
+    const nextElement = this.element.nextElementSibling;
+    if (nextElement.tagName.toLowerCase() === TAG) {
+      return nextElement.id;
+    }
+
+    return null;
+  }
+
+
+  next_(opt_isAutomaticAdvance) {
+    this.switchTo_(this.getNextPageId_(opt_isAutomaticAdvance));
+  }
+
+
+  switchTo_(targetPageId) {
+    if (!targetPageId) {
+      return;
+    }
+
+    const payload = {targetPageId};
+    const eventInit = {bubbles: true};
+    dispatchCustom(this.win, this.element, EventType.SWITCH_PAGE, payload,
+        eventInit);
   }
 }
 
