@@ -182,6 +182,7 @@ export class AmpStoryPage extends AMP.BaseElement {
 
   /** @override */
   pauseCallback() {
+<<<<<<< HEAD
     this.pauseAllMedia_();
     this.pageElements_.forEach(pageElement => {
       pageElement.pauseCallback();
@@ -196,26 +197,15 @@ export class AmpStoryPage extends AMP.BaseElement {
       this.autoAdvanceUnlistenDef_ = null;
 >>>>>>> 42c9cdd2f... Partial commit for issuing navigation events from the page-level instead of the story-level
     }
+=======
+    this.pageInactiveCallback_();
+>>>>>>> bf6d1c450... Move next and previous navigation to amp-story-page
   }
 
 
   /** @override */
   resumeCallback() {
-    if (!this.loadPromise_) {
-      return;
-    }
-
-    if (!this.loadTimeoutPromise_) {
-      this.loadTimeoutPromise_ = this.timer_.promise(LOAD_TIMEOUT_MS);
-    }
-
-    this.pageElements_.forEach(pageElement => {
-      pageElement.resumeCallback();
-    });
-
-    Promise.race([this.loadPromise_, this.loadTimeoutPromise_]).then(() => {
-      this.onPageVisible_();
-    });
+    this.pageActiveCallback_();
   }
 
 
@@ -382,11 +372,66 @@ export class AmpStoryPage extends AMP.BaseElement {
 
 
   /**
+   * @param {boolean} isActive
+   * @public
+   */
+  setActive(isActive) {
+    if (isActive) {
+      this.pageActiveCallback_();
+    } else {
+      this.pageInactiveCallback_();
+    }
+  }
+
+
+  /** @private */
+  pageActiveCallback_() {
+    this.element.setAttribute('active', '');
+
+    if (!this.loadPromise_) {
+      return;
+    }
+
+    if (!this.loadTimeoutPromise_) {
+      this.loadTimeoutPromise_ = this.timer_.promise(LOAD_TIMEOUT_MS);
+    }
+
+    this.pageElements_.forEach(pageElement => {
+      pageElement.resumeCallback();
+    });
+
+    Promise.race([this.loadPromise_, this.loadTimeoutPromise_]).then(() => {
+      this.onPageVisible_();
+    });
+  }
+
+
+  /** @private */
+  pageInactiveCallback_() {
+    this.element.removeAttribute('active');
+
+    this.pauseAllMedia_();
+    this.pageElements_.forEach(pageElement => {
+      pageElement.pauseCallback();
+    });
+
+    if (this.autoAdvanceUnlistenDef_) {
+      this.autoAdvanceUnlistenDef_();
+      this.autoAdvanceUnlistenDef_ = null;
+    }
+
+    if (this.animationManager_) {
+      this.animationManager_.cancelAll();
+    }
+  }
+
+
+  /**
    * @return {boolean} Whether this page is currently active.
    * @public
    */
   isActive() {
-    return this.element.getAttribute('active');
+    return this.element.hasAttribute('active');
   }
 
 
@@ -460,7 +505,7 @@ export class AmpStoryPage extends AMP.BaseElement {
 
   /**
    * If the auto-advance-after property is set, a timer is set for that
-   * duration, after which next_() will be invoked.
+   * duration, after which next() will be invoked.
    * @private
    */
   maybeScheduleAutoAdvance_() {
@@ -483,7 +528,7 @@ export class AmpStoryPage extends AMP.BaseElement {
           `for page '${this.element.id}'.`);
 
       const timeoutId = this.timer_.delay(
-          () => this.next_(true /* opt_isAutomaticAdvance */), delayMs);
+          () => this.next(true /* opt_isAutomaticAdvance */), delayMs);
       this.autoAdvanceUnlistenDef_ = () => {
         this.timer_.cancel(timeoutId);
       };
@@ -501,6 +546,52 @@ export class AmpStoryPage extends AMP.BaseElement {
         this.next_(true /* opt_isAutomaticAdvance */);
       });
     }
+  }
+
+
+  /**
+   * Returns all of the pages that are one hop from this page.
+   * @return {!Array<string>}
+   * @public
+   */
+  getAdjacentPageIds() {
+    const adjacentPageIds = [];
+
+    const autoAdvanceNext =
+        this.getNextPageId_(true /* opt_isAutomaticAdvance */);
+    const manualAdvanceNext =
+        this.getNextPageId_(false /* opt_isAutomaticAdvance */);
+    const previous = this.getPreviousPageId_();
+
+    if (autoAdvanceNext) {
+      adjacentPageIds.push(autoAdvanceNext);
+    }
+
+    if (manualAdvanceNext && manualAdvanceNext != autoAdvanceNext) {
+      adjacentPageIds.push(manualAdvanceNext);
+    }
+
+    if (previous) {
+      adjacentPageIds.push(previous);
+    }
+
+    return adjacentPageIds;
+  }
+
+
+  /**
+   * Gets the ID of the previous page in the story (before the current page).
+   * @return {?string} Returns the ID of the next page in the story, or null if
+   *     there isn't one.
+   * @private
+   */
+  getPreviousPageId_() {
+    const previousElement = this.element.previousElementSibling;
+    if (previousElement && previousElement.tagName.toLowerCase() === TAG) {
+      return previousElement.id;
+    }
+
+    return null;
   }
 
 
@@ -523,7 +614,7 @@ export class AmpStoryPage extends AMP.BaseElement {
     }
 
     const nextElement = this.element.nextElementSibling;
-    if (nextElement.tagName.toLowerCase() === TAG) {
+    if (nextElement && nextElement.tagName.toLowerCase() === TAG) {
       return nextElement.id;
     }
 
@@ -531,12 +622,32 @@ export class AmpStoryPage extends AMP.BaseElement {
   }
 
 
-  next_(opt_isAutomaticAdvance) {
+  /**
+   * Navigates to the previous page in the story.
+   * @public
+   */
+  previous() {
+    this.switchTo_(this.getPreviousPageId_());
+  }
+
+
+  /**
+   * Navigates to the next page in the story.
+   * @param {*} opt_isAutomaticAdvance Whether this navigation was caused by an
+   *     automatic advancement after a timeout.
+   * @public
+   */
+  next(opt_isAutomaticAdvance) {
     this.switchTo_(this.getNextPageId_(opt_isAutomaticAdvance));
   }
 
 
-  switchTo_(targetPageId) {
+  /**
+   * @param {string=} opt_targetPageId
+   */
+  switchTo_(opt_targetPageId) {
+    const targetPageId = opt_targetPageId || 'i-amp-story-bookend';
+
     if (!targetPageId) {
       return;
     }
