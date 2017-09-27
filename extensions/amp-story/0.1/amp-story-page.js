@@ -182,24 +182,7 @@ export class AmpStoryPage extends AMP.BaseElement {
 
   /** @override */
   pauseCallback() {
-<<<<<<< HEAD
-    this.pauseAllMedia_();
-    this.pageElements_.forEach(pageElement => {
-      pageElement.pauseCallback();
-    });
-
-<<<<<<< HEAD
-    if (this.animationManager_) {
-      this.animationManager_.cancelAll();
-=======
-    if (this.autoAdvanceUnlistenDef_) {
-      this.autoAdvanceUnlistenDef_();
-      this.autoAdvanceUnlistenDef_ = null;
->>>>>>> 42c9cdd2f... Partial commit for issuing navigation events from the page-level instead of the story-level
-    }
-=======
     this.pageInactiveCallback_();
->>>>>>> bf6d1c450... Move next and previous navigation to amp-story-page
   }
 
 
@@ -228,7 +211,6 @@ export class AmpStoryPage extends AMP.BaseElement {
 
 
   /** @private */
-<<<<<<< HEAD
   markPageAsShown_() {
     this.element.classList.add(PAGE_SHOWN_CLASS_NAME);
   }
@@ -236,9 +218,6 @@ export class AmpStoryPage extends AMP.BaseElement {
 
   /** @private */
   toggleAudioIcon_() {
-=======
-  updateAudioIcon_() {
->>>>>>> 42c9cdd2f... Partial commit for issuing navigation events from the page-level instead of the story-level
     // Dispatch event to signal whether audio is playing.
     const eventType = this.hasAudio_() ?
         EventType.AUDIO_PLAYING : EventType.AUDIO_STOPPED;
