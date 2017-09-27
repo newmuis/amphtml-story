@@ -217,7 +217,7 @@ export class AmpStoryPage extends AMP.BaseElement {
 
 
   /** @private */
-  toggleAudioIcon_() {
+  updateAudioIcon_() {
     // Dispatch event to signal whether audio is playing.
     const eventType = this.hasAudio_() ?
         EventType.AUDIO_PLAYING : EventType.AUDIO_STOPPED;
