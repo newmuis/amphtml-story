@@ -128,17 +128,16 @@ html[📖] body > amp-story:fullscreen {
   height: 2px;
   left: 0;
   margin: 4px 0 0;
-  opacity: 1;
   padding: 0 2px;
   position: absolute;
   right: 0;
   top: 0;
-  transition: opacity 0.2s ease;
+  visibility: visible;
   z-index: 100001;
 }
 
 .i-amp-story-bookend-active .i-amp-story-progress-bar {
-  opacity: 0;
+  visibility: hidden;
 }
 
 .i-amp-story-page-progress-bar {
