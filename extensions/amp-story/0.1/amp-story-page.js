@@ -617,16 +617,17 @@ export class AmpStoryPage extends AMP.BaseElement {
    * @public
    */
   next(opt_isAutomaticAdvance) {
-    this.switchTo_(this.getNextPageId_(opt_isAutomaticAdvance));
+    this.switchTo_(
+        this.getNextPageId_(opt_isAutomaticAdvance), 'i-amp-story-bookend');
   }
 
 
   /**
-   * @param {string=} opt_targetPageId
+   * @param {?string} targetPageIdOrNull
+   * @param {string=} opt_fallbackPageId
    */
-  switchTo_(opt_targetPageId) {
-    const targetPageId = opt_targetPageId || 'i-amp-story-bookend';
-
+  switchTo_(targetPageIdOrNull, opt_fallbackPageId) {
+    const targetPageId = targetPageIdOrNull || opt_fallbackPageId;
     if (!targetPageId) {
       return;
     }
