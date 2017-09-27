@@ -217,7 +217,7 @@ export class AmpStoryPage extends AMP.BaseElement {
 
 
   /** @private */
-  toggleAudioIcon_() {
+  updateAudioIcon_() {
     // Dispatch event to signal whether audio is playing.
     const eventType = this.hasAudio_() ?
         EventType.AUDIO_PLAYING : EventType.AUDIO_STOPPED;
@@ -522,7 +522,7 @@ export class AmpStoryPage extends AMP.BaseElement {
       }
 
       this.onMediaElementComplete_(mediaElement, () => {
-        this.next_(true /* opt_isAutomaticAdvance */);
+        this.next(true /* opt_isAutomaticAdvance */);
       });
     }
   }

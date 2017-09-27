@@ -17,7 +17,6 @@ import {EventType, dispatch} from './events';
 import {dev} from '../../../src/log';
 import {scale, setStyles} from '../../../src/style';
 import {Services} from '../../../src/services';
-import {ProgressBar} from './progress-bar';
 
 
 // TODO(alanorozco): Use a precompiled template for performance
@@ -94,9 +93,6 @@ export class SystemLayer {
 
     /** @private {?Element} */
     this.unmuteAudioBtn_ = null;
-
-    /** @private {!ProgressBar} */
-    this.progressBar_ = new ProgressBar();
   }
 
   /**
@@ -125,9 +121,6 @@ export class SystemLayer {
 
     this.unmuteAudioBtn_ =
         this.root_.querySelector('.i-amp-story-unmute-audio-control');
-
-    const progressEl = this.progressBar_.build(pageCount);
-    this.root_.insertBefore(progressEl, this.root_.firstChild);
 
     this.addEventHandlers_();
 
@@ -242,19 +235,5 @@ export class SystemLayer {
     }
 
     dispatch(this.getRoot(), eventType, /* opt_bubbles */ true);
-  }
-
-  /**
-   * @param {number} index
-   * @param {number} total
-   */
-  updateProgressBar(index, total) {
-    const factor = index / total;
-
-    this.getVsync_().mutate(() => {
-      setStyles(this.progressEl_, {
-        'transform': scale(`${factor},1`),
-      });
-    });
   }
 }
