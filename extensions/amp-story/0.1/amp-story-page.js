@@ -522,7 +522,7 @@ export class AmpStoryPage extends AMP.BaseElement {
       }
 
       this.onMediaElementComplete_(mediaElement, () => {
-        this.next_(true /* opt_isAutomaticAdvance */);
+        this.next(true /* opt_isAutomaticAdvance */);
       });
     }
   }
