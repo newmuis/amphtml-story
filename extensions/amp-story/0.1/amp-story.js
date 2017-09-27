@@ -113,7 +113,7 @@ export class AmpStory extends AMP.BaseElement {
     this.systemLayer_ = new SystemLayer(this.win);
 
     /** @private @const {!ProgressBar} */
-    this.progressBar_ = new ProgressBar(this.win);
+    this.progressBar_ = this.systemLayer_.getProgressBar();
 
     /** @private {boolean} */
     this.isBookendActive_ = false;

@@ -17,6 +17,7 @@ import {EventType, dispatch} from './events';
 import {dev} from '../../../src/log';
 import {scale, setStyles} from '../../../src/style';
 import {Services} from '../../../src/services';
+import {ProgressBar} from './progress-bar';
 
 
 // TODO(alanorozco): Use a precompiled template for performance
@@ -93,6 +94,9 @@ export class SystemLayer {
 
     /** @private {?Element} */
     this.unmuteAudioBtn_ = null;
+
+    /** @private @const {!ProgressBar} */
+    this.progressBar_ = new ProgressBar(win);
   }
 
   /**
@@ -109,6 +113,9 @@ export class SystemLayer {
     this.root_ = this.win_.document.createElement('aside');
     this.root_.classList.add('i-amp-story-system-layer');
     this.root_./*OK*/innerHTML = TEMPLATE;
+
+    this.root_.insertBefore(
+        this.progressBar_.build(pageCount), this.root_.firstChild);
 
     this.exitFullScreenBtn_ =
         this.root_.querySelector('.i-amp-story-exit-fullscreen');
@@ -235,5 +242,9 @@ export class SystemLayer {
     }
 
     dispatch(this.getRoot(), eventType, /* opt_bubbles */ true);
+  }
+
+  getProgressBar() {
+    return this.progressBar_;
   }
 }
