@@ -15,22 +15,52 @@
  */
 import {ICONS} from './icons';
 import {EventType, dispatch} from './events';
+import {Services} from '../../../src/services';
 import {createElementWithAttributes, escapeHtml} from '../../../src/dom';
-import {dev} from '../../../src/log';
+import {dev, user} from '../../../src/log';
+import {dict} from './../../../src/utils/object';
+import {isObject} from '../../../src/types';
 import {scale, setStyles} from '../../../src/style';
 import {vsyncFor} from '../../../src/services';
 
 
+/**
+ * @typedef {{
+ *   shareProviders: !JsonObject|undefined,
+ *   relatedArticles: !Array<!./related-articles.RelatedArticleSet>
+ * }}
+ */
+export let BookendConfig;
+
+
+/**
+ * Maps share provider type to visible name.
+ * If the name only needs to be capitalized (e.g. `facebook` to `Facebook`) it
+ * does not need to be included here.
+ * @const {!JsonObject}
+ */
+const SHARE_PROVIDER_NAME = dict({
+  'gplus': 'Google+',
+  'linkedin': 'LinkedIn',
+  'whatsapp': 'WhatsApp',
+});
+
+
 // TODO(alanorozco): Use a precompiled template for performance
 const TEMPLATE =
-    `<h3 class="i-amp-story-bookend-heading">Share the story</h3>
-    <ul class="i-amp-story-bookend-share">
-      <li>
-        <div class="i-amp-story-bookend-share-icon">
-          ${ICONS.link}
-        </div>
-      </li>
-    </ul>`;
+    `<amp-carousel class="i-amp-story-share-carousel"
+        height="98"
+        layout="fixed-height"
+        type="carousel">
+      <ul class="i-amp-story-share-list">
+        <li>
+          <div class="i-amp-story-share-icon">
+            ${ICONS.link}
+          </div>
+          <span class="i-amp-story-share-name">Get link</span>
+        </li>
+      </ul>
+    </amp-carousel>`;
 
 
 /**
@@ -59,6 +89,38 @@ function articleHtml(articleData) {
       <div class="i-amp-story-bookend-article-meta">
         example.com - 10 mins
       </div>`
+  );
+}
+
+
+/**
+ * @param {string} type
+ * @param {!JsonObject=} opt_params
+ * @return {string}
+ */
+// TODO(alanorozco): article metadata
+function shareProviderHtml(type, opt_params) {
+  const params = !opt_params ? '' :
+      Object.keys(opt_params)
+          .map(field => `data-param-${field}="${opt_params[field]}"`)
+          .join(' ');
+
+  const name = SHARE_PROVIDER_NAME[type] || type;
+
+  // `email` should have an icon different than the default in amp-social-share,
+  // so it is special-cased
+  const icon = type == 'email' ? ICONS.mail : '';
+
+  return (
+      `<amp-social-share
+          type="${type}"
+          width="48"
+          height="48"
+          class="i-amp-story-share-icon"
+          ${params}>
+          ${icon}
+      </amp-social-share>
+      <span class="i-amp-story-share-name">${name}</span>`
   );
 }
 
@@ -95,7 +157,14 @@ export class Bookend {
     this.root_.classList.add('i-amp-story-bookend');
     this.root_./*OK*/innerHTML = TEMPLATE;
 
+    this.loadRequiredExtensions_();
+
     return this.getRoot();
+  }
+
+  /** @private */
+  loadRequiredExtensions_() {
+    Services.extensionsFor(this.win_).loadExtension('amp-carousel');
   }
 
   /**
@@ -111,11 +180,92 @@ export class Bookend {
   }
 
   /**
-   * @param {!Array<!./related-articles.RelatedArticleSet>} articleSets
+   * @param {!BookendConfig} bookendConfig
    */
-  setRelatedArticles(articleSets) {
+  setConfig(bookendConfig) {
     this.assertBuilt_();
 
+    if (bookendConfig.shareProviders) {
+      Services.extensionsFor(this.win_).loadExtension('amp-social-share');
+      this.setShareProviders_(dev().assert(bookendConfig.shareProviders));
+    }
+
+    this.maybeInsertNativeShare_();
+
+    this.setRelatedArticles_(bookendConfig.relatedArticles);
+  }
+
+  /** @private */
+  maybeInsertNativeShare_() {
+    // TODO(alanorozco): Implement
+  }
+
+  /**
+   * @param {!Array<!JsonObject>} shareProviders
+   * @private
+   */
+  // TODO(alanorozco): Set story metadata in share config
+  setShareProviders_(shareProviders) {
+    const fragment = this.win_.document.createDocumentFragment();
+
+    Object.keys(shareProviders).forEach(type => {
+      if (isObject(shareProviders[type])) {
+        fragment.appendChild(
+            this.buildShareProvider_(type,
+                /** @type {!JsonObject} */ (shareProviders[type])));
+        return;
+      }
+
+      // Bookend config API requires real boolean, not just truthy
+      if (shareProviders[type] === true) {
+        fragment.appendChild(this.buildShareProvider_(type));
+        return;
+      }
+
+      user().warn(
+          'Invalid amp-story bookend share configuration for %s. ' +
+          'Value must be `true` or a params object.',
+          type);
+    });
+
+    this.insertShareItem_(fragment);
+  }
+
+  /**
+   * @param {string} type
+   * @param {!JsonObject=} opt_params
+   * @return {!Element}
+   * @private
+   */
+  buildShareProvider_(type, opt_params) {
+    return this.buildShareItem_(shareProviderHtml(type, opt_params));
+  }
+
+  /**
+   * @param {string} html
+   * @return {!Element}
+   * @private
+   */
+  buildShareItem_(html) {
+    const el = this.win_.document.createElement('li');
+    el./*OK*/innerHTML = html;
+    return el;
+  }
+
+  /**
+   * @param {!Node} node
+   * @private
+   */
+  insertShareItem_(node) {
+    dev().assert(this.getRoot().querySelector('.i-amp-story-share-list'))
+        .appendChild(node);
+  }
+
+  /**
+   * @param {!Array<!./related-articles.RelatedArticleSet>} articleSets
+   * @private
+   */
+  setRelatedArticles_(articleSets) {
     const fragment = this.win_.document.createDocumentFragment();
 
     articleSets.forEach(articleSet =>
