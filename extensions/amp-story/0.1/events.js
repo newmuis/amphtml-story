@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import {createCustomEvent} from '../../../src/event-helper';
+
 
 /** @const {!Object<string, string>} */
 export const EventType = {
@@ -34,6 +36,9 @@ export const EventType = {
 
   // Triggered when there are no audio sources playing on the active page
   AUDIO_STOPPED: 'ampstory:audiostopped',
+
+  // Triggered when the story should switch to a specified page
+  SWITCH_PAGE: 'ampstory:switchpage',
 };
 
 
@@ -47,5 +52,17 @@ export function dispatch(source, eventName, opt_bubbles) {
   if (event.initEvent) {
     event.initEvent(eventName, /* bubbles */ !!opt_bubbles);
   }
+  source.dispatchEvent(event);
+}
+
+
+/**
+ * @param {!Window} win
+ * @param {!Element} source
+ * @param {string} eventName
+ * @param {!CustomEventInit} eventInit
+ */
+export function dispatchCustom(win, source, eventName, payload, opt_eventInit) {
+  const event = createCustomEvent(win, eventName, payload, opt_eventInit);
   source.dispatchEvent(event);
 }
