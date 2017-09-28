@@ -341,7 +341,7 @@ amp-story-grid-layer * {
   text-transform: uppercase;
   font-size: 10px;
   padding: 0 0 8px;
-  margin: 16px 0 8px;
+  margin: 48px 0 8px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.25);
   color: rgba(255, 255, 255, 0.54);
   font-family: 'Roboto', sans-serif;
@@ -391,39 +391,67 @@ amp-story-grid-layer * {
   border-top: 1px solid rgba(255, 255, 255, 0.25);
 }
 
-.i-amp-story-bookend-share-icon > svg {
+.i-amp-story-share-icon > svg {
   fill: #fff;
 }
 
-.i-amp-story-bookend-share {
-  margin: 0;
-  padding: 0;
+.i-amp-story-share-list {
+  display: flex;
   list-style: none;
-  display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  padding: 16px 0;
+  /* negative margin = outer padding for container for horizontal scrolling */
+  margin: 0 -32px;
+  overflow: auto;
 }
 
-.i-amp-story-bookend-share-icon {
+.i-amp-story-share-list::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+}
+
+.i-amp-story-share-icon {
   box-sizing: border-box;
-
-  /* setting to 44px with padding and negative margin to meet touch target
-  size criteria in material design */
-  padding: 6px;
-  margin: -6px;
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
+  padding: 8px;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  background-size: 32px 32px;
+  display: block !important;
 }
 
-.i-amp-story-bookend-share > li {
-  margin: 16px 0;
-  display: flex;
-  flex-basis: 33.333%;
+.i-amp-story-share-icon:active {
+  background-color: rgba(255, 255, 255, 0.6);
+  outline: none;
 }
 
-.i-amp-story-bookend-share > li:nth-child(3n + 2) {
-  justify-content: center;
+amp-social-share.i-amp-story-share-icon[type=email] {
+  background-image: none !important;
 }
 
-.i-amp-story-bookend-share > li:nth-child(3n + 3) {
-  justify-content: flex-end;
+.i-amp-story-share-list > li {
+  width: 48px;
+  height: 66px;
+  padding: 0 16px;
+  display: inline-block;
+}
+
+.i-amp-story-share-list > li:first-child {
+  padding-left: 32px;
+}
+
+.i-amp-story-share-list > li:last-child {
+  padding-right: 32px;
+}
+
+.i-amp-story-share-name {
+  display: block;
+  text-align: center;
+  text-transform: capitalize;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 400;
+  line-height: 10px;
+  font-size: 10px;
+  padding: 8px 0 0;
 }

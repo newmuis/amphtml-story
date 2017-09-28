@@ -66,6 +66,9 @@ const ACTIVE_PAGE_ATTRIBUTE_NAME = 'active';
 const RELATED_ARTICLES_ATTRIBUTE_NAME = 'related-articles';
 
 /** @private @const {string} */
+const BOOKEND_CONFIG_ATTRIBUTE_NAME = 'bookend-config-src';
+
+/** @private @const {string} */
 const AMP_STORY_STANDALONE_ATTRIBUTE = 'standalone';
 
 /** @private @const {number} */
@@ -125,12 +128,8 @@ export class AmpStory extends AMP.BaseElement {
     /** @const @private {!AudioManager} */
     this.audioManager_ = new AudioManager(this.win, this.element);
 
-    /**
-     * @private @const {
-     *   !function():!Promise<?Array<!./related-articles.RelatedArticleSet>
-     * }
-     */
-    this.loadRelatedArticles_ = once(() => this.loadRelatedArticlesImpl_());
+    /** @private @const {!function():!Promise<?./bookend.BookendConfig>} */
+    this.loadBookendConfig_ = once(() => this.loadBookendConfigImpl_());
 
     /** @private {?AmpStoryPage} */
     this.activePage_ = null;
@@ -600,25 +599,65 @@ export class AmpStory extends AMP.BaseElement {
 
     this.element.appendChild(this.bookend_.build());
 
-    return this.loadRelatedArticles_().then(articleSets => {
-      if (articleSets === null) {
-        return;
+    this.setAsOwner(this.bookend_.getRoot());
+
+    this.loadBookendConfig_().then(bookendConfig => {
+      if (bookendConfig !== null) {
+        this.bookend_.setConfig(dev().assert(bookendConfig));
       }
-      this.bookend_.setRelatedArticles(dev().assert(articleSets));
+      this.scheduleResume(this.bookend_.getRoot());
     });
   }
 
 
   /**
-   * @return {!Promise<?Array<!./related-articles.RelatedArticleSet>>}
+   * @return {!Promise<?./bookend.BookendConfig>}
    * @private
    */
-  loadRelatedArticlesImpl_() {
-    const rawUrl = this.getRelatedArticlesUrlOptional_();
+  loadBookendConfigImpl_() {
+    // two-tiered implementation for backwards-compatibility with
+    // related-articles attribute
+    return this.loadBookendConfigInternal_().then(bookendConfig =>
+        bookendConfig || this.loadRelatedArticlesAsBookendConfig_());
+  }
 
-    if (rawUrl === null) {
+
+  /**
+   * @return {!Promise<?./bookend.BookendConfig>}
+   */
+  loadBookendConfigInternal_() {
+    return this.loadJsonFromAttribute_(BOOKEND_CONFIG_ATTRIBUTE_NAME)
+        .then(response => response && {
+          shareProviders: response['share-providers'],
+          relatedArticles: response['related-articles'] ?
+              buildFromJson(response['related-articles']) : [],
+        });
+  }
+
+
+  /**
+   * @return {!Promise<?./bookend.BookendConfig>}
+   * @private
+   */
+  loadRelatedArticlesAsBookendConfig_() {
+    return this.loadJsonFromAttribute_(RELATED_ARTICLES_ATTRIBUTE_NAME)
+        .then(response => response && {
+          relatedArticles: buildFromJson(response),
+        });
+  }
+
+
+  /**
+   * @param {string} attributeName
+   * @return {!Promise<?JsonObject>}
+   * @private
+   */
+  loadJsonFromAttribute_(attributeName) {
+    if (!this.element.hasAttribute(attributeName)) {
       return Promise.resolve(null);
     }
+
+    const rawUrl = this.element.getAttribute(attributeName);
 
     return Services.urlReplacementsForDoc(this.getAmpDoc())
         .expandAsync(user().assertString(rawUrl))
@@ -626,20 +665,7 @@ export class AmpStory extends AMP.BaseElement {
         .then(response => {
           user().assert(response.ok, 'Invalid HTTP response');
           return response.json();
-        })
-        .then(buildFromJson);
-  }
-
-
-  /**
-   * @return {?string}
-   * @private
-   */
-  getRelatedArticlesUrlOptional_() {
-    if (!this.element.hasAttribute(RELATED_ARTICLES_ATTRIBUTE_NAME)) {
-      return null;
-    }
-    return this.element.getAttribute(RELATED_ARTICLES_ATTRIBUTE_NAME);
+        });
   }
 
   /**
