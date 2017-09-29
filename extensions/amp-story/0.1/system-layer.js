@@ -29,19 +29,19 @@ const TEMPLATE =
           <path d="M0 0h24v24H0z" fill="none"/>
         </svg>
       </div>
-      <div role="button" class="i-amp-story-mute-audio-control i-amp-story-button">
+      <div role="button" class="i-amphtml-story-mute-audio-control i-amphtml-story-button">
         <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24" fill="#FFFFFF">
           <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
           <path d="M0 0h24v24H0z" fill="none"/>
         </svg>
       </div>
-      <div role="button" class="i-amp-story-exit-fullscreen i-amp-story-button" hidden>
+      <div role="button" class="i-amphtml-story-exit-fullscreen i-amphtml-story-button" hidden>
         <svg fill="#FFFFFF" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
           <path d="M0 0h24v24H0z" fill="none"/>
           <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>
         </svg>
       </div>
-      <div div role="button" class="i-amp-story-bookend-close i-amp-story-button" hidden>
+      <div div role="button" class="i-amphtml-story-bookend-close i-amphtml-story-button" hidden>
         <svg fill="#FFFFFF" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
           <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
           <path d="M0 0h24v24H0z" fill="none"/>
@@ -111,23 +111,25 @@ export class SystemLayer {
     this.isBuilt_ = true;
 
     this.root_ = this.win_.document.createElement('aside');
-    this.root_.classList.add('i-amp-story-system-layer');
+    this.root_.classList.add('i-amphtml-story-system-layer');
     this.root_./*OK*/innerHTML = TEMPLATE;
 
     this.root_.insertBefore(
         this.progressBar_.build(pageCount), this.root_.firstChild);
 
     this.exitFullScreenBtn_ =
-        this.root_.querySelector('.i-amp-story-exit-fullscreen');
+        this.root_.querySelector('.i-amphtml-story-exit-fullscreen');
 
     this.closeBookendBtn_ =
-        this.root_.querySelector('.i-amp-story-bookend-close');
+        this.root_.querySelector('.i-amphtml-story-bookend-close');
 
     this.muteAudioBtn_ =
-        this.root_.querySelector('.i-amp-story-mute-audio-control');
+        this.root_.querySelector('.i-amphtml-story-mute-audio-control');
 
     this.unmuteAudioBtn_ =
-        this.root_.querySelector('.i-amp-story-unmute-audio-control');
+        this.root_.querySelector('.i-amphtml-story-unmute-audio-control');
+
+    this.progressEl_ = this.root_.querySelector('.i-amphtml-story-progress-value');
 
     this.addEventHandlers_();
 

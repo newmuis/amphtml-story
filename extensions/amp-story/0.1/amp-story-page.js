@@ -38,26 +38,26 @@ import {VideoEvents} from '../../../src/video-interface';
 import {listenOnce} from '../../../src/event-helper';
 
 const LOADING_SCREEN_CONTENTS_TEMPLATE =
-    `<ul class="i-amp-story-page-loading-dots">
-      <li class="i-amp-story-page-loading-dot"></li>
-      <li class="i-amp-story-page-loading-dot"></li>
-      <li class="i-amp-story-page-loading-dot"></li>
+    `<ul class="i-amphtml-story-page-loading-dots">
+      <li class="i-amphtml-story-page-loading-dot"></li>
+      <li class="i-amphtml-story-page-loading-dot"></li>
+      <li class="i-amphtml-story-page-loading-dot"></li>
     </ul>
-    <p class="i-amp-story-page-loading-text">Loading</p>`;
+    <p class="i-amphtml-story-page-loading-text">Loading</p>`;
 
 
 /**
  * CSS class for an amp-story-page that indicates the entire page is loaded.
  * @const {string}
  */
-const PAGE_LOADED_CLASS_NAME = 'i-amp-story-page-loaded';
+const PAGE_LOADED_CLASS_NAME = 'i-amphtml-story-page-loaded';
 
 
 /**
  * CSS class for an amp-story-page that indicates the entire page can be shown.
  * @const {string}
  */
-const PAGE_SHOWN_CLASS_NAME = 'i-amp-story-page-shown';
+const PAGE_SHOWN_CLASS_NAME = 'i-amphtml-story-page-shown';
 
 
 /**
@@ -162,7 +162,7 @@ export class AmpStoryPage extends AMP.BaseElement {
   initializeLoading_() {
     // Add the loading screen into the DOM.
     const loadingScreen = this.win.document.createElement('div');
-    loadingScreen.classList.add('i-amp-story-page-loading-screen');
+    loadingScreen.classList.add('i-amphtml-story-page-loading-screen');
     loadingScreen./*OK*/innerHTML = LOADING_SCREEN_CONTENTS_TEMPLATE;
     this.element.appendChild(loadingScreen);
 
@@ -427,7 +427,7 @@ export class AmpStoryPage extends AMP.BaseElement {
       return el;
     } else if (el.hasAttribute('background-audio') &&
         (tagName === 'amp-story' || tagName === 'amp-story-page')) {
-      return el.querySelector('.i-amp-story-background-audio');
+      return el.querySelector('.i-amphtml-story-background-audio');
     } else if (tagName === 'amp-audio') {
       return el.querySelector('audio');
     }
@@ -618,7 +618,7 @@ export class AmpStoryPage extends AMP.BaseElement {
    */
   next(opt_isAutomaticAdvance) {
     this.switchTo_(
-        this.getNextPageId_(opt_isAutomaticAdvance), 'i-amp-story-bookend');
+        this.getNextPageId_(opt_isAutomaticAdvance), 'i-amphtml-story-bookend');
   }
 
 

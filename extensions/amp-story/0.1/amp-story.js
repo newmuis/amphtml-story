@@ -38,14 +38,8 @@ import {VariableService} from './variable-service';
 import {Services} from '../../../src/services';
 import {assertHttpsUrl} from '../../../src/url';
 import {buildFromJson} from './related-articles';
-import {closest} from '../../../src/dom';
+import {closest, fullscreenEnter, fullscreenExit, isFullscreenElement} from '../../../src/dom';
 import {dev, user} from '../../../src/log';
-import {
-  exitFullScreen,
-  isFullScreenSupported,
-  requestFullScreen,
-  getFullScreenElement,
-} from './fullscreen';
 import {once} from '../../../src/utils/function';
 import {map} from '../../../src/utils/object';
 import {
@@ -57,7 +51,6 @@ import {setStyles} from '../../../src/style';
 import {ProgressBar} from './progress-bar';
 
 
-
 /** @private @const {number} */
 const NEXT_SCREEN_AREA_RATIO = 0.75;
 
@@ -66,6 +59,9 @@ const ACTIVE_PAGE_ATTRIBUTE_NAME = 'active';
 
 /** @private @const {string} */
 const RELATED_ARTICLES_ATTRIBUTE_NAME = 'related-articles';
+
+/** @private @const {string} */
+const BOOKEND_CONFIG_ATTRIBUTE_NAME = 'bookend-config-src';
 
 /** @private @const {string} */
 const AMP_STORY_STANDALONE_ATTRIBUTE = 'standalone';
@@ -127,12 +123,8 @@ export class AmpStory extends AMP.BaseElement {
     /** @const @private {!AudioManager} */
     this.audioManager_ = new AudioManager(this.win, this.element);
 
-    /**
-     * @private @const {
-     *   !function():!Promise<?Array<!./related-articles.RelatedArticleSet>
-     * }
-     */
-    this.loadRelatedArticles_ = once(() => this.loadRelatedArticlesImpl_());
+    /** @private @const {!function():!Promise<?./bookend.BookendConfig>} */
+    this.loadBookendConfig_ = once(() => this.loadBookendConfigImpl_());
 
     /** @private {?AmpStoryPage} */
     this.activePage_ = null;
@@ -142,7 +134,7 @@ export class AmpStory extends AMP.BaseElement {
   buildCallback() {
     if (this.element.hasAttribute(AMP_STORY_STANDALONE_ATTRIBUTE)) {
       this.getAmpDoc().win.document.documentElement.classList
-          .add('i-amp-story-standalone');
+          .add('i-amphtml-story-standalone');
     }
 
     this.element.appendChild(
@@ -192,7 +184,7 @@ export class AmpStory extends AMP.BaseElement {
     this.element.addEventListener(EventType.SWITCH_PAGE, e => {
       const targetPageId = e.detail.targetPageId;
 
-      if (targetPageId === 'i-amp-story-bookend') {
+      if (targetPageId === 'i-amphtml-story-bookend') {
         this.showBookend_();
       } else {
         this.switchTo_(targetPageId);
@@ -395,8 +387,7 @@ export class AmpStory extends AMP.BaseElement {
     const inFullScreenThreshold =
         width <= FULLSCREEN_THRESHOLD && height <= FULLSCREEN_THRESHOLD;
 
-    return inFullScreenThreshold && isFullScreenSupported(this.element)
-        && this.isAutoFullScreenEnabled_;
+    return inFullScreenThreshold && this.isAutoFullScreenEnabled_;
   }
 
 
@@ -428,7 +419,7 @@ export class AmpStory extends AMP.BaseElement {
 
   /** @private */
   enterFullScreen_() {
-    requestFullScreen(this.element);
+    fullscreenEnter(this.element);
   }
 
 
@@ -441,7 +432,7 @@ export class AmpStory extends AMP.BaseElement {
       this.setAutoFullScreen(false);
     }
 
-    exitFullScreen(this.element);
+    fullscreenExit(this.element);
   }
 
 
@@ -451,7 +442,7 @@ export class AmpStory extends AMP.BaseElement {
    * @private
    */
   onFullscreenChanged_() {
-    const isFullscreen = !!getFullScreenElement(this.win.document);
+    const isFullscreen = isFullscreenElement(this.element);
     this.systemLayer_.setInFullScreen(isFullscreen);
   }
 
@@ -471,7 +462,7 @@ export class AmpStory extends AMP.BaseElement {
       this.isBookendActive_ = true;
 
       this.vsync_.mutate(() => {
-        this.element.classList.add('i-amp-story-bookend-active');
+        this.element.classList.add('i-amphtml-story-bookend-active');
         this.bookend_.getRoot()./*OK*/scrollTop = 0;
       });
     });
@@ -487,7 +478,7 @@ export class AmpStory extends AMP.BaseElement {
     this.isBookendActive_ = false;
 
     this.vsync_.mutate(() => {
-      this.element.classList.remove('i-amp-story-bookend-active');
+      this.element.classList.remove('i-amphtml-story-bookend-active');
     });
   }
 
@@ -602,25 +593,65 @@ export class AmpStory extends AMP.BaseElement {
 
     this.element.appendChild(this.bookend_.build());
 
-    return this.loadRelatedArticles_().then(articleSets => {
-      if (articleSets === null) {
-        return;
+    this.setAsOwner(this.bookend_.getRoot());
+
+    this.loadBookendConfig_().then(bookendConfig => {
+      if (bookendConfig !== null) {
+        this.bookend_.setConfig(dev().assert(bookendConfig));
       }
-      this.bookend_.setRelatedArticles(dev().assert(articleSets));
+      this.scheduleResume(this.bookend_.getRoot());
     });
   }
 
 
   /**
-   * @return {!Promise<?Array<!./related-articles.RelatedArticleSet>>}
+   * @return {!Promise<?./bookend.BookendConfig>}
    * @private
    */
-  loadRelatedArticlesImpl_() {
-    const rawUrl = this.getRelatedArticlesUrlOptional_();
+  loadBookendConfigImpl_() {
+    // two-tiered implementation for backwards-compatibility with
+    // related-articles attribute
+    return this.loadBookendConfigInternal_().then(bookendConfig =>
+        bookendConfig || this.loadRelatedArticlesAsBookendConfig_());
+  }
 
-    if (rawUrl === null) {
+
+  /**
+   * @return {!Promise<?./bookend.BookendConfig>}
+   */
+  loadBookendConfigInternal_() {
+    return this.loadJsonFromAttribute_(BOOKEND_CONFIG_ATTRIBUTE_NAME)
+        .then(response => response && {
+          shareProviders: response['share-providers'],
+          relatedArticles: response['related-articles'] ?
+              buildFromJson(response['related-articles']) : [],
+        });
+  }
+
+
+  /**
+   * @return {!Promise<?./bookend.BookendConfig>}
+   * @private
+   */
+  loadRelatedArticlesAsBookendConfig_() {
+    return this.loadJsonFromAttribute_(RELATED_ARTICLES_ATTRIBUTE_NAME)
+        .then(response => response && {
+          relatedArticles: buildFromJson(response),
+        });
+  }
+
+
+  /**
+   * @param {string} attributeName
+   * @return {!Promise<?JsonObject>}
+   * @private
+   */
+  loadJsonFromAttribute_(attributeName) {
+    if (!this.element.hasAttribute(attributeName)) {
       return Promise.resolve(null);
     }
+
+    const rawUrl = this.element.getAttribute(attributeName);
 
     return Services.urlReplacementsForDoc(this.getAmpDoc())
         .expandAsync(user().assertString(rawUrl))
@@ -628,20 +659,7 @@ export class AmpStory extends AMP.BaseElement {
         .then(response => {
           user().assert(response.ok, 'Invalid HTTP response');
           return response.json();
-        })
-        .then(buildFromJson);
-  }
-
-
-  /**
-   * @return {?string}
-   * @private
-   */
-  getRelatedArticlesUrlOptional_() {
-    if (!this.element.hasAttribute(RELATED_ARTICLES_ATTRIBUTE_NAME)) {
-      return null;
-    }
-    return this.element.getAttribute(RELATED_ARTICLES_ATTRIBUTE_NAME);
+        });
   }
 
   /**

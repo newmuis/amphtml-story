@@ -13,24 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {ICONS} from './icons';
+import {BookendShareWidget} from './bookend-share';
 import {EventType, dispatch} from './events';
 import {createElementWithAttributes, escapeHtml} from '../../../src/dom';
 import {dev} from '../../../src/log';
-import {scale, setStyles} from '../../../src/style';
-import {vsyncFor} from '../../../src/services';
 
 
-// TODO(alanorozco): Use a precompiled template for performance
-const TEMPLATE =
-    `<h3 class="i-amp-story-bookend-heading">Share the story</h3>
-    <ul class="i-amp-story-bookend-share">
-      <li>
-        <div class="i-amp-story-bookend-share-icon">
-          ${ICONS.link}
-        </div>
-      </li>
-    </ul>`;
+/**
+ * @typedef {{
+ *   shareProviders: !JsonObject|undefined,
+ *   relatedArticles: !Array<!./related-articles.RelatedArticleSet>
+ * }}
+ */
+export let BookendConfig;
 
 
 /**
@@ -43,7 +38,7 @@ const TEMPLATE =
 function articleHtml(articleData) {
   // TODO(alanorozco): Consider using amp-img and what we need to get it working
   const imgHtml = articleData.image ? (
-      `<div class="i-amp-story-bookend-article-image">
+      `<div class="i-amphtml-story-bookend-article-image">
         <img src="${articleData.image}"
             width="116"
             height="116">
@@ -53,10 +48,10 @@ function articleHtml(articleData) {
 
   return (
       `${imgHtml}
-      <h2 class="i-amp-story-bookend-article-heading">
+      <h2 class="i-amphtml-story-bookend-article-heading">
         ${articleData.title}
       </h2>
-      <div class="i-amp-story-bookend-article-meta">
+      <div class="i-amphtml-story-bookend-article-meta">
         example.com - 10 mins
       </div>`
   );
@@ -79,6 +74,9 @@ export class Bookend {
 
     /** @private {?Element} */
     this.root_ = null;
+
+    /** @private {!BookendShareWidget} */
+    this.shareWidget_ = BookendShareWidget.create(win);
   }
 
   /**
@@ -92,8 +90,9 @@ export class Bookend {
     this.isBuilt_ = true;
 
     this.root_ = this.win_.document.createElement('section');
-    this.root_.classList.add('i-amp-story-bookend');
-    this.root_./*OK*/innerHTML = TEMPLATE;
+    this.root_.classList.add('i-amphtml-story-bookend');
+
+    this.root_.appendChild(this.shareWidget_.build());
 
     return this.getRoot();
   }
@@ -111,11 +110,24 @@ export class Bookend {
   }
 
   /**
-   * @param {!Array<!./related-articles.RelatedArticleSet>} articleSets
+   * @param {!BookendConfig} bookendConfig
    */
-  setRelatedArticles(articleSets) {
+  setConfig(bookendConfig) {
     this.assertBuilt_();
 
+    if (bookendConfig.shareProviders) {
+      this.shareWidget_.setProviders(
+          dev().assert(bookendConfig.shareProviders));
+    }
+
+    this.setRelatedArticles_(bookendConfig.relatedArticles);
+  }
+
+  /**
+   * @param {!Array<!./related-articles.RelatedArticleSet>} articleSets
+   * @private
+   */
+  setRelatedArticles_(articleSets) {
     const fragment = this.win_.document.createDocumentFragment();
 
     articleSets.forEach(articleSet =>
@@ -149,7 +161,7 @@ export class Bookend {
    */
   buildArticleList_(articleList) {
     const container = createElementWithAttributes(this.win_.document, 'div', {
-      'class': 'i-amp-story-bookend-article-set',
+      'class': 'i-amphtml-story-bookend-article-set',
     });
     articleList.forEach(article =>
         container.appendChild(this.buildArticle_(article)));
@@ -162,7 +174,7 @@ export class Bookend {
    */
   buildArticleSetHeading_(heading) {
     const headingEl = createElementWithAttributes(this.win_.document, 'h3', {
-      'class': 'i-amp-story-bookend-heading',
+      'class': 'i-amphtml-story-bookend-heading',
     });
     headingEl.innerText = escapeHtml(heading);
     return headingEl;
@@ -187,3 +199,4 @@ export class Bookend {
     return dev().assertElement(this.root_);
   }
 }
+

@@ -1,0 +1,38 @@
+{
+  "share-providers": {
+    "facebook": true,
+    "twitter": true,
+    "gplus": true,
+    "email": true,
+    "tumblr": true
+  },
+  "related-articles": {
+    "More to Read": [
+      {
+        "title": "This is India and the best places you should go",
+        "url": "http://a-publisher.com/india",
+        "image": "http://placekitten.com/g/200/200"
+      },
+      {
+        "title": "A wonderful weekend with Tenturi",
+        "url": "http://a-publisher.com/india",
+        "image": "http://placekitten.com/g/220/220"
+      },
+      {
+        "title": "Go to Istanbul, the historical city where east meets west",
+        "url": "http://a-publisher.com/istanbul",
+        "image": "http://placekitten.com/g/240/240"
+      }
+    ],
+    "": [
+      {
+        "title": "Examining the moon",
+        "url": "http://a-publisher.com/the-moon"
+      },
+      {
+        "title": "Architecture in the thousand-year capital",
+        "url": "http://a-publisher.com/architecture"
+      }
+    ]
+  }
+}
