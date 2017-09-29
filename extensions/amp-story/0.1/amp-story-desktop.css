@@ -1,0 +1,138 @@
+/**
+ * Copyright 2017 The AMP HTML Authors. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS-IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+[desktop] .i-amphtml-story-system-layer {
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.35), transparent);
+  top: auto;
+  bottom: 0;
+}
+
+[desktop] amp-story-page.i-amphtml-story-page-shown {
+  transition: opacity 300ms linear, transform 300ms ease-out;
+  opacity: .25;
+}
+
+[desktop] amp-story-page.i-amphtml-story-page-shown:not([active]):hover {
+  opacity: .5;
+}
+
+[desktop] amp-story-page {
+  transform: translateX(-350%) translateY(0%) scale(.75) !important;
+}
+
+[desktop] amp-story-page[pre-active] {
+  /* -150% + 15% */
+  transform: translateX(-135%) translateY(0%) scale(.75) !important;
+}
+
+[desktop] amp-story-page[active] {
+  transform: translateX(-50%) translateY(0%) scale(.75) !important;
+  opacity: 1;
+}
+
+[desktop] amp-story-page[active] + amp-story-page {
+  /* 50% - 15% */
+  transform: translateX(35%) translateY(0%) scale(.75) !important;
+}
+
+[desktop] amp-story-page[active] + amp-story-page ~ amp-story-page {
+  transform: translateX(250%) translateY(0%) scale(.75) !important;
+}
+
+[dir=rtl] [desktop] amp-story-page {
+  transform: translateX(250%) translateY(0%) scale(.75) !important;
+}
+
+[dir=rtl] [desktop] amp-story-page[pre-active] {
+  /* -150% + 15% */
+  transform: translateX(35%) translateY(0%) scale(.75) !important;
+}
+
+[dir=rtl] [desktop] amp-story-page[active] {
+  transform: translateX(-50%) translateY(0%) scale(.75) !important;
+  opacity: 1;
+}
+
+[dir=rtl] [desktop] amp-story-page[active] + amp-story-page {
+  /* 50% - 15% */
+  transform: translateX(-135%) translateY(0%) scale(.75) !important;
+}
+
+[dir=rtl] [desktop] amp-story-page[active] + amp-story-page ~ amp-story-page {
+  transform: translateX(-350%) translateY(0%) scale(.75) !important;
+}
+
+[desktop] amp-story-page {
+  left: 50%!important;
+  right: auto!important;
+  margin: auto;
+  max-height: 736px;
+  max-width: 414px;
+}
+
+[desktop] .i-amphtml-story-button-move {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  margin: auto;
+  width: 53px;
+  height: 53px;
+  border-radius: 50%;
+  border: 0;
+  background-color: #fff;
+  /** TODO(cvializ): Use icon closer to mocks */
+  background-image: url('data:image/svg+xml;charset=utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 26 42"><polyline fill="none" points="6,3 24,21 6,39" stroke-miterlimit="10" stroke-width="5" stroke="rgba(0,0,0,1)"></polyline></svg>');
+  background-repeat: no-repeat;
+  background-size: 50% 50%;
+  background-position: 50% 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: 150ms opacity linear;
+}
+
+[desktop] .i-amphtml-story-button-next {
+  right: 32px;
+}
+
+[desktop] .i-amphtml-story-button-prev {
+  left: 32px;
+  transform: scaleX(-1);
+}
+
+[desktop] [active]:not(:first-of-type) ~ .i-amphtml-story-button-prev,
+[desktop] [active] ~ .i-amphtml-story-button-next  {
+  opacity: .5;
+  cursor: pointer;
+}
+
+[desktop] .i-amphtml-story-button-move.i-amphtml-story-button-move:hover {
+  opacity: 1;
+}
+
+[desktop] [active]:first-of-type ~ .i-amphtml-story-button-prev {
+  opacity: 0;
+  cursor: default;
+}
+
+[desktop] .i-amphtml-story-logo {
+  display: block;
+}
+amp-story[desktop] {
+  max-width: 100%!important;
+  max-height: 100%!important;
+}
