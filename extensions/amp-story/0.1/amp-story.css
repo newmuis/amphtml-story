@@ -476,7 +476,6 @@ amp-story-grid-layer * {
   top: 0 !important;
   padding: 44px 32px 32px;
   overflow: auto;
-  z-index: 30;
 }
 
 .i-amphtml-story-bookend-active .i-amphtml-story-bookend {

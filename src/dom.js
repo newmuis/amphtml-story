@@ -635,7 +635,7 @@ export function openWindowDialog(win, url, target, opt_features) {
  */
 export function isJsonScriptTag(element) {
   return element.tagName == 'SCRIPT' &&
-            element.getAttribute('type').toUpperCase() == 'APPLICATION/JSON';
+      element.getAttribute('type').toUpperCase() == 'APPLICATION/JSON';
 }
 
 /**
@@ -645,7 +645,7 @@ export function isJsonScriptTag(element) {
  */
 export function isJsonLdScriptTag(element) {
   return element.tagName == 'SCRIPT' &&
-            element.getAttribute('type').toUpperCase() == 'APPLICATION/LD+JSON';
+      element.getAttribute('type').toUpperCase() == 'APPLICATION/LD+JSON';
 }
 
 /**

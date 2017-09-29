@@ -15,13 +15,9 @@
  */
 import {EventType, dispatch} from './events';
 import {dev} from '../../../src/log';
-import {scale, setStyles} from '../../../src/style';
 import {Services} from '../../../src/services';
-<<<<<<< HEAD
 import {ProgressBar} from './progress-bar';
-=======
 import {KeyCodes} from '../../../src/utils/key-codes';
->>>>>>> Initial effort for amp-story desktop view
 
 
 // TODO(alanorozco): Use a precompiled template for performance
@@ -133,7 +129,8 @@ export class SystemLayer {
     this.unmuteAudioBtn_ =
         this.root_.querySelector('.i-amphtml-story-unmute-audio-control');
 
-    this.progressEl_ = this.root_.querySelector('.i-amphtml-story-progress-value');
+    this.progressEl_ =
+        this.root_.querySelector('.i-amphtml-story-progress-value');
 
     this.addEventHandlers_();
 

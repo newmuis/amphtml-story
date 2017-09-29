@@ -69,7 +69,7 @@ export class ProgressBar {
       pageProgressBar.classList.add('i-amphtml-story-page-progress-bar');
       const pageProgressValue = this.win_.document.createElement('div');
       pageProgressValue.classList.add('i-amphtml-story-page-progress-value');
-      pageProgressBar.appendChild(pageProgressValue)
+      pageProgressBar.appendChild(pageProgressValue);
       this.root_.appendChild(pageProgressBar);
     }
 

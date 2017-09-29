@@ -24,7 +24,8 @@
  * </amp-story>
  * </code>
  */
-import {AmpStoryGridLayer} from './amp-story-grid-layer';
+import './amp-story-grid-layer';
+import './amp-story-page';
 import {AmpStoryBackground} from './amp-story-background';
 import {AnalyticsTrigger} from './analytics';
 import {Bookend} from './bookend';
@@ -225,20 +226,22 @@ export class AmpStory extends AMP.BaseElement {
     this.onResize();
 
     const doc = this.element.ownerDocument;
-    const n = doc.createElement('button');
-    n.classList.add('i-amphtml-story-button-move','i-amphtml-story-button-next');
-    this.element.appendChild(n);
-    const p = doc.createElement('button');
-    p.classList.add('i-amphtml-story-button-move','i-amphtml-story-button-prev');
-    this.element.appendChild(p);
+    const nextButton = doc.createElement('button');
+    nextButton.classList.add(
+        'i-amphtml-story-button-move','i-amphtml-story-button-next');
+    this.element.appendChild(nextButton);
+    const previousButton = doc.createElement('button');
+    previousButton.classList.add(
+        'i-amphtml-story-button-move','i-amphtml-story-button-prev');
+    this.element.appendChild(previousButton);
 
     const jsonLd = getJsonLd(doc);
     if (jsonLd && jsonLd['@type'] === 'NewsArticle') {
       const publisherInfo = jsonLd.publisher;
       const logoInfo = publisherInfo.logo;
       const logo = createElementWithAttributes(doc, 'amp-img', {
-        width: Math.floor(logoInfo.width / 2),
-        height: Math.floor(logoInfo.height / 2),
+        width: Math.floor(logoInfo.width),
+        height: Math.floor(logoInfo.height),
         src: logoInfo.url,
         // TODO(cvializ): alt text, i18n?
       });
@@ -247,6 +250,9 @@ export class AmpStory extends AMP.BaseElement {
     }
   }
 
+  /**
+   * Handle resize events and set the story's desktop state.
+   */
   onResize() {
     if (this.isDesktop_()) {
       this.element.setAttribute('desktop','');
@@ -255,10 +261,18 @@ export class AmpStory extends AMP.BaseElement {
     }
   }
 
+  /**
+   * @return {boolean} True if the screen size matches the desktop media query.
+   */
   isDesktop_() {
     return this.desktopMedia_.matches;
   }
 
+  /**
+   * Get the URL of the given page's background resource.
+   * @param {!Element} pageElement
+   * @return {string} The URL of the background resource
+   */
   getBackgroundUrl_(pageElement) {
     const fillElement = scopedQuerySelector(pageElement, '[template="fill"]');
     const fillPosterElement = scopedQuerySelector(fillElement, '[poster]');
@@ -272,6 +286,10 @@ export class AmpStory extends AMP.BaseElement {
     return pagePoster || fillPoster || src;
   }
 
+  /**
+   * Update the background to the specified page's background.
+   * @param {!Element} pageElement
+   */
   updateBackground_(pageElement) {
     this.background_.setBackground(this.getBackgroundUrl_(pageElement));
   }
@@ -313,7 +331,7 @@ export class AmpStory extends AMP.BaseElement {
         (pageEl, index) => {
           return pageEl.getImpl().then(pageImpl => {
             this.pages_[index] = pageImpl;
-          })
+          });
         });
 
     return Promise.all(pageImplPromises);
@@ -474,16 +492,18 @@ export class AmpStory extends AMP.BaseElement {
    * @private
    */
   onKeyDown_(e) {
-    if (!this.isBookendActive_) {
-      switch (e.keyCode) {
-        // TODO(newmuis): This will need to be flipped for RTL.
-        case KeyCodes.LEFT_ARROW:
-          this.previous_();
-          break;
-        case KeyCodes.RIGHT_ARROW:
-          this.next_();
-          break;
-      }
+    if (this.isBookendActive_) {
+      return;
+    }
+
+    switch (e.keyCode) {
+      // TODO(newmuis): This will need to be flipped for RTL.
+      case KeyCodes.LEFT_ARROW:
+        this.previous_();
+        break;
+      case KeyCodes.RIGHT_ARROW:
+        this.next_();
+        break;
     }
   }
 
