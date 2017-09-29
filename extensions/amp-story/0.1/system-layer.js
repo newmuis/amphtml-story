@@ -244,7 +244,11 @@ export class SystemLayer {
     dispatch(this.getRoot(), eventType, /* opt_bubbles */ true);
   }
 
-  getProgressBar() {
-    return this.progressBar_;
+  /**
+   * @param {number} pageIndex The index of the new active page.
+   * @public
+   */
+  setActivePageIndex(pageIndex) {
+    this.progressBar_.setActivePageIndex(pageIndex);
   }
 }

@@ -112,9 +112,6 @@ export class AmpStory extends AMP.BaseElement {
     /** @private {!SystemLayer} */
     this.systemLayer_ = new SystemLayer(this.win);
 
-    /** @private @const {!ProgressBar} */
-    this.progressBar_ = this.systemLayer_.getProgressBar();
-
     /** @private {boolean} */
     this.isBookendActive_ = false;
 
@@ -149,8 +146,7 @@ export class AmpStory extends AMP.BaseElement {
     }
 
     this.element.appendChild(
-        this.progressBar_.build(this.getRealChildren().length));
-    this.element.appendChild(this.systemLayer_.build());
+        this.systemLayer_.build(this.getRealChildren().length));
 
     this.initializeListeners_();
 
@@ -328,9 +324,8 @@ export class AmpStory extends AMP.BaseElement {
       this.enterFullScreen_();
     }
 
-    // first page is not counted as part of the progress
     // TODO(alanorozco): decouple this using NavigationState
-    this.progressBar_.setActivePageIndex(pageIndex);
+    this.systemLayer_.setActivePageIndex(pageIndex);
 
     // TODO(alanorozco): check if autoplay
     this.navigationState_.updateActivePage(pageIndex, targetPage.element.id);
