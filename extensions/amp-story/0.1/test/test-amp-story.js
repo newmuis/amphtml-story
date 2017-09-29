@@ -101,6 +101,7 @@ describes.realWin('amp-story', {
         sandbox.match(consumer => consumer instanceof AnalyticsTrigger));
   });
 
+  // TODO(amphtml-story#187): Re-enable this test.
   it.skip('should enter fullscreen when switching pages', () => {
     const requestFullScreen = sandbox.spy();
     const systemLayerSetInFullScreen = sandbox.stub(
@@ -117,6 +118,7 @@ describes.realWin('amp-story', {
         .to.have.been.calledWith(/* inFullScreen */ true);
   });
 
+  // TODO(amphtml-story#187): Re-enable this test.
   it.skip('should not enter fullscreen when switching if auto is disabled', () => {
     const requestFullScreen = sandbox.spy();
 
@@ -132,6 +134,7 @@ describes.realWin('amp-story', {
     expect(enterFullScreen).to.not.have.been.called;
   });
 
+  // TODO(amphtml-story#187): Re-enable this test.
   it.skip('should not enter fullscreen when switching if on "desktop"', () => {
     const requestFullScreen = sandbox.spy();
 
@@ -146,6 +149,7 @@ describes.realWin('amp-story', {
     expect(enterFullScreen).to.not.have.been.called;
   });
 
+  // TODO(amphtml-story#187): Re-enable this test.
   it.skip('should exit fullscreen when switching to the bookend page', () => {
     const exitFullScreen = sandbox.spy();
     const systemLayerSetInFullScreen = sandbox.stub(
@@ -165,6 +169,7 @@ describes.realWin('amp-story', {
         .to.have.been.calledWith(/* inFullScreen */ false);
   });
 
+  // TODO(amphtml-story#187): Re-enable this test.
   it.skip('should disable auto fullscreen when exiting explicitly', () => {
     const setAutoFullScreenSpy = sandbox.spy(
         element.implementation_, 'setAutoFullScreen');
@@ -177,6 +182,7 @@ describes.realWin('amp-story', {
         .to.have.been.calledWith(/* isEnabled */ false);
   });
 
+  // TODO(amphtml-story#187): Re-enable this test.
   it.skip('should exit fullscreen when EXIT_FULLSCREEN is triggered', () => {
     const exitFullScreenStub = sandbox.stub(
         element.implementation_, 'exitFullScreen_', NOOP);
