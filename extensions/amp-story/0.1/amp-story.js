@@ -38,14 +38,8 @@ import {VariableService} from './variable-service';
 import {Services} from '../../../src/services';
 import {assertHttpsUrl} from '../../../src/url';
 import {buildFromJson} from './related-articles';
-import {closest} from '../../../src/dom';
+import {closest, fullscreenEnter, fullscreenExit, isFullscreenElement} from '../../../src/dom';
 import {dev, user} from '../../../src/log';
-import {
-  exitFullScreen,
-  isFullScreenSupported,
-  requestFullScreen,
-  getFullScreenElement,
-} from './fullscreen';
 import {once} from '../../../src/utils/function';
 import {map} from '../../../src/utils/object';
 import {
@@ -392,8 +386,7 @@ export class AmpStory extends AMP.BaseElement {
     const inFullScreenThreshold =
         width <= FULLSCREEN_THRESHOLD && height <= FULLSCREEN_THRESHOLD;
 
-    return inFullScreenThreshold && isFullScreenSupported(this.element)
-        && this.isAutoFullScreenEnabled_;
+    return inFullScreenThreshold && this.isAutoFullScreenEnabled_;
   }
 
 
@@ -425,7 +418,7 @@ export class AmpStory extends AMP.BaseElement {
 
   /** @private */
   enterFullScreen_() {
-    requestFullScreen(this.element);
+    fullscreenEnter(this.element);
   }
 
 
@@ -438,7 +431,7 @@ export class AmpStory extends AMP.BaseElement {
       this.setAutoFullScreen(false);
     }
 
-    exitFullScreen(this.element);
+    fullscreenExit(this.element);
   }
 
 
@@ -448,7 +441,7 @@ export class AmpStory extends AMP.BaseElement {
    * @private
    */
   onFullscreenChanged_() {
-    const isFullscreen = !!getFullScreenElement(this.win.document);
+    const isFullscreen = isFullscreenElement(this.element);
     this.systemLayer_.setInFullScreen(isFullscreen);
   }
 
