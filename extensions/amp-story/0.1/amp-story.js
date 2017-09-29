@@ -595,7 +595,7 @@ export class AmpStory extends AMP.BaseElement {
 
     this.setAsOwner(this.bookend_.getRoot());
 
-    this.loadBookendConfig_().then(bookendConfig => {
+    return this.loadBookendConfig_().then(bookendConfig => {
       if (bookendConfig !== null) {
         this.bookend_.setConfig(dev().assert(bookendConfig));
       }

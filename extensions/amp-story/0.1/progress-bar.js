@@ -62,13 +62,13 @@ export class ProgressBar {
     this.pageCount_ = pageCount;
 
     this.root_ = this.win_.document.createElement('ol');
-    this.root_.classList.add('i-amp-story-progress-bar');
+    this.root_.classList.add('i-amphtml-story-progress-bar');
 
     for (let i = 0; i < this.pageCount_; i++) {
       const pageProgressBar = this.win_.document.createElement('li');
-      pageProgressBar.classList.add('i-amp-story-page-progress-bar');
+      pageProgressBar.classList.add('i-amphtml-story-page-progress-bar');
       const pageProgressValue = this.win_.document.createElement('div');
-      pageProgressValue.classList.add('i-amp-story-page-progress-value');
+      pageProgressValue.classList.add('i-amphtml-story-page-progress-value');
       pageProgressBar.appendChild(pageProgressValue)
       this.root_.appendChild(pageProgressBar);
     }
@@ -123,8 +123,8 @@ export class ProgressBar {
     // JavaScript indices start at 0.
     const nthChildIndex = pageIndex + 1;
     const progressEl = this.root_.querySelector(
-        `.i-amp-story-page-progress-bar:nth-child(${nthChildIndex}) ` +
-        '.i-amp-story-page-progress-value');
+        `.i-amphtml-story-page-progress-bar:nth-child(${nthChildIndex}) ` +
+        '.i-amphtml-story-page-progress-value');
     this.vsync_.mutate(() => {
       setStyles(progressEl, {
         'transform': scale(`${progress},1`),
