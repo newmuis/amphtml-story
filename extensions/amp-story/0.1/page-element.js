@@ -7,7 +7,7 @@
  * @const {!Object<string, !function(!Element, !AmpStoryPage): !PageElement>}
  */
 const PAGE_ELEMENT_FACTORIES = {
-  'amp-audio, amp-video, .i-amp-story-background-audio':
+  'amp-audio, amp-video, .i-amphtml-story-background-audio':
       (element, page) => new MediaElement(element, page),
   'amp-img, amp-anim':
       (element, page) => new ImageElement(element, page),
@@ -20,7 +20,7 @@ const PAGE_ELEMENT_FACTORIES = {
  * CSS class for an element on an amp-story-page.
  * @const {string}
  */
-const ELEMENT_CLASS_NAME = 'i-amp-story-page-element';
+const ELEMENT_CLASS_NAME = 'i-amphtml-story-page-element';
 
 
 /**
@@ -28,7 +28,7 @@ const ELEMENT_CLASS_NAME = 'i-amp-story-page-element';
  * loaded.
  * @const {string}
  */
-const ELEMENT_LOADED_CLASS_NAME = 'i-amp-story-page-element-loaded';
+const ELEMENT_LOADED_CLASS_NAME = 'i-amphtml-story-page-element-loaded';
 
 
 /**
@@ -36,7 +36,7 @@ const ELEMENT_LOADED_CLASS_NAME = 'i-amp-story-page-element-loaded';
  * be shown in the UI.
  * @const {string}
  */
-const ELEMENT_SHOW_CLASS_NAME = 'i-amp-story-page-element-shown';
+const ELEMENT_SHOW_CLASS_NAME = 'i-amphtml-story-page-element-shown';
 
 
 /**
@@ -44,7 +44,7 @@ const ELEMENT_SHOW_CLASS_NAME = 'i-amp-story-page-element-shown';
  * failed to load.
  * @const {string}
  */
-const ELEMENT_FAILED_CLASS_NAME = 'i-amp-story-page-element-failed';
+const ELEMENT_FAILED_CLASS_NAME = 'i-amphtml-story-page-element-failed';
 
 
 /**

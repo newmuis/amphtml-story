@@ -139,7 +139,7 @@ export class AmpStory extends AMP.BaseElement {
   buildCallback() {
     if (this.element.hasAttribute(AMP_STORY_STANDALONE_ATTRIBUTE)) {
       this.getAmpDoc().win.document.documentElement.classList
-          .add('i-amp-story-standalone');
+          .add('i-amphtml-story-standalone');
     }
 
     this.element.appendChild(this.systemLayer_.build());
@@ -188,7 +188,7 @@ export class AmpStory extends AMP.BaseElement {
     this.element.addEventListener(EventType.SWITCH_PAGE, e => {
       const targetPageId = e.detail.targetPageId;
 
-      if (targetPageId === 'i-amp-story-bookend') {
+      if (targetPageId === 'i-amphtml-story-bookend') {
         this.showBookend_();
       } else {
         this.switchTo_(targetPageId);
@@ -468,7 +468,7 @@ export class AmpStory extends AMP.BaseElement {
       this.isBookendActive_ = true;
 
       this.vsync_.mutate(() => {
-        this.element.classList.add('i-amp-story-bookend-active');
+        this.element.classList.add('i-amphtml-story-bookend-active');
         this.bookend_.getRoot()./*OK*/scrollTop = 0;
       });
     });
@@ -484,7 +484,7 @@ export class AmpStory extends AMP.BaseElement {
     this.isBookendActive_ = false;
 
     this.vsync_.mutate(() => {
-      this.element.classList.remove('i-amp-story-bookend-active');
+      this.element.classList.remove('i-amphtml-story-bookend-active');
     });
   }
 
