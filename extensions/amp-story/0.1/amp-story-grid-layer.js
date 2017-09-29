@@ -103,9 +103,9 @@ export class AmpStoryGridLayer extends AMP.BaseElement {
     const elementsToUpgradeStyles = this.element
         .querySelectorAll(SUPPORTED_CSS_GRID_ATTRIBUTES_SELECTOR);
 
-    for (const element of elementsToUpgradeStyles) {
+    Array.prototype.forEach.call(elementsToUpgradeStyles, element => {
       this.setCssGridStyles_(element);
-    }
+    });
   }
 
 

@@ -20,8 +20,7 @@ import {
 } from '../analytics';
 
 
-describes.fakeWin('amp-story analytics', {}, env => {
-  let win;
+describes.fakeWin('amp-story analytics', {}, () => {
   let analyticsTrigger;
   let rootEl;
 

@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 The AMP HTML Authors. All Rights Reserved.
+ * Copyright 2017 The AMP HTML Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,14 +32,14 @@ export class VariableService {
   }
 
   /**
-   * @param {!./navigation-state.StateChangeEvent} stateChangeEvent
+   * @param {!./navigation-state.StateChangeEventDef} stateChangeEvent
    */
   onStateChange(stateChangeEvent) {
-    switch(stateChangeEvent.type) {
+    switch (stateChangeEvent.type) {
       case StateChangeType.ACTIVE_PAGE:
         this.pageIndex_ = stateChangeEvent.value.pageIndex;
         this.pageId_ = stateChangeEvent.value.pageId;
-      break;
+        break;
     }
   }
 
