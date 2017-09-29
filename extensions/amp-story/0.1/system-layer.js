@@ -17,16 +17,13 @@ import {EventType, dispatch} from './events';
 import {dev} from '../../../src/log';
 import {scale, setStyles} from '../../../src/style';
 import {Services} from '../../../src/services';
+import {ProgressBar} from './progress-bar';
 
 
 // TODO(alanorozco): Use a precompiled template for performance
 const TEMPLATE =
-    `<div class="i-amphtml-story-progress">
-      <div class="i-amphtml-story-progress-bar"></div>
-      <div class="i-amphtml-story-progress-value"></div>
-    </div>
-    <div class="i-amphtml-story-ui-right">
-      <div role="button" class="i-amphtml-story-unmute-audio-control i-amphtml-story-button">
+    `<div class="i-amp-story-ui-right">
+      <div role="button" class="i-amp-story-unmute-audio-control i-amp-story-button">
         <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24" fill="#FFFFFF">
           <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
           <path d="M0 0h24v24H0z" fill="none"/>
@@ -98,14 +95,15 @@ export class SystemLayer {
     /** @private {?Element} */
     this.unmuteAudioBtn_ = null;
 
-    /** @private {?Element} */
-    this.progressEl_ = null;
+    /** @private @const {!ProgressBar} */
+    this.progressBar_ = new ProgressBar(win);
   }
 
   /**
+   * @param {number} pageCount The number of pages in the story.
    * @return {!Element}
    */
-  build() {
+  build(pageCount) {
     if (this.isBuilt_) {
       return this.getRoot();
     }
@@ -115,6 +113,9 @@ export class SystemLayer {
     this.root_ = this.win_.document.createElement('aside');
     this.root_.classList.add('i-amphtml-story-system-layer');
     this.root_./*OK*/innerHTML = TEMPLATE;
+
+    this.root_.insertBefore(
+        this.progressBar_.build(pageCount), this.root_.firstChild);
 
     this.exitFullScreenBtn_ =
         this.root_.querySelector('.i-amphtml-story-exit-fullscreen');
@@ -246,16 +247,10 @@ export class SystemLayer {
   }
 
   /**
-   * @param {number} index
-   * @param {number} total
+   * @param {number} pageIndex The index of the new active page.
+   * @public
    */
-  updateProgressBar(index, total) {
-    const factor = index / total;
-
-    this.getVsync_().mutate(() => {
-      setStyles(this.progressEl_, {
-        'transform': scale(`${factor},1`),
-      });
-    });
+  setActivePageIndex(pageIndex) {
+    this.progressBar_.setActivePageIndex(pageIndex);
   }
 }

@@ -48,6 +48,7 @@ import {
 import {registerServiceBuilder} from '../../../src/service';
 import {AudioManager, upgradeBackgroundAudio} from './audio';
 import {setStyles} from '../../../src/style';
+import {ProgressBar} from './progress-bar';
 
 
 /** @private @const {number} */
@@ -136,7 +137,8 @@ export class AmpStory extends AMP.BaseElement {
           .add('i-amphtml-story-standalone');
     }
 
-    this.element.appendChild(this.systemLayer_.build());
+    this.element.appendChild(
+        this.systemLayer_.build(this.getRealChildren().length));
 
     this.initializeListeners_();
 
@@ -314,9 +316,8 @@ export class AmpStory extends AMP.BaseElement {
       this.enterFullScreen_();
     }
 
-    // first page is not counted as part of the progress
     // TODO(alanorozco): decouple this using NavigationState
-    this.systemLayer_.updateProgressBar(pageIndex, this.getPageCount() - 1);
+    this.systemLayer_.setActivePageIndex(pageIndex);
 
     // TODO(alanorozco): check if autoplay
     this.navigationState_.updateActivePage(pageIndex, targetPage.element.id);
