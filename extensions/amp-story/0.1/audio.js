@@ -49,7 +49,7 @@ const PLAYABLE_ID_PREFIX = 'i-amphtml-playable-';
 /**
  * @const {string}
  */
-const BACKGROUND_AUDIO_ELEMENT_CLASS_NAME = 'i-amp-story-background-audio';
+const BACKGROUND_AUDIO_ELEMENT_CLASS_NAME = 'i-amphtml-story-background-audio';
 
 
 /**

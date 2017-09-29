@@ -29,10 +29,10 @@ amp-story {
   width: 100% !important;
 }
 
-html.i-amp-story-standalone,
+html.i-amphtml-story-standalone,
 html[amp-story],
 html[📖],
-html.i-amp-story-standalone body,
+html.i-amphtml-story-standalone body,
 html[amp-story] body,
 html[📖] body {
   height: 100% !important;
@@ -41,7 +41,7 @@ html[📖] body {
   width: 100% !important;
 }
 
-html.i-amp-story-standalone body,
+html.i-amphtml-story-standalone body,
 html[amp-story] body,
 html[📖] body  {
   display: grid !important;
@@ -90,7 +90,7 @@ html[📖] body > amp-story:fullscreen {
   max-width: none;
 }
 
-.i-amp-story-system-layer {
+.i-amphtml-story-system-layer {
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.35), transparent);
   position: absolute;
   top: 0;
@@ -102,12 +102,12 @@ html[📖] body > amp-story:fullscreen {
   box-sizing: border-box;
 }
 
-.i-amp-story-ui-right {
+.i-amphtml-story-ui-right {
   float: right;
   margin: 4px 8px;
 }
 
-.i-amp-story-button {
+.i-amphtml-story-button {
   float: left;
   height: 40px;
   width: 40px;
@@ -117,13 +117,13 @@ html[📖] body > amp-story:fullscreen {
   padding: 8px;
 }
 
-.i-amp-story-button:active {
+.i-amphtml-story-button:active {
   /* TODO(alanorozco): do we want material ripple effect? */
   background: rgba(0, 0, 0, 0.2);
 }
 
-.i-amp-story-progress-bar,
-.i-amp-story-progress-value {
+.i-amphtml-story-progress-bar,
+.i-amphtml-story-progress-value {
   position: absolute;
   left: 0;
   right: 0;
@@ -131,11 +131,11 @@ html[📖] body > amp-story:fullscreen {
   height: 4px;
 }
 
-.i-amp-story-progress-bar {
+.i-amphtml-story-progress-bar {
   background: rgba(255, 255, 255, 0.25);
 }
 
-.i-amp-story-progress-value {
+.i-amphtml-story-progress-value {
   /* Do not remove `translateZ(0)` or `will-change` as they prevent an iOS
    * repaint issue. */
   background: rgba(255, 255, 255, 1);
@@ -146,17 +146,17 @@ html[📖] body > amp-story:fullscreen {
   will-change: transform;
 }
 
-[dir=rtl] .i-amp-story-progress-value {
+[dir=rtl] .i-amphtml-story-progress-value {
   transform-origin: right;
 }
 
-.i-amp-story-mute-audio-control,
-.i-amp-story-unmute-audio-control {
+.i-amphtml-story-mute-audio-control,
+.i-amphtml-story-unmute-audio-control {
   display: none;
 }
 
-.audio-playing.unmuted .i-amp-story-mute-audio-control,
-.audio-playing:not(.unmuted) .i-amp-story-unmute-audio-control {
+.audio-playing.unmuted .i-amphtml-story-mute-audio-control,
+.audio-playing:not(.unmuted) .i-amphtml-story-unmute-audio-control {
   display: block;
 }
 
@@ -184,7 +184,7 @@ amp-story-page[active] {
   transform: translateY(0) !important;
 }
 
-.i-amp-story-page-loading-screen {
+.i-amphtml-story-page-loading-screen {
   align-items: center;
   background-color: #000;
   bottom: 0 !important;
@@ -199,17 +199,17 @@ amp-story-page[active] {
   z-index: 9999 !important;
 }
 
-amp-story-page[active] .i-amp-story-page-loading-screen {
+amp-story-page[active] .i-amphtml-story-page-loading-screen {
   transition: opacity 0.2s ease !important;
 }
 
-.i-amp-story-page-loading-dots {
+.i-amphtml-story-page-loading-dots {
   display: flex;
   margin: 0;
   padding: 0;
 }
 
-.i-amp-story-page-loading-dot {
+.i-amphtml-story-page-loading-dot {
   background-color: #fff;
   border-radius: 50%;
   height: 8px;
@@ -218,19 +218,19 @@ amp-story-page[active] .i-amp-story-page-loading-screen {
   width: 8px;
 }
 
-.i-amp-story-page-loading-dot {
+.i-amphtml-story-page-loading-dot {
   animation: 1s linear infinite alternate grow;
 }
 
-.i-amp-story-page-loading-dot:nth-child(1) {
+.i-amphtml-story-page-loading-dot:nth-child(1) {
   animation-delay: 0.0s;
 }
 
-.i-amp-story-page-loading-dot:nth-child(2) {
+.i-amphtml-story-page-loading-dot:nth-child(2) {
   animation-delay: 0.5s;
 }
 
-.i-amp-story-page-loading-dot:nth-child(3) {
+.i-amphtml-story-page-loading-dot:nth-child(3) {
   animation-delay: 1.0s;
 }
 
@@ -239,12 +239,12 @@ amp-story-page[active] .i-amp-story-page-loading-screen {
   to { transform: scale(2); }
 }
 
-.i-amp-story-page-loading-text {
+.i-amphtml-story-page-loading-text {
   margin: 38px 0 0;
   font-size: 14px;
 }
 
-amp-story-page.i-amp-story-page-shown > .i-amp-story-page-loading-screen {
+amp-story-page.i-amphtml-story-page-shown > .i-amphtml-story-page-loading-screen {
   opacity: 0;
   pointer-events: none;
 }
@@ -266,11 +266,11 @@ amp-story-grid-layer * {
   margin: 0 !important;
 }
 
-.i-amp-story-grid-template-fill > :not(:first-child) {
+.i-amphtml-story-grid-template-fill > :not(:first-child) {
   display: none !important;
 }
 
-.i-amp-story-grid-template-fill > :first-child {
+.i-amphtml-story-grid-template-fill > :first-child {
   bottom: 0 !important;
   display: block !important;
   height: auto !important;
@@ -281,13 +281,13 @@ amp-story-grid-layer * {
   width: auto !important;
 }
 
-.i-amp-story-grid-template-fill > amp-anim img,
-.i-amp-story-grid-template-fill > amp-img img,
-.i-amp-story-grid-template-fill > amp-video video {
+.i-amphtml-story-grid-template-fill > amp-anim img,
+.i-amphtml-story-grid-template-fill > amp-img img,
+.i-amphtml-story-grid-template-fill > amp-video video {
   object-fit: cover !important;
 }
 
-.i-amp-story-grid-template-vertical {
+.i-amphtml-story-grid-template-vertical {
   align-content: start;
   grid-auto-flow: row !important;
   grid-gap: 16px;
@@ -297,11 +297,11 @@ amp-story-grid-layer * {
   padding: 32px;
 }
 
-.i-amp-story-grid-template-vertical > * {
+.i-amphtml-story-grid-template-vertical > * {
   width: 100%;
 }
 
-.i-amp-story-grid-template-horizontal {
+.i-amphtml-story-grid-template-horizontal {
   align-content: stretch;
   align-items: start;
   grid-auto-flow: column !important;
@@ -311,7 +311,7 @@ amp-story-grid-layer * {
   padding: 32px;
 }
 
-.i-amp-story-grid-template-thirds {
+.i-amphtml-story-grid-template-thirds {
   grid-template-rows: repeat(3, 1fr) !important;
   grid-template-areas: "upper-third"
                        "middle-third"
@@ -320,7 +320,7 @@ amp-story-grid-layer * {
 }
 
 /** Bookend */
-.i-amp-story-bookend {
+.i-amphtml-story-bookend {
   background: rgba(0, 0, 0, 0.85) !important;
   color: #fff;
   bottom: 0 !important;
@@ -333,11 +333,11 @@ amp-story-grid-layer * {
   overflow: auto;
 }
 
-.i-amp-story-bookend-active .i-amp-story-bookend {
+.i-amphtml-story-bookend-active .i-amphtml-story-bookend {
   display: block !important;
 }
 
-.i-amp-story-bookend-heading {
+.i-amphtml-story-bookend-heading {
   text-transform: uppercase;
   font-size: 10px;
   padding: 0 0 8px;
@@ -350,7 +350,7 @@ amp-story-grid-layer * {
   line-height: 1;
 }
 
-.i-amp-story-bookend-article-meta {
+.i-amphtml-story-bookend-article-meta {
   font-family: 'Roboto', sans-serif;
   font-weight: 300;
   font-size: 10px;
@@ -358,16 +358,16 @@ amp-story-grid-layer * {
   color: rgba(255, 255, 255, 0.54);
 }
 
-.i-amp-story-bookend-article-set > article {
+.i-amphtml-story-bookend-article-set > article {
   margin: 24px 0;
   overflow: hidden;
 }
 
-.i-amp-story-bookend-article-set:last-child > article:last-child {
+.i-amphtml-story-bookend-article-set:last-child > article:last-child {
   margin-bottom: 0; /* bottom of bookend has padding > article margin */
 }
 
-.i-amp-story-bookend-article-heading {
+.i-amphtml-story-bookend-article-heading {
   font-family: 'Roboto', sans-serif;
   font-weight: 300;
   font-size: 16px;
@@ -376,26 +376,26 @@ amp-story-grid-layer * {
   margin: 0 0 8px;
 }
 
-.i-amp-story-bookend-article-image {
+.i-amphtml-story-bookend-article-image {
   width: 116px;
   height: 116px;
   float: right;
   margin-left: 16px;
 }
 
-.i-amp-story-bookend-heading + .i-amp-story-bookend-article-set {
+.i-amphtml-story-bookend-heading + .i-amphtml-story-bookend-article-set {
   border-top: none;
 }
 
-.i-amp-story-bookend-article-set {
+.i-amphtml-story-bookend-article-set {
   border-top: 1px solid rgba(255, 255, 255, 0.25);
 }
 
-.i-amp-story-share-icon > svg {
+.i-amphtml-story-share-icon > svg {
   fill: #fff;
 }
 
-.i-amp-story-share-list {
+.i-amphtml-story-share-list {
   display: flex;
   list-style: none;
   flex-wrap: nowrap;
@@ -405,12 +405,12 @@ amp-story-grid-layer * {
   overflow: auto;
 }
 
-.i-amp-story-share-list::-webkit-scrollbar {
+.i-amphtml-story-share-list::-webkit-scrollbar {
   width: 0px;
   background: transparent;
 }
 
-.i-amp-story-share-icon {
+.i-amphtml-story-share-icon {
   box-sizing: border-box;
   width: 48px;
   height: 48px;
@@ -421,31 +421,31 @@ amp-story-grid-layer * {
   display: block !important;
 }
 
-.i-amp-story-share-icon:active {
+.i-amphtml-story-share-icon:active {
   background-color: rgba(255, 255, 255, 0.6);
   outline: none;
 }
 
-amp-social-share.i-amp-story-share-icon[type=email] {
+amp-social-share.i-amphtml-story-share-icon[type=email] {
   background-image: none !important;
 }
 
-.i-amp-story-share-list > li {
+.i-amphtml-story-share-list > li {
   width: 48px;
   height: 66px;
   padding: 0 16px;
   display: inline-block;
 }
 
-.i-amp-story-share-list > li:first-child {
+.i-amphtml-story-share-list > li:first-child {
   padding-left: 32px;
 }
 
-.i-amp-story-share-list > li:last-child {
+.i-amphtml-story-share-list > li:last-child {
   padding-right: 32px;
 }
 
-.i-amp-story-share-name {
+.i-amphtml-story-share-name {
   display: block;
   text-align: center;
   text-transform: capitalize;

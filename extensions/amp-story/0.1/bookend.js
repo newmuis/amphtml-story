@@ -38,7 +38,7 @@ export let BookendConfig;
 function articleHtml(articleData) {
   // TODO(alanorozco): Consider using amp-img and what we need to get it working
   const imgHtml = articleData.image ? (
-      `<div class="i-amp-story-bookend-article-image">
+      `<div class="i-amphtml-story-bookend-article-image">
         <img src="${articleData.image}"
             width="116"
             height="116">
@@ -48,10 +48,10 @@ function articleHtml(articleData) {
 
   return (
       `${imgHtml}
-      <h2 class="i-amp-story-bookend-article-heading">
+      <h2 class="i-amphtml-story-bookend-article-heading">
         ${articleData.title}
       </h2>
-      <div class="i-amp-story-bookend-article-meta">
+      <div class="i-amphtml-story-bookend-article-meta">
         example.com - 10 mins
       </div>`
   );
@@ -90,7 +90,7 @@ export class Bookend {
     this.isBuilt_ = true;
 
     this.root_ = this.win_.document.createElement('section');
-    this.root_.classList.add('i-amp-story-bookend');
+    this.root_.classList.add('i-amphtml-story-bookend');
 
     this.root_.appendChild(this.shareWidget_.build());
 
@@ -161,7 +161,7 @@ export class Bookend {
    */
   buildArticleList_(articleList) {
     const container = createElementWithAttributes(this.win_.document, 'div', {
-      'class': 'i-amp-story-bookend-article-set',
+      'class': 'i-amphtml-story-bookend-article-set',
     });
     articleList.forEach(article =>
         container.appendChild(this.buildArticle_(article)));
@@ -174,7 +174,7 @@ export class Bookend {
    */
   buildArticleSetHeading_(heading) {
     const headingEl = createElementWithAttributes(this.win_.document, 'h3', {
-      'class': 'i-amp-story-bookend-heading',
+      'class': 'i-amphtml-story-bookend-heading',
     });
     headingEl.innerText = escapeHtml(heading);
     return headingEl;
