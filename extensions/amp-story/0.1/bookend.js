@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 import {BookendShareWidget} from './bookend-share';
-import {EventType, dispatch} from './events';
 import {createElementWithAttributes, escapeHtml} from '../../../src/dom';
 import {dev} from '../../../src/log';
 
 
 /**
  * @typedef {{
- *   shareProviders: !JsonObject|undefined,
+ *   shareProviders: (!JsonObject|undefined),
  *   relatedArticles: !Array<!./related-articles.RelatedArticleSet>
  * }}
  */
