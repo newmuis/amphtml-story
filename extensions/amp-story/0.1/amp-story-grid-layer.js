@@ -69,6 +69,30 @@ export class AmpStoryGridLayer extends AMP.BaseElement {
     this.applyTemplateClassName_();
     this.setOwnCssGridStyles_();
     this.setDescendentCssGridStyles_();
+    this.hoistPosterImageForFillLayers_();
+  }
+
+
+  /** @private */
+  hoistPosterImageForFillLayers_() {
+    if (this.element.getAttribute(TEMPLATE_ATTRIBUTE_NAME).toLowerCase() !== 'fill') {
+      return;
+    }
+
+    const firstEl = this.getRealChildren()[0];
+    if (!firstEl) {
+      return;
+    }
+
+    const posterImageSrc = firstEl.getAttribute('poster');
+    if (!posterImageSrc) {
+      return;
+    }
+
+    this.element.style.backgroundImage = `url(${posterImageSrc})`;
+    this.element.style.backgroundSize = 'cover';
+    this.element.style.backgroundPosition = 'center center';
+    this.element.style.backgroundRepeat = 'no-repeat';
   }
 
 

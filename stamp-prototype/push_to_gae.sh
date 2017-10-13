@@ -22,4 +22,4 @@ node generator ../examples/amp-story/samples www/samples
 find . -name '*.html' -exec sed -i '' -e 's/cdn.ampproject.org/stamp-prototype.appspot.com/g' {} \;
 
 # Deploy the app to App Engine.
-gcloud app deploy app.yaml --no-promote --quiet --project=stamp-prototype
+gcloud app deploy app.yaml --no-promote --quiet --project=stamp-prototype --version=demo2
