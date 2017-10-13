@@ -215,7 +215,7 @@ amp-story-page[active] {
 }
 
 amp-story-page[active] .i-amphtml-story-page-loading-screen {
-  transition: opacity 0.2s ease !important;
+  transition: opacity 0.4s ease !important;
 }
 
 .i-amphtml-story-page-loading-dots {
@@ -257,6 +257,17 @@ amp-story-page[active] .i-amphtml-story-page-loading-screen {
 .i-amphtml-story-page-loading-text {
   margin: 38px 0 0;
   font-size: 14px;
+}
+
+.i-amphtml-story-page-loading-dots,
+.i-amphtml-story-page-loading-text {
+  opacity: 0;
+  transition: opacity 0.3s ease 2s;
+}
+
+amp-story-page[active] .i-amphtml-story-page-loading-dots,
+amp-story-page[active] .i-amphtml-story-page-loading-text {
+  opacity: 1;
 }
 
 amp-story-page.i-amphtml-story-page-shown > .i-amphtml-story-page-loading-screen {
