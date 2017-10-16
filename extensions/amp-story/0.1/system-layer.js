@@ -15,9 +15,9 @@
  */
 import {EventType, dispatch} from './events';
 import {dev} from '../../../src/log';
-import {scale, setStyles} from '../../../src/style';
 import {Services} from '../../../src/services';
 import {ProgressBar} from './progress-bar';
+import {KeyCodes} from '../../../src/utils/key-codes';
 
 
 // TODO(alanorozco): Use a precompiled template for performance
@@ -129,7 +129,8 @@ export class SystemLayer {
     this.unmuteAudioBtn_ =
         this.root_.querySelector('.i-amphtml-story-unmute-audio-control');
 
-    this.progressEl_ = this.root_.querySelector('.i-amphtml-story-progress-value');
+    this.progressEl_ =
+        this.root_.querySelector('.i-amphtml-story-progress-value');
 
     this.addEventHandlers_();
 
@@ -152,6 +153,12 @@ export class SystemLayer {
 
     this.unmuteAudioBtn_.addEventListener(
         'click', e => this.onUnmuteAudioClick_(e));
+
+    this.win_.document.addEventListener('keydown', event => {
+      if (event.keyCode == KeyCodes.ESCAPE) {
+        this.onEscapeKey(event);
+      }
+    });
   }
 
   /**
@@ -214,6 +221,14 @@ export class SystemLayer {
    * @private
    */
   onCloseBookendClick_(e) {
+    this.dispatch_(EventType.CLOSE_BOOKEND, e);
+  }
+
+  /**
+   * @param {!Event} e
+   * @private
+   */
+  onEscapeKey(e) {
     this.dispatch_(EventType.CLOSE_BOOKEND, e);
   }
 

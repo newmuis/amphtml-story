@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+@import './amp-story-desktop.css';
+
+
 /** Common */
 amp-story, amp-story-page, amp-story-grid-layer {
   contain: strict !important;
@@ -27,6 +30,11 @@ amp-story {
   text-rendering: geometricPrecision !important;
   user-select: none !important;
   width: 100% !important;
+}
+
+amp-story[desktop] {
+  max-width: 100%!important;
+  max-height: 100%!important;
 }
 
 html.i-amphtml-story-standalone,
@@ -188,6 +196,7 @@ amp-story-page {
   position: absolute !important;
   right: 0 !important;
   top: 0 !important;
+  transition: none;
 }
 
 amp-story-page.i-amphtml-layout-container {
@@ -294,6 +303,31 @@ amp-story-grid-layer * {
 
 .i-amphtml-story-grid-template-fill > :not(:first-child) {
   display: none !important;
+}
+
+.i-amphtml-story-logo {
+  display: none;
+  margin: 15px;
+}
+
+[desktop] .i-amphtml-story-logo {
+  display: block;
+}
+
+.i-amphtml-story-background {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  filter: blur(15px);
+  margin: -30px;
+  background-size: 125% 125%;
+  background-color: transparent;
+}
+
+.i-amphtml-story-background-hidden {
+  opacity: 0;
 }
 
 .i-amphtml-story-grid-template-fill > :first-child {

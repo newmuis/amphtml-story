@@ -635,7 +635,17 @@ export function openWindowDialog(win, url, target, opt_features) {
  */
 export function isJsonScriptTag(element) {
   return element.tagName == 'SCRIPT' &&
-            element.getAttribute('type').toUpperCase() == 'APPLICATION/JSON';
+      element.getAttribute('type').toUpperCase() == 'APPLICATION/JSON';
+}
+
+/**
+ * Whether the element is a script tag with application/json type.
+ * @param {!Element} element
+ * @return {boolean}
+ */
+export function isJsonLdScriptTag(element) {
+  return element.tagName == 'SCRIPT' &&
+      element.getAttribute('type').toUpperCase() == 'APPLICATION/LD+JSON';
 }
 
 /**
