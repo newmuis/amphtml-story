@@ -49,6 +49,8 @@ import {registerServiceBuilder} from '../../../src/service';
 import {AudioManager, upgradeBackgroundAudio} from './audio';
 import {setStyles} from '../../../src/style';
 import {ProgressBar} from './progress-bar';
+import {isFiniteNumber, toArray} from '../../../src/types';
+import {installParallaxHandler} from './parallax';
 
 
 /** @private @const {number} */
@@ -149,6 +151,11 @@ export class AmpStory extends AMP.BaseElement {
 
     registerServiceBuilder(this.win, 'story-variable',
         () => this.variableService_);
+
+    // Install parallax handlers if no opt-out is detected
+    this.parallaxService_ = installParallaxHandler(this.win,
+        toArray(this.getPages())
+    );
   }
 
 

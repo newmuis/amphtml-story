@@ -52,3 +52,27 @@ export function mapRange(val, min1, max1, min2, max2) {
 
   return (val - min1) * (max2 - min2) / (max1 - min1) + min2;
 };
+
+/**
+ * Maps a value in a first range to its equivalent on a logarithmic scale
+ * Ex.: 5 in the range [0,10] gives 60 in the range[40,80]
+ *
+ * @param {number} val the value in the source range
+ * @param {number} domainMax the upper bound of the source range
+ * @param {number} rangeMax the upper bound of the target range
+ * @return {number} the equivalent value in the target range
+ */
+export function logRange(val, domainMax, rangeMax) {
+  const sign = rangeMax > 0 ? 1 : -1;
+  return sign * Math.exp(
+    mapRange(
+      Math.abs(val),
+      0, domainMax,
+      Math.log(1), Math.log(Math.abs(rangeMax))
+    )
+  );
+}
+
+export function sum(points) {
+  return points.reduce(function(a, b) { return a + b; });
+}
